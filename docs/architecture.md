@@ -141,7 +141,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 推荐方向（见 ADR 0004）：
 
 - 普通用户：Plugin 或 Starter Template，不需要 clone 源码或执行项目构建。
-- CLI：生产实现语言为 Go；提供签名/校验的预构建跨平台 artifact bundle。Headless 所需的公开 CLI 与 sibling 私有 runner 作为一个不可拆分的分发单元；npm 包作为高级用户便利入口，包含已构建产物而非要求本机编译。
+- CLI：生产实现语言为 Go；提供可校验的预构建跨平台 artifact bundle。Headless 所需的公开 CLI 与 sibling 私有 runner 作为一个不可拆分的分发单元；当前本地候选采用 `darwin-universal2`、`linux-amd64`、`windows-amd64` 固定目录、逐文件 manifest、可复现 archive 与外部 checksum。签名/Gatekeeper 仍需按 ADR 0013 实测，不能提前宣称解决。npm 包作为高级用户便利入口，包含已构建产物而非要求本机编译。
 - Rust/Go 语言对照已完成并由用户于 2026-08-25 冻结 Go。Phase 1 继续验证 macOS arm64、Windows x64、Linux x64 的实际运行、Plugin 打包、evidence 和 CI；交叉编译文件形状不等于目标宿主支持。
 - 发布使用受保护 tag、GitHub-hosted runner、OIDC Trusted Publishing、最小权限和 provenance；不用长期发布 Token。
 
@@ -155,8 +155,8 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- Plugin 能否可靠携带/定位各平台 CLI，以及最小安装步骤。
-- Go CLI 的 Plugin 携带方式、包体积、目标宿主运行、升级/回滚路径。
+- Plugin 本地 bundle 已能携带/定位各平台 CLI；仍需在 Codex 实际安装缓存和新任务中验证相对路径及最小安装步骤。
+- Go CLI 的本地 Plugin archive 当前约 11 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、quarantine、升级/回滚路径仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
 - 构建、导出与 release 在三种模式下的精确门禁矩阵。

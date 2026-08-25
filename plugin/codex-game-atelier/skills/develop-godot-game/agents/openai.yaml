@@ -1,4 +1,4 @@
 interface:
   display_name: "Develop Godot Game"
-  short_description: "Inspect or explicitly initialize Atelier Godot state"
-  default_prompt: "Use $develop-godot-game to inspect this Godot project and initialize Atelier state only if I explicitly request it."
+  short_description: "Validate and test supported Godot projects"
+  default_prompt: "Use $develop-godot-game to inspect this Godot project and choose the safest implemented Atelier workflow."

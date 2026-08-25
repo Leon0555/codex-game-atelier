@@ -1,19 +1,29 @@
 ---
 name: develop-godot-game
-description: Inspect a supported Godot project or explicitly initialize its Codex Game Atelier state through the Phase 1 CLI. Use for detect, doctor, initialize, or status; validate, test, build, export, and evidence persistence are not implemented yet.
+description: Inspect, initialize, validate, test, or read verified run diagnostics for a supported Godot/GDScript project through the bundled Codex Game Atelier CLI. Use for Atelier project readiness and recorded Godot workflows; build, export, release, arbitrary scripts, and raw log access are not implemented.
 ---
 
 # Develop Godot Game
 
-Use Codex for judgment and the available Atelier CLI for deterministic `detect`, `doctor`, `initialize`, and `status` operations.
+Use Codex for judgment and the bundled Atelier CLI for deterministic project operations. Structured CLI results are authoritative; do not infer success from prose or file presence.
 
-- Resolve the user's project path before invoking the CLI. `detect`, `doctor`, and `status` are read-only.
-- Invoke `initialize` only when the user explicitly asks to initialize Atelier state. It is currently enabled only on verified macOS Apple Silicon; Linux x64 and Windows x64 return `INITIALIZE_HOST_NOT_VERIFIED` pending native transaction validation. Explain that a successful first initialization creates `.gameatelier/project.json` and a persistent advisory-lock file, but does not modify `project.godot`, install Godot, or run the engine.
-- Never use `initialize` as a repair, migration, force, or overwrite path. If existing state is invalid or unsafe, report the structured failure and preserve it.
-- Treat structured results as authoritative for command status. Every current result must contain an empty `evidence` array; atomic state initialization does not mean a persisted evidence chain exists.
-- If the user requests validate, test, build, export, logs, clean, or release, report that the operation is not implemented in this source skeleton.
-- Do not turn arbitrary shell or script evaluation into a substitute workflow.
-- Never install Godot or large dependencies, install Git hooks, log in, enable telemetry, or publish without the user's explicit approval for that action.
-- When bounded parallel work materially helps, assign non-overlapping ownership and keep review independent and read-only. Continue serially when native subagents are unavailable.
-- Do not fabricate task persistence, handoff recovery, gates, or background services that this slice does not implement.
-- If the CLI executable is unavailable, stop the affected operation. A Godot executable is required by `doctor`, but not by `initialize`; do not fabricate fallback success for either case.
+## Bundled CLI
+
+Anchor paths at this installed Skill directory; do not search for a source checkout, Go toolchain, npm package, or same-named executable on `PATH`.
+
+- macOS Apple Silicon: `../../bin/darwin-universal2/codex-game-atelier`
+- Linux x64 artifact inventory only: `../../bin/linux-amd64/codex-game-atelier`
+- Windows x64 artifact inventory only: `..\\..\\bin\\windows-amd64\\codex-game-atelier.exe`
+
+In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other runtime host as unsupported, including Linux x64 and Windows x64: their files are cross-build artifact evidence and must not be executed or presented as native support until separate validation is recorded. The public macOS CLI and its sibling `codex-game-atelier-runner` must both exist as regular files in the selected directory before `validate --headless` or `test`.
+
+## Operations
+
+- Resolve the user's Godot project path before invoking the CLI. `detect`, `doctor`, `status`, `logs --run-id`, and `clean --list` are read-only. `clean --list` is only a preview and never authorizes deletion.
+- Invoke `initialize` only when the user explicitly asks to initialize Atelier state. A successful first run creates `.gameatelier/project.json` and a persistent advisory-lock file; it does not modify `project.godot`, install Godot, or run the engine. Never use it as repair, migration, force, or overwrite.
+- `validate` records an immutable run even for the default static baseline. Use `--headless` only after the user explicitly authorizes Godot's standard `user://` writes. Do not add arbitrary Godot arguments.
+- `test` runs only `res://tests/atelier_test_runner.gd` and executes trusted project GDScript. Confirm the project is owned or reviewed and obtain explicit authorization for standard `user://` writes before passing `--allow-engine-user-data`. Do not substitute another script, filter, shell command, or eval path.
+- `logs --run-id <strict-id>` returns a zero-free-text structural projection of one verified committed validate/test run. It does not return source IDs, error text, report summaries, payload paths, or raw stdout/stderr.
+- Treat `BLOCKED`, `FAIL`, nonzero exit codes, missing evidence, and unsafe state exactly as reported. Preserve incomplete/corrupt runs and failure evidence.
+
+Build, export, release, recovery, deletion, raw log capture, arbitrary code execution, Git-hook installation, dependency installation, telemetry, login, and external publication are outside this Skill. Do not fabricate them or replace them with ad hoc shell workflows. If a bundled executable is unavailable, stop the affected operation and report the missing artifact.

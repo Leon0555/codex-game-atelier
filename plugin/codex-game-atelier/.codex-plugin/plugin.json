@@ -1,9 +1,10 @@
 {
   "name": "codex-game-atelier",
-  "version": "0.1.0",
-  "description": "Phase 1 Codex workflows for supported Godot prerequisite checks and explicit Atelier state initialization.",
+  "version": "0.2.0",
+  "description": "Codex-native workflows backed by a deterministic CLI for supported Godot projects.",
   "author": {
     "name": "Leon0555",
+    "email": "Leon0555@users.noreply.github.com",
     "url": "https://github.com/Leon0555"
   },
   "license": "MIT",
@@ -11,11 +12,15 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Game Atelier",
-    "shortDescription": "Inspect Godot projects or initialize Atelier state.",
-    "longDescription": "Phase 1 source skeleton for detect, doctor, explicit atomic initialize, and status workflows. It is not distribution-ready and does not yet persist evidence.",
+    "shortDescription": "Validate and test supported Godot projects.",
+    "longDescription": "Phase 1 Godot workflows for project inspection, explicit initialization, recorded validation and tests, committed-run diagnostics, and bounded cleanup previews. Build, export, release, and raw log retention are not implemented yet.",
     "developerName": "Leon0555",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
-    "defaultPrompt": ["Inspect this Godot project with Codex Game Atelier and initialize state only when explicitly requested."]
+    "defaultPrompt": [
+      "Inspect this Godot project and report its Atelier readiness.",
+      "Validate this initialized project and show the structured result.",
+      "Run the fixed GDScript tests after confirming required authorization."
+    ]
   }
 }
