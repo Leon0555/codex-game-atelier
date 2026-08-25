@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t120200.000000000z-fedcba543210",
+  "command": {
+    "name": "clean",
+    "arguments": {
+      "project": ".",
+      "list": true
+    }
+  },
+  "outcome": "FAIL",
+  "started_at": "2026-08-25T12:02:00Z",
+  "finished_at": "2026-08-25T12:02:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 6,
+  "summary": "Run cleanup candidate scanning was cancelled.",
+  "errors": [
+    {
+      "code": "COMMAND_CANCELLED",
+      "category": "cancelled",
+      "message": "The run scan was cancelled.",
+      "retryable": true
+    }
+  ],
+  "evidence": [],
+  "data": {
+    "scope": "runs",
+    "state_path": ".gameatelier/runs",
+    "scanned": false,
+    "counts": {
+      "committed": 0,
+      "incomplete": 0,
+      "orphan": 0,
+      "corrupt": 0
+    },
+    "candidates": [],
+    "protected": []
+  }
+}

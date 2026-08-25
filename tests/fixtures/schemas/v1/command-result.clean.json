@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t120000.000000000z-0123456789ab",
+  "command": {
+    "name": "clean",
+    "arguments": {
+      "project": ".",
+      "list": true
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-25T12:00:00Z",
+  "finished_at": "2026-08-25T12:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Run cleanup candidates were listed without modifying the project.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "scope": "runs",
+    "state_path": ".gameatelier/runs",
+    "scanned": true,
+    "counts": {
+      "committed": 1,
+      "incomplete": 1,
+      "orphan": 1,
+      "corrupt": 1
+    },
+    "candidates": [
+      {
+        "run_id": "atelier-20260825t120001.000000000z-111111111111",
+        "state": "incomplete",
+        "path": ".gameatelier/runs/atelier-20260825t120001.000000000z-111111111111",
+        "reason": "RESULT_MISSING"
+      },
+      {
+        "run_id": "atelier-20260825t120002.000000000z-222222222222",
+        "state": "orphan",
+        "path": ".gameatelier/runs/atelier-20260825t120002.000000000z-222222222222",
+        "reason": "INTENT_AND_RESULT_MISSING"
+      }
+    ],
+    "protected": [
+      {
+        "run_id": "atelier-20260825t120003.000000000z-333333333333",
+        "state": "corrupt",
+        "path": ".gameatelier/runs/atelier-20260825t120003.000000000z-333333333333",
+        "reason": "EVIDENCE_CLOSURE_INVALID"
+      }
+    ]
+  }
+}

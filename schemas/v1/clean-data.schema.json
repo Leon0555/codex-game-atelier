@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "clean-data.schema.json",
+  "title": "Codex Game Atelier clean list data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scope", "state_path", "scanned", "counts", "candidates", "protected"],
+  "properties": {
+    "scope": { "const": "runs" },
+    "state_path": { "const": ".gameatelier/runs" },
+    "scanned": { "type": "boolean" },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["committed", "incomplete", "orphan", "corrupt"],
+      "properties": {
+        "committed": { "type": "integer", "minimum": 0, "maximum": 512 },
+        "incomplete": { "type": "integer", "minimum": 0, "maximum": 512 },
+        "orphan": { "type": "integer", "minimum": 0, "maximum": 512 },
+        "corrupt": { "type": "integer", "minimum": 0, "maximum": 512 }
+      }
+    },
+    "candidates": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/candidate" }
+    },
+    "protected": {
+      "type": "array",
+      "maxItems": 512,
+      "items": { "$ref": "#/$defs/protected" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "scanned": { "const": false } }, "required": ["scanned"] },
+      "then": {
+        "properties": {
+          "counts": {
+            "properties": {
+              "committed": { "const": 0 },
+              "incomplete": { "const": 0 },
+              "orphan": { "const": 0 },
+              "corrupt": { "const": 0 }
+            }
+          },
+          "candidates": { "maxItems": 0 },
+          "protected": { "maxItems": 0 }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "runId": {
+      "type": "string",
+      "pattern": "^atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$"
+    },
+    "runPath": {
+      "type": "string",
+      "pattern": "^\\.gameatelier/runs/atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$"
+    },
+    "candidate": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["run_id", "state", "path", "reason"],
+          "properties": {
+            "run_id": { "$ref": "#/$defs/runId" },
+            "state": { "const": "incomplete" },
+            "path": { "$ref": "#/$defs/runPath" },
+            "reason": { "const": "RESULT_MISSING" }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["run_id", "state", "path", "reason"],
+          "properties": {
+            "run_id": { "$ref": "#/$defs/runId" },
+            "state": { "const": "orphan" },
+            "path": { "$ref": "#/$defs/runPath" },
+            "reason": { "const": "INTENT_AND_RESULT_MISSING" }
+          }
+        }
+      ]
+    },
+    "protected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "state", "path", "reason"],
+      "properties": {
+        "run_id": { "$ref": "#/$defs/runId" },
+        "state": { "const": "corrupt" },
+        "path": { "$ref": "#/$defs/runPath" },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "INTENT_UNSAFE",
+            "RESULT_UNSAFE",
+            "INTENT_MISSING",
+            "INTENT_INVALID",
+            "RESULT_INVALID",
+            "RESULT_NON_CANONICAL",
+            "RESULT_INTENT_MISMATCH",
+            "RESULT_PREFLIGHT_FAILED",
+            "PAYLOAD_CLOSURE_INVALID",
+            "EVIDENCE_RECORD_INVALID",
+            "EVIDENCE_CLOSURE_INVALID"
+          ]
+        }
+      }
+    }
+  }
+}

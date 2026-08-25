@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t120100.000000000z-abcdef012345",
+  "command": {
+    "name": "clean",
+    "arguments": {
+      "project": ".",
+      "list": true
+    }
+  },
+  "outcome": "FAIL",
+  "started_at": "2026-08-25T12:01:00Z",
+  "finished_at": "2026-08-25T12:01:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 7,
+  "summary": "Run records could not be scanned safely.",
+  "errors": [
+    {
+      "code": "RUN_SCAN_UNSAFE",
+      "category": "state",
+      "message": "The run store contains an unsafe or unbounded directory structure.",
+      "retryable": false
+    }
+  ],
+  "evidence": [],
+  "data": {
+    "scope": "runs",
+    "state_path": ".gameatelier/runs",
+    "scanned": false,
+    "counts": {
+      "committed": 0,
+      "incomplete": 0,
+      "orphan": 0,
+      "corrupt": 0
+    },
+    "candidates": [],
+    "protected": []
+  }
+}

@@ -38,7 +38,7 @@ CLI 没有修改系统配置、用户 `HOME`、Godot 安装或全局 Codex 配�
 
 首次尝试把 `/dev/fd/3` 直接传给 Godot，run `atelier-20260825t033913.140224000z-1d446f299139` 按契约提交 `FAIL`/5。只读诊断确认 Godot 报告 `Invalid project path specified: "/dev/fd/3"`。实现随后改为私有 runner 先 `fchdir(fd 3)`、再以 `--path .` exec Godot。
 
-独立审计随后发现 version/scene 重复解析公共 Godot/runner 路径的竞态，实现改为从各自已打开源 fd 创建阶段独立执行快照。macOS 实测表明未经重签名的 clone 会因复制后签名无效被系统终止；现在只对瞬时 Mach-O 快照执行固定的本地 ad-hoc 重签名。旧实现的超时试验 run `atelier-20260825t041814.681509000z-bc722ece95fd` 曾提交 `BLOCKED`/4 并遗留一个 79 MiB `.godot-scene-snapshot.cstemp`；该历史结果不代表最终契约，当前 timeout 统一为 `FAIL`/6，清理或瞬时文件存在会阻止 result 发布，历史临时文件等待用户单独确认后删除。沙箱内试验 run `atelier-20260825t042005.079422000z-72e7a6794f64` 因标准 macOS user-data/log 目录不可写而提交 `FAIL`/5；获准访问声明目录后最终 run PASS。所有失败 result/evidence 均保留，没有通过删除证据获得 PASS。
+独立审计随后发现 version/scene 重复解析公共 Godot/runner 路径的竞态，实现改为从各自已打开源 fd 创建阶段独立执行快照。macOS 实测表明未经重签名的 clone 会因复制后签名无效被系统终止；现在只对瞬时 Mach-O 快照执行固定的本地 ad-hoc 重签名。旧实现的超时试验 run `atelier-20260825t041814.681509000z-bc722ece95fd` 曾提交 `BLOCKED`/4 并遗留一个 79 MiB `.godot-scene-snapshot.cstemp`；该历史结果不代表最终契约，当前 timeout 统一为 `FAIL`/6，清理或瞬时文件存在会阻止 result 发布。用户后续明确批准定点删除该 `.cstemp`；删除后同一 run 的 intent、result 和 validation evidence 均保留。沙箱内试验 run `atelier-20260825t042005.079422000z-72e7a6794f64` 因标准 macOS user-data/log 目录不可写而提交 `FAIL`/5；获准访问声明目录后最终 run PASS。所有失败 result/evidence 均保留，没有通过删除证据获得 PASS。
 
 ## 尚未覆盖
 

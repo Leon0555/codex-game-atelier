@@ -345,11 +345,11 @@ func validateResultData(data map[string]any) (string, int, error) {
 	if !ok || scope != "baseline" && scope != "headless" {
 		return "", 0, errors.New("validate result scope is invalid")
 	}
-	count, ok := data["check_count"].(int)
-	if !ok || count < 1 || count > 64 {
+	countValue, ok := persistedInteger(data["check_count"])
+	if !ok || countValue < 1 || countValue > 64 {
 		return "", 0, errors.New("validate result check count is invalid")
 	}
-	return scope, count, nil
+	return scope, int(countValue), nil
 }
 
 func validatePersistedValidateArguments(arguments map[string]any) error {

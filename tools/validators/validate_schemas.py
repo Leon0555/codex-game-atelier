@@ -122,7 +122,25 @@ def main() -> None:
         "headless command result with baseline data scope",
     )
 
-    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 6 negative assertions, headless cross-fixture semantics")
+    clean_result = load_json(FIXTURE_ROOT / "command-result.clean.json")
+    if not isinstance(clean_result, dict):
+        raise SystemExit("clean result fixture must be an object")
+    invalid_clean_reason = copy.deepcopy(clean_result)
+    invalid_clean_reason["data"]["candidates"][0]["reason"] = "INTENT_AND_RESULT_MISSING"
+    expect_invalid(
+        validators["command-result"],
+        invalid_clean_reason,
+        "incomplete clean candidate with orphan reason",
+    )
+    invalid_partial_scan = copy.deepcopy(clean_result)
+    invalid_partial_scan["data"]["scanned"] = False
+    expect_invalid(
+        validators["command-result"],
+        invalid_partial_scan,
+        "failed clean scan with partial decisions",
+    )
+
+    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 8 negative assertions, headless cross-fixture semantics")
 
 
 if __name__ == "__main__":

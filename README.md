@@ -2,7 +2,7 @@
 
 Codex Game Atelier is an open-source framework for Codex-native game-development collaboration. The planned v1.0 scope is production-grade Godot support through a Codex Plugin, Starter Template, deterministic CLI, and file-based state/evidence system.
 
-The v1 deterministic CLI production implementation language is Go. The Phase 1 production slices now implement read-only `detect`, `doctor`, and `status`, atomic `initialize`, plus recorded static and explicitly authorized Godot Headless validation; this is not yet a release-ready CLI. Headless packaging uses a public CLI plus a sibling private runner in one prebuilt bundle. Rust remains a Phase 1 comparison artifact only and is not part of the production or distribution path.
+The v1 deterministic CLI production implementation language is Go. The Phase 1 production slices now implement read-only `detect`, `doctor`, `status`, and bounded `clean --list`, atomic `initialize`, plus recorded static and explicitly authorized Godot Headless validation; this is not yet a release-ready CLI. Headless packaging uses a public CLI plus a sibling private runner in one prebuilt bundle. Rust remains a Phase 1 comparison artifact only and is not part of the production or distribution path.
 
 ## Current status
 
@@ -19,7 +19,7 @@ Do not treat this repository as ready for game development until the v1.0 accept
 
 ## Project documents
 
-Start with [docs/project-brief.md](docs/project-brief.md), [docs/architecture.md](docs/architecture.md), [docs/support-matrix.md](docs/support-matrix.md), and [docs/v1-acceptance.md](docs/v1-acceptance.md). ADR 0004 freezes Go as the v1 CLI production language; ADRs 0005-0009 define state/evidence, initial commands, initialization, multi-file commit, and Godot Headless user-data authorization.
+Start with [docs/project-brief.md](docs/project-brief.md), [docs/architecture.md](docs/architecture.md), [docs/support-matrix.md](docs/support-matrix.md), and [docs/v1-acceptance.md](docs/v1-acceptance.md). ADR 0004 freezes Go as the v1 CLI production language; ADRs 0005-0010 define state/evidence, initial commands, initialization, multi-file commit, Godot Headless user-data authorization, and the bounded run scanner.
 
 ## License
 

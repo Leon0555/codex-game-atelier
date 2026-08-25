@@ -22,7 +22,7 @@ ADR 0005 已确定 `validate`、`test`、`build`、`export`、`release check` �
 ├── evidence/
 │   └── 0001-<kind>.json
 ├── result.json
-└── .run.lock                 # 未来 recovery/clean 使用；首个 commit slice 不创建
+└── .run.lock                 # 未来共同 writer/recovery/clean 协议；首个 commit slice 不创建
 ```
 
 - `run-id` 沿用小写 ASCII 的 `atelier-<utc>-<random>`；run 目录必须唯一且 no-replace。
@@ -77,7 +77,7 @@ run 使用唯一目录、append-only/no-replace，正常提交不持有 project 
 - run root 创建前的预检失败：没有 run，公开 `validate` 返回固定 `RUN_RECORDING_UNAVAILABLE`，不泄露内部路径或原始系统错误。
 - 唯一 run root 已创建但 `intent.json` 尚未完成 no-replace 发布时发生故障：可以留下没有 intent 的 `orphan` 目录；它永远不是 PASS，未来 scanner 必须与有 intent 的 `incomplete` 分开报告，清理仍需精确列出和显式确认。
 - intent 后、result 前崩溃：保留 incomplete run 与已写材料，不自动 glob 删除，不计 PASS。
-- recovery 只能在精确 run root 的 `.run.lock` 下进行。只有预生成 result 与完整闭包均可证明时才能 no-replace finalize；未知 engine outcome 不得猜测 PASS。首个 commit slice 不实现 recovery 或创建 `.run.lock`，只保留/识别 incomplete；实现 recovery 前该项保持 NOT RUN。
+- recovery 只能在精确 run root 的共同 writer/recovery/clean 协调协议下进行。仅由 recovery 或 cleaner 单方面创建 `.run.lock` 不能与当前无锁 writer 同步；实现前必须先升级 writer 参与同一协议并解决 run-root/lock 创建竞态。只有预生成 result 与完整闭包均可证明时才能 no-replace finalize；未知 engine outcome 不得猜测 PASS。首个 commit slice 不实现 recovery 或创建 `.run.lock`，只保留/识别 incomplete；实现 recovery 前该项保持 NOT RUN。详见 ADR 0010。
 - 普通重试生成新 run ID；同一 completed run 永不覆盖或重执行。
 - `clean` 未来只能先列出 incomplete/orphan 的精确路径，删除仍需独立预览和确认。
 

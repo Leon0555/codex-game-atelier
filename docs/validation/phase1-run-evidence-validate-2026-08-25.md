@@ -3,7 +3,7 @@
 日期：2026-08-25  
 状态：PASS（限定范围）
 
-> 后续进展：本记录只描述当时的静态 baseline。ADR 0009 与 `phase1-godot-headless-2026-08-25.md` 已在其后加入显式 Headless 路径；以下历史验证结论不作追溯改写。
+> 后续进展：本记录只描述当时的静态 baseline。ADR 0009 与 `phase1-godot-headless-2026-08-25.md` 已在其后加入显式 Headless 路径，ADR 0010 与 `phase1-run-scanner-clean-list-2026-08-25.md` 已加入只读 scanner；以下历史验证结论不作追溯改写。
 
 ## 范围结论
 

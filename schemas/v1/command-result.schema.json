@@ -65,6 +65,27 @@
       }
     },
     {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "clean" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "list"],
+                "properties": {
+                  "project": { "type": "string", "minLength": 1 },
+                  "list": { "const": true }
+                }
+              }
+            }
+          },
+          "data": { "$ref": "clean-data.schema.json" }
+        }
+      }
+    },
+    {
       "if": { "properties": { "command": { "properties": { "name": { "const": "detect" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": { "properties": { "data": { "$ref": "detect-data.schema.json" } } }
     },
