@@ -42,6 +42,7 @@ type runIntentRecord struct {
 	Producer          evidenceProducer   `json:"producer"`
 	ExpectedResultRef string             `json:"expected_result_ref"`
 	DeclaredWrites    []string           `json:"declared_write_paths"`
+	DeclaredExternal  []string           `json:"declared_external_writes"`
 }
 
 type evidenceProducer struct {
@@ -157,7 +158,11 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 	}
 
 	runBase := ".gameatelier/runs/" + result.RunID
-	frozenCommand := contract.Command{Name: result.Command.Name, Arguments: map[string]any{"project": "."}}
+	frozenArguments := make(map[string]any, len(result.Command.Arguments))
+	for key, value := range result.Command.Arguments {
+		frozenArguments[key] = value
+	}
+	frozenCommand := contract.Command{Name: result.Command.Name, Arguments: frozenArguments}
 	intent := runIntentRecord{
 		SchemaVersion:     contract.SchemaVersion,
 		RunID:             result.RunID,
@@ -170,6 +175,7 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 		Producer:          evidenceProducer{Component: "gameatelier-cli", Version: Version},
 		ExpectedResultRef: runBase + "/result.json",
 		DeclaredWrites:    []string{runBase},
+		DeclaredExternal:  declaredExternalWrites(frozenCommand),
 	}
 	intentBytes, err := marshalRunJSON(intent)
 	if err != nil || int64(len(intentBytes)) > maxRunIntentBytes {
@@ -203,6 +209,13 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 		runRoot:        runRoot,
 		fault:          fault,
 	}, nil
+}
+
+func declaredExternalWrites(command contract.Command) []string {
+	if command.Name == "validate" && command.Arguments["engine_user_data"] == "standard-os-location" {
+		return []string{"godot:user-data:standard-os-location"}
+	}
+	return []string{}
 }
 
 func (transaction *runTransaction) finish(result contract.Result, payloads []runPayload) runCommit {

@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "validation-report.schema.json",
-  "title": "Codex Game Atelier baseline validation report",
+  "title": "Codex Game Atelier validation report",
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "scope", "outcome", "checks"],
   "properties": {
     "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
-    "scope": { "const": "baseline" },
+    "scope": { "type": "string", "enum": ["baseline", "headless"] },
     "outcome": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED", "SKIPPED"] },
     "checks": {
       "type": "array",

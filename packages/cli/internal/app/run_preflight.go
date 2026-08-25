@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -56,13 +57,11 @@ func preflightRunIntent(state projectState, result contract.Result, producerVers
 	if _, ok := allowedPersistedCommands[result.Command.Name]; !ok {
 		return errors.New("command is not eligible for persisted evidence")
 	}
-	if result.Command.Name != "validate" || len(result.Command.Arguments) != 1 || result.Command.Arguments == nil {
+	if result.Command.Name != "validate" || result.Command.Arguments == nil {
 		return errors.New("persisted command arguments are outside bounds")
 	}
-	project, exists := result.Command.Arguments["project"]
-	normalized, ok := project.(string)
-	if !exists || !ok || normalized != "." {
-		return errors.New("persisted project argument must be normalized to dot")
+	if err := validatePersistedValidateArguments(result.Command.Arguments); err != nil {
+		return err
 	}
 	if err := validatePersistedJSON(result.Command.Arguments); err != nil {
 		return fmt.Errorf("persisted command arguments are unsafe: %w", err)
@@ -77,7 +76,7 @@ func preflightRunIntent(state projectState, result contract.Result, producerVers
 }
 
 func preflightRunFinish(transaction *runTransaction, result contract.Result, payloads []runPayload) error {
-	if transaction == nil || !producerVersionPattern.MatchString(transaction.producer) || result.RunID != transaction.runID || result.StartedAt != transaction.startedAt || result.Command.Name != transaction.command.Name {
+	if transaction == nil || !producerVersionPattern.MatchString(transaction.producer) || result.RunID != transaction.runID || result.StartedAt != transaction.startedAt || !reflect.DeepEqual(result.Command, transaction.command) {
 		return errors.New("run result does not match its immutable intent")
 	}
 	if err := preflightRunIntent(transaction.state, result, transaction.producer); err != nil {
@@ -117,9 +116,12 @@ func preflightRunFinish(transaction *runTransaction, result contract.Result, pay
 	if err := validatePersistedJSON(data); err != nil {
 		return errors.New("persisted command data is unsafe")
 	}
-	checkCount, err := validateBaselineResultData(data)
+	scope, checkCount, err := validateResultData(data)
 	if err != nil {
 		return err
+	}
+	if scope != validateCommandScope(result.Command) {
+		return errors.New("validate result scope conflicts with its immutable command")
 	}
 	if len(payloads) != 1 {
 		return errors.New("run payload count is outside bounds")
@@ -162,7 +164,7 @@ func preflightRunFinish(transaction *runTransaction, result contract.Result, pay
 		if err := validatePersistedJSON(value); err != nil {
 			return errors.New("evidence payload contains unsafe data")
 		}
-		reportCheckCount, err := validateValidationReportPayload(payload.Content, result.Outcome)
+		reportCheckCount, err := validateValidationReportPayload(payload.Content, scope, result.Outcome)
 		if err != nil {
 			return err
 		}
@@ -186,7 +188,7 @@ type baselineValidationCheck struct {
 	Summary string `json:"summary"`
 }
 
-func validateValidationReportPayload(content []byte, resultOutcome string) (int, error) {
+func validateValidationReportPayload(content []byte, resultScope, resultOutcome string) (int, error) {
 	decoder := json.NewDecoder(bytes.NewReader(content))
 	decoder.DisallowUnknownFields()
 	var report baselineValidationReport
@@ -196,8 +198,8 @@ func validateValidationReportPayload(content []byte, resultOutcome string) (int,
 	if err := decoder.Decode(&struct{}{}); err != io.EOF {
 		return 0, errors.New("validation report payload has trailing data")
 	}
-	if report.SchemaVersion != contract.SchemaVersion || report.Scope != "baseline" || report.Outcome != resultOutcome || len(report.Checks) == 0 || len(report.Checks) > 64 {
-		return 0, errors.New("validation report payload violates its baseline contract")
+	if report.SchemaVersion != contract.SchemaVersion || report.Scope != resultScope || report.Outcome != resultOutcome || len(report.Checks) == 0 || len(report.Checks) > 64 {
+		return 0, errors.New("validation report payload violates its command scope")
 	}
 	seen := make(map[string]struct{}, len(report.Checks))
 	matchingOutcome := false
@@ -335,15 +337,60 @@ func safePersistedString(value string) bool {
 	return true
 }
 
-func validateBaselineResultData(data map[string]any) (int, error) {
-	if len(data) != 2 || data["scope"] != "baseline" {
-		return 0, errors.New("validate result data violates its first-slice contract")
+func validateResultData(data map[string]any) (string, int, error) {
+	if len(data) != 2 {
+		return "", 0, errors.New("validate result data violates its bounded contract")
+	}
+	scope, ok := data["scope"].(string)
+	if !ok || scope != "baseline" && scope != "headless" {
+		return "", 0, errors.New("validate result scope is invalid")
 	}
 	count, ok := data["check_count"].(int)
 	if !ok || count < 1 || count > 64 {
-		return 0, errors.New("validate result check count is invalid")
+		return "", 0, errors.New("validate result check count is invalid")
 	}
-	return count, nil
+	return scope, count, nil
+}
+
+func validatePersistedValidateArguments(arguments map[string]any) error {
+	project, exists := arguments["project"]
+	normalized, ok := project.(string)
+	if !exists || !ok || normalized != "." {
+		return errors.New("persisted project argument must be normalized to dot")
+	}
+	if len(arguments) == 1 {
+		return nil
+	}
+	if len(arguments) != 5 || arguments["headless"] != true {
+		return errors.New("persisted validate arguments violate the headless contract")
+	}
+	timeout, ok := persistedInteger(arguments["timeout_ms"])
+	if !ok || timeout < 1 || timeout > maxTimeoutMS {
+		return errors.New("persisted headless timeout is invalid")
+	}
+	policy, ok := arguments["engine_user_data"].(string)
+	if !ok || policy != "not-authorized" && policy != "standard-os-location" {
+		return errors.New("persisted engine user-data policy is invalid")
+	}
+	source, ok := arguments["godot_source"].(string)
+	if !ok || source != "explicit" && source != "discovery" {
+		return errors.New("persisted Godot source is invalid")
+	}
+	return nil
+}
+
+func persistedInteger(value any) (int64, bool) {
+	switch typed := value.(type) {
+	case int:
+		return int64(typed), true
+	case int64:
+		return typed, true
+	case json.Number:
+		parsed, err := strconv.ParseInt(string(typed), 10, 64)
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
 }
 
 func parsePersistedTimestamp(value string) (time.Time, error) {

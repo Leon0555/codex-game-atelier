@@ -8,9 +8,11 @@ Implemented commands:
 - `doctor`: read-only prerequisite checks plus the fixed external call `Godot --version`.
 - `initialize`: on the currently verified macOS Apple Silicon host, atomically creates the first strict `.gameatelier/project.json` for an existing supported Godot/GDScript project; valid reruns are byte-for-byte no-ops. Linux x64 and Windows x64 return `INITIALIZE_HOST_NOT_VERIFIED` until their native transaction matrices pass.
 - `status`: strict read-only parsing of `.gameatelier/project.json`.
-- `validate`: on the verified macOS Apple Silicon/APFS path, records a static baseline for strict project state, a pinned regular `project.godot`, the GDScript-only boundary, and evidence-persistence readiness. It does not start Godot or claim scene/resource/headless validation.
+- `validate`: records the static baseline by default. With `--headless`, it requires explicit `--allow-engine-user-data`, requires the selected executable to self-report the accepted Godot 4.7.2 standard-build identifier, and runs the fixed main-scene one-frame check from pinned project and engine identities with bounded output, timeout/cancellation, and recorded evidence.
 
-All subcommands emit one structured JSON result to stdout. `initialize` writes only project state. `validate` creates a self-contained immutable run whose `result.json` is published last and references a hashed validation-report payload; incomplete/orphan runs never count as PASS. Full Godot headless validation, recovery/cleanup commands, packaging, and target-host release verification remain outside this slice.
+All subcommands emit one structured JSON result to stdout. `initialize` writes only project state. `validate` creates a self-contained immutable run whose `result.json` is published last and references a hashed validation-report payload; incomplete/orphan runs never count as PASS. Headless does not accept arbitrary Godot arguments. It pins the paired private runner and selected engine as open source descriptors, then creates separate runner/engine snapshots for version and scene; the project directory is inherited as a pinned descriptor. Every transient snapshot must be removed before result commit, otherwise the run remains incomplete. The authorized standard `user://` side effect is recorded symbolically without persisting the user's absolute path. Version text is a process observation, not proof of binary provenance; repository-local official binary identity is verified separately during maintainer setup. Full GDScript test suites, recovery/cleanup commands, packaging, and target-host release verification remain outside this slice.
+
+`validate --headless` executes the selected project's main-scene GDScript. Use it only for a project you own or have reviewed. This Phase 1 slice does not sandbox network or absolute-path operations initiated by project code, so it does not claim that an arbitrary project has no external side effects.
 
 Maintainer verification with the repository-local Go toolchain:
 
@@ -20,4 +22,4 @@ GOMODCACHE="$PWD/../../.tools/go-mod-cache" \
 ../../.tools/go/1.27.0/bin/go test ./...
 ```
 
-End users will receive a prebuilt artifact and will not need Go or a source build.
+End users will receive a prebuilt artifact bundle containing the public `codex-game-atelier` CLI and its sibling private `codex-game-atelier-runner`; they will not need Go or a source build. The runner is an internal component, not a second user-facing command.

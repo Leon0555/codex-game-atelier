@@ -8,7 +8,7 @@
       "additionalProperties": false,
       "required": ["scope", "check_count"],
       "properties": {
-        "scope": { "const": "baseline" },
+        "scope": { "type": "string", "enum": ["baseline", "headless"] },
         "check_count": { "type": "integer", "minimum": 1, "maximum": 64 }
       }
     },
@@ -17,7 +17,7 @@
       "additionalProperties": false,
       "required": ["scope", "recorded"],
       "properties": {
-        "scope": { "const": "baseline" },
+        "scope": { "type": "string", "enum": ["baseline", "headless"] },
         "recorded": { "const": false }
       }
     }

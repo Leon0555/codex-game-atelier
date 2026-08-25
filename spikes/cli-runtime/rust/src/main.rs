@@ -50,7 +50,7 @@ fn main() {
 
 fn run(args: Vec<String>) -> i32 {
     if args.as_slice() == ["--version"] {
-        println!("gamefoundry-runtime-spike {SPIKE_VERSION} (rust)");
+        println!("gameatelier-runtime-spike {SPIKE_VERSION} (rust)");
         return 0;
     }
     if args.first().map(String::as_str) != Some("doctor") {

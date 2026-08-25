@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,6 +35,135 @@ func TestValidateCommitsBaselineEvidenceAndEmitsStoredBytes(t *testing.T) {
 	}
 	assertStoredRunClosure(t, project, result.RunID)
 	assertResultInvariant(t, result)
+}
+
+func TestValidateHeadlessRequiresExplicitUserDataAuthorizationBeforeGodotStarts(t *testing.T) {
+	requireInitializePlatform(t)
+	project := createProject(t, "headless-policy")
+	code, initialized, _, _ := execute(t, context.Background(), "initialize", "--project", project)
+	if code != contract.ExitOK || initialized.Outcome != "PASS" {
+		t.Fatalf("initialize failed: code=%d result=%+v", code, initialized)
+	}
+	marker := filepath.Join(t.TempDir(), "started")
+	godot := createExecutable(t, "fake-godot", "#!/bin/sh\nprintf started > '"+marker+"'\n")
+
+	code, result, _, _ := execute(t, context.Background(), "validate", "--project", project, "--headless", "--godot", godot)
+	if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "ENGINE_USER_DATA_NOT_AUTHORIZED" || len(result.Evidence) != 1 {
+		t.Fatalf("unexpected policy result: code=%d result=%+v", code, result)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("Godot started without authorization: %v", err)
+	}
+	if result.Command.Arguments["engine_user_data"] != "not-authorized" || result.Command.Arguments["godot_source"] != "explicit" {
+		t.Fatalf("headless policy was not normalized in the result: %+v", result.Command.Arguments)
+	}
+	assertStoredRunClosure(t, project, result.RunID)
+}
+
+func TestValidateHeadlessCommitsPassingFixedEngineRun(t *testing.T) {
+	requireInitializePlatform(t)
+	project := createProject(t, "验证 Headless 🚀")
+	code, initialized, _, _ := execute(t, context.Background(), "initialize", "--project", project)
+	if code != contract.ExitOK || initialized.Outcome != "PASS" {
+		t.Fatalf("initialize failed: code=%d result=%+v", code, initialized)
+	}
+	godot := createExecutable(t, "fake-godot", "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\nprintf 'scene ready\\n'\n")
+
+	code, result, stdout, stderr := execute(t, context.Background(), "validate", "--project", project, "--headless", "--godot", godot, "--timeout-ms", "2000", "--allow-engine-user-data")
+	if code != contract.ExitOK || result.Outcome != "PASS" || len(result.Evidence) != 1 || stderr != "" {
+		t.Fatalf("headless validate failed: code=%d result=%+v stderr=%q", code, result, stderr)
+	}
+	if strings.Contains(stdout, godot) || result.Command.Arguments["engine_user_data"] != "standard-os-location" || result.Command.Arguments["timeout_ms"] != float64(2000) {
+		t.Fatalf("result leaked an executable path or lost normalized arguments: %s", stdout)
+	}
+	data := resultDataMap(t, result)
+	if data["scope"] != "headless" || data["check_count"] != float64(8) {
+		t.Fatalf("unexpected headless data: %+v", data)
+	}
+	intentBytes, err := os.ReadFile(filepath.Join(project, ".gameatelier", "runs", result.RunID, "intent.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var intent runIntentRecord
+	if err := json.Unmarshal(intentBytes, &intent); err != nil || len(intent.DeclaredExternal) != 1 || intent.DeclaredExternal[0] != "godot:user-data:standard-os-location" {
+		t.Fatalf("headless external write was not declared: err=%v intent=%+v", err, intent)
+	}
+	assertStoredRunClosure(t, project, result.RunID)
+}
+
+func TestValidateHeadlessCommitsEngineErrorAndTimeout(t *testing.T) {
+	requireInitializePlatform(t)
+	for _, test := range []struct {
+		name      string
+		body      string
+		timeoutMS string
+		wantExit  int
+		wantError string
+	}{
+		{name: "engine error", body: "printf 'ERROR: scene failed\\n' >&2", timeoutMS: "2000", wantExit: contract.ExitEngine, wantError: "GODOT_REPORTED_ERRORS"},
+		{name: "timeout", body: "sleep 5", timeoutMS: "100", wantExit: contract.ExitInterrupted, wantError: "GODOT_TIMEOUT"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			project := createProject(t, "headless-"+test.name)
+			code, initialized, _, _ := execute(t, context.Background(), "initialize", "--project", project)
+			if code != contract.ExitOK || initialized.Outcome != "PASS" {
+				t.Fatalf("initialize failed: code=%d result=%+v", code, initialized)
+			}
+			script := "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\n" + test.body + "\n"
+			godot := createExecutable(t, "fake-godot", script)
+
+			code, result, _, _ := execute(t, context.Background(), "validate", "--project", project, "--headless", "--godot", godot, "--timeout-ms", test.timeoutMS, "--allow-engine-user-data")
+			if code != test.wantExit || result.Outcome != "FAIL" || firstErrorCode(result) != test.wantError || len(result.Evidence) != 1 {
+				t.Fatalf("unexpected headless failure: code=%d result=%+v", code, result)
+			}
+			assertStoredRunClosure(t, project, result.RunID)
+		})
+	}
+}
+
+func TestValidateRejectsHeadlessOnlyFlagsWithoutHeadless(t *testing.T) {
+	project := createProject(t, "invalid-headless-flags")
+	for _, args := range [][]string{
+		{"validate", "--project", project, "--timeout-ms", "100"},
+		{"validate", "--project", project, "--allow-engine-user-data"},
+		{"validate", "--project", project, "--godot", "/tmp/godot"},
+	} {
+		code, result, _, _ := execute(t, context.Background(), args...)
+		if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" || len(result.Evidence) != 0 {
+			t.Fatalf("unexpected invalid-flag result for %v: code=%d result=%+v", args, code, result)
+		}
+	}
+}
+
+func TestValidationRunCommitGateRejectsCleanupFailureAndTransientFiles(t *testing.T) {
+	runPath := t.TempDir()
+	runRoot, err := os.OpenRoot(runPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer runRoot.Close()
+	result := contract.Result{Errors: []contract.Error{{Code: "GODOT_EXECUTABLE_SNAPSHOT_CLEANUP_FAILED"}}}
+	if !validationRunMustRemainIncomplete(result, runRoot) {
+		t.Fatal("cleanup failure did not block result publication")
+	}
+	result.Errors = nil
+	if err := os.WriteFile(filepath.Join(runPath, ".atelier-scene-runner.cstemp"), []byte("transient"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if !validationRunMustRemainIncomplete(result, runRoot) {
+		t.Fatal("transient runner file did not block result publication")
+	}
+}
+
+func TestValidateHeadlessKeepsScopeWhenProjectIsUnavailable(t *testing.T) {
+	missing := filepath.Join(t.TempDir(), "missing-project")
+	code, result, _, _ := execute(t, context.Background(), "validate", "--project", missing, "--headless", "--allow-engine-user-data")
+	if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "GODOT_PROJECT_NOT_FOUND" {
+		t.Fatalf("unexpected unavailable-project result: code=%d result=%+v", code, result)
+	}
+	if result.Command.Arguments["headless"] != true || resultDataMap(t, result)["scope"] != "headless" {
+		t.Fatalf("headless command lost its scope before evidence recording: %+v", result)
+	}
 }
 
 func TestValidateRejectsSymlinkedProjectFileWithoutFollowingIt(t *testing.T) {
@@ -100,6 +230,81 @@ func TestValidatePinsProjectRootAcrossPathReplacement(t *testing.T) {
 	assertStoredRunClosure(t, moved, result.RunID)
 }
 
+func TestValidateHeadlessRejectsPathReplacementBeforeStartingGodot(t *testing.T) {
+	requireInitializePlatform(t)
+	project, stateRoot, _ := createRunStoreProject(t, "headless-pinned-project")
+	stateRoot.Close()
+	moved := project + "-moved"
+	marker := filepath.Join(t.TempDir(), "godot-started")
+	godot := createExecutable(t, "fake-godot", "#!/bin/sh\nprintf started > '"+marker+"'\nprintf '4.7.2.stable.official.ed1daf0bf\\n'\n")
+	replaced := false
+	execution := runValidateWithFault(context.Background(), time.Now().UTC(), []string{
+		"--project", project,
+		"--headless",
+		"--godot", godot,
+		"--allow-engine-user-data",
+	}, func(stage string) error {
+		if stage != "after-intent" || replaced {
+			return nil
+		}
+		replaced = true
+		if err := os.Rename(project, moved); err != nil {
+			return err
+		}
+		if err := os.Mkdir(project, 0o755); err != nil {
+			return err
+		}
+		return os.WriteFile(filepath.Join(project, "project.godot"), []byte("config_version=5\n[application]\nconfig/name=\"Replacement\"\n"), 0o644)
+	})
+	var result contract.Result
+	if err := json.Unmarshal(execution.resultBytes, &result); err != nil {
+		t.Fatal(err)
+	}
+	if !replaced || execution.exitCode != contract.ExitState || result.Outcome != "FAIL" || firstErrorCode(result) != "PROJECT_CHANGED_DURING_VALIDATION" {
+		t.Fatalf("headless replacement was not rejected: replaced=%t execution=%+v result=%+v", replaced, execution, result)
+	}
+	if _, err := os.Stat(marker); !os.IsNotExist(err) {
+		t.Fatalf("Godot started after project path replacement: %v", err)
+	}
+	assertStoredRunClosure(t, moved, result.RunID)
+}
+
+func TestValidateHeadlessDiscardsObservationsAfterPathReplacement(t *testing.T) {
+	requireInitializePlatform(t)
+	project, stateRoot, _ := createRunStoreProject(t, "headless-runtime-replacement")
+	stateRoot.Close()
+	moved := project + "-moved"
+	marker := filepath.Join(t.TempDir(), "godot-ran")
+	script := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\n" +
+		"printf ran > '" + marker + "'\n" +
+		"mv '" + project + "' '" + moved + "'\n" +
+		"mkdir '" + project + "'\n" +
+		"printf 'config_version=5\\n[application]\\nconfig/name=\"Replacement\"\\n' > '" + filepath.Join(project, "project.godot") + "'\n"
+	godot := createExecutable(t, "fake-godot", script)
+
+	execution := runValidateWithFault(context.Background(), time.Now().UTC(), []string{
+		"--project", project,
+		"--headless",
+		"--godot", godot,
+		"--allow-engine-user-data",
+	}, nil)
+	var result contract.Result
+	if err := json.Unmarshal(execution.resultBytes, &result); err != nil {
+		t.Fatal(err)
+	}
+	if execution.exitCode != contract.ExitState || result.Outcome != "FAIL" || firstErrorCode(result) != "PROJECT_CHANGED_DURING_VALIDATION" {
+		t.Fatalf("runtime replacement observations were not discarded: execution=%+v result=%+v", execution, result)
+	}
+	if _, err := os.Stat(marker); err != nil {
+		t.Fatalf("fake Godot did not reach the replacement step: %v", err)
+	}
+	if content, err := os.ReadFile(filepath.Join(moved, "project.godot")); err != nil || strings.Contains(string(content), "Replacement") {
+		t.Fatalf("Godot was redirected to the replacement project: content=%q err=%v", content, err)
+	}
+	assertStoredRunClosure(t, moved, result.RunID)
+}
+
 func TestValidateBoundsPinnedProjectDirectoryEnumeration(t *testing.T) {
 	requireInitializePlatform(t)
 	project := createProject(t, "bounded-project-directory")
@@ -146,6 +351,44 @@ func TestValidateCommitFailureReturnsSingleUncommittedFailure(t *testing.T) {
 	}
 	if _, err := os.Lstat(filepath.Join(runRoot, "result.json")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("pre-result failure exposed result: %v", err)
+	}
+}
+
+func TestValidateHeadlessKeepsScopeAcrossEvidenceFailures(t *testing.T) {
+	requireInitializePlatform(t)
+	for _, test := range []struct {
+		name     string
+		stage    string
+		wantCode string
+	}{
+		{name: "recording unavailable", stage: "before-run-directory", wantCode: "RUN_RECORDING_UNAVAILABLE"},
+		{name: "prepare failure", stage: "before-intent", wantCode: "RUN_PREPARE_FAILED"},
+		{name: "incomplete intent", stage: "after-intent", wantCode: "RUN_COMMIT_FAILED"},
+		{name: "result commit failure", stage: "result:before-link", wantCode: "RUN_COMMIT_FAILED"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			project, stateRoot, _ := createRunStoreProject(t, "headless-evidence-"+test.name)
+			stateRoot.Close()
+			godot := createExecutable(t, "fake-godot", "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; fi\n")
+			execution := runValidateWithFault(context.Background(), time.Now().UTC(), []string{
+				"--project", project,
+				"--headless",
+				"--godot", godot,
+				"--allow-engine-user-data",
+			}, func(stage string) error {
+				if stage == test.stage {
+					return errors.New("injected evidence failure")
+				}
+				return nil
+			})
+			var result contract.Result
+			if err := json.Unmarshal(execution.resultBytes, &result); err != nil {
+				t.Fatal(err)
+			}
+			if execution.exitCode != contract.ExitState || firstErrorCode(result) != test.wantCode || result.Command.Arguments["headless"] != true || resultDataMap(t, result)["scope"] != "headless" {
+				t.Fatalf("headless evidence failure lost semantic scope: execution=%+v result=%+v", execution, result)
+			}
+		})
 	}
 }
 

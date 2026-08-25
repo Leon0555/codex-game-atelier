@@ -23,11 +23,11 @@
 
 1. 冻结已批准的最小 Support Matrix 目标与首个 ADR 集合；生产级声明仍等待实证。
 2. 用 Spike 验证 CLI 运行时、Plugin 携带/调用方式及零构建安装路径；Rust/Go 对照已完成并于 2026-08-25 冻结 Go，Plugin/evidence/目标宿主验证继续进行。
-3. 已定义 JSON Schema 初始基线：命令结果、错误、run intent/evidence/validation report、task/handoff 与 project state；initialize 单文件边界由 ADR 0007 冻结，多文件 run 提交由 ADR 0008 在限定范围接受。
-4. 已建立生产 Go CLI 的三个垂直切片：只读 `detect`/`doctor`/`status`、幂等 `initialize`、带 evidence 的静态 baseline `validate`；本机测试和三目标交叉构建继续验证，Windows/Linux 原生运行仍未验证。
+3. 已定义 JSON Schema 初始基线：命令结果、错误、run intent/evidence/validation report、task/handoff 与 project state；initialize 单文件边界由 ADR 0007 冻结，多文件 run 提交由 ADR 0008 在限定范围接受，ADR 0009 增补 Headless 外部写入声明。
+4. 已建立生产 Go CLI 的四个垂直切片：只读 `detect`/`doctor`/`status`、幂等 `initialize`、带 evidence 的静态 baseline `validate`、明示授权的 Godot Headless 一帧验证；Windows/Linux 原生运行仍未验证。
 5. 建立最小 Codex Plugin/Skill/Agent 骨架，验证逻辑 Profile 和原生子代理交接。
 6. 用户已批准门禁/引擎命令默认持久化 evidence；ADR 0008 的 run 自包含目录、最后 `result.json` 提交点、故障注入和 public validate 接线已实现，独立终审为 0 Blocker/High/Medium/Low。
-7. 以一个最小 Godot 项目完成“Codex 工作流 → CLI → Godot headless → evidence”的端到端薄切片。
+7. 已用参考项目完成“CLI → Godot 4.7.2 Headless → 中文/空格资源 → 原子 evidence”的端到端薄切片；Codex 工作流入口和完整测试仍继续。
 8. 进行独立只读架构、安全和可恢复性评审。
 
 Phase 1 不应先铺开所有命令、Agents 或 Skills；先证明契约、运行时、分发与证据链能闭环。
@@ -35,7 +35,7 @@ Phase 1 不应先铺开所有命令、Agents 或 Skills；先证明契约、运�
 ## Phase 2：确定性核心与门禁
 
 - 实现 run scanner、schema 迁移、恢复与索引；单文件初始化和首个多文件 evidence 提交已在 Phase 1 建立。
-- 扩展 `validate` 到 Godot headless/场景/资源边界，并实现 `logs`、安全的 `clean --list`；扩展 `initialize` 的迁移/clone 语义前另行决策。
+- 从已实现的一帧 Headless 薄切片扩展到完整场景/资源图与 GDScript 测试，并实现 `logs`、安全的 `clean --list`；扩展 `initialize` 的迁移/clone 语义前另行决策。
 - 实现 `manual`、`standard`、`strict` 及命令内建门禁。
 - 建立稳定退出码、超时、取消、重试与幂等测试。
 - 建立 CI 基础检查；Git hooks 仅提供显式可选安装器和卸载说明。

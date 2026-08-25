@@ -51,6 +51,12 @@
       "maxItems": 64,
       "uniqueItems": true,
       "items": { "$ref": "common.schema.json#/$defs/relativePath" }
+    },
+    "declared_external_writes": {
+      "type": "array",
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": { "const": "godot:user-data:standard-os-location" }
     }
   },
   "allOf": [
@@ -69,12 +75,64 @@
           "command": {
             "properties": {
               "arguments": {
-                "properties": { "project": { "const": "." } },
-                "required": ["project"],
-                "maxProperties": 1
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project"],
+                    "properties": { "project": { "const": "." } }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project", "headless", "timeout_ms", "engine_user_data", "godot_source"],
+                    "properties": {
+                      "project": { "const": "." },
+                      "headless": { "const": true },
+                      "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                      "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                      "godot_source": { "type": "string", "enum": ["explicit", "discovery"] }
+                    }
+                  }
+                ]
               }
             }
           }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "properties": {
+              "name": { "const": "validate" },
+              "arguments": {
+                "properties": {
+                  "headless": { "const": true },
+                  "engine_user_data": { "const": "standard-os-location" }
+                },
+                "required": ["headless", "engine_user_data"]
+              }
+            },
+            "required": ["name", "arguments"]
+          }
+        },
+        "required": ["command"]
+      },
+      "then": {
+        "required": ["declared_external_writes"],
+        "properties": {
+          "declared_external_writes": {
+            "minItems": 1,
+            "maxItems": 1,
+            "prefixItems": [{ "const": "godot:user-data:standard-os-location" }]
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "declared_external_writes": { "maxItems": 0 }
         }
       }
     }

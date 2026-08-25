@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "run_id": "atelier-20260825t000000.000000000z-0123456789ab",
+  "run_id": "atelier-20260825t000100.000000000z-0123456789ab",
   "project_id": "project-0123456789abcdef0123456789abcdef",
   "project_revision": 0,
   "policy_mode": "standard",
@@ -11,18 +11,15 @@
   },
   "command": {
     "name": "validate",
-    "arguments": {
-      "project": "."
-    }
+    "arguments": { "project": "." }
   },
-  "started_at": "2026-08-25T00:00:00Z",
+  "started_at": "2026-08-25T00:01:00Z",
   "producer": {
     "component": "gameatelier-cli",
     "version": "0.1.0"
   },
-  "expected_result_ref": ".gameatelier/runs/atelier-20260825t000000.000000000z-0123456789ab/result.json",
+  "expected_result_ref": ".gameatelier/runs/atelier-20260825t000100.000000000z-0123456789ab/result.json",
   "declared_write_paths": [
-    ".gameatelier/runs/atelier-20260825t000000.000000000z-0123456789ab"
-  ],
-  "declared_external_writes": []
+    ".gameatelier/runs/atelier-20260825t000100.000000000z-0123456789ab"
+  ]
 }

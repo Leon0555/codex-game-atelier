@@ -36,7 +36,7 @@ ADR 0004 已冻结 Go 为 v1 CLI 生产实现语言，ADR 0005 定义通用结�
 输入：与 `detect` 相同，另有 `--timeout-ms`，默认 5000，范围 1–3,600,000。
 
 - 先执行与 `detect` 相同的纯读检查，再只受控执行已解析的 Godot executable 及固定参数 `--version`。
-- 只接受官方标准版 `4.7.2.stable.official.<7..40 hex>`；Godot .NET/C# 和伪前缀不进入 v1 基线。
+- 只接受选中进程自报的标准版标识 `4.7.2.stable.official.<7..40 hex>`；该文本门禁不单独证明二进制来源，官方包身份由安装来源、散列和平台签名验证另行证明。Godot .NET/C# 和伪前缀不进入 v1 基线。
 - 首批 checks 为 `host`、`project_file`、`project_language`、`godot_executable`、`godot_version`；不声称已检查 export templates 或完整项目加载。
 - Godot 非零退出返回 `FAIL`/5；超时或取消返回 `FAIL`/6；不受支持版本返回 `BLOCKED`/4。
 - 任意 Godot stdout/stderr 不直接进入结果；只有未截断输出中的完整白名单版本字符串可以进入结果。任一输出流截断都返回 `FAIL`/5，不能用截断前缀判定版本，避免误判或泄露凭据。

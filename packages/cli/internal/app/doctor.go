@@ -159,13 +159,13 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	version := findGodotVersion(process.Stdout, process.Stderr)
 	if version == "" || !supportedGodotVersion.MatchString(version) {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "BLOCKED", Summary: "Godot did not report the supported official version."})
-		failure := prerequisiteError("GODOT_VERSION_UNSUPPORTED", "Godot 4.7.2-stable official standard edition was not detected.", "Install or select the official standard Godot 4.7.2-stable executable.")
+		failure := prerequisiteError("GODOT_VERSION_UNSUPPORTED", "The selected executable did not report the supported Godot 4.7.2-stable official standard build identifier.", "Install or select the official standard Godot 4.7.2-stable executable.")
 		result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Godot version is outside the v1.0 support matrix.", data, failure)
 		return result
 	}
 	data.Godot.Version = version
 	data.Godot.Supported = true
-	data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "PASS", Summary: "Godot 4.7.2-stable official standard edition was detected."})
+	data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "PASS", Summary: "The selected executable self-reported the supported Godot 4.7.2-stable official standard build identifier."})
 	result.Finish(started, time.Now().UTC(), "PASS", contract.ExitOK, "Godot project and supported engine prerequisites passed the Phase 1 doctor checks.", data)
 	return result
 }

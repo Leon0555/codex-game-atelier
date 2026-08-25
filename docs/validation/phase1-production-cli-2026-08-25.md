@@ -33,7 +33,7 @@
 
 - 子命令 stdout 只写一个 command-result JSON；`PASS` 为 exit 0 且无 errors，`BLOCKED` 为 exit 4，`FAIL` 使用对应非零类别。
 - `detect` 只发现项目、候选 executable 和宿主，不运行 Godot。
-- `doctor` 只执行固定参数 `--version`，精确接受官方 `4.7.2.stable.official.<7..40 hex>`；任一输出流截断即失败，不把任意或截断前缀当作 Godot。
+- `doctor` 只执行固定参数 `--version`，精确接受进程自报的 `4.7.2.stable.official.<7..40 hex>` 形状；该文本不单独证明二进制来源。任一输出流截断即失败，不把任意或截断前缀当作 Godot。
 - 受控进程输出有界；失败输出不回显到结果，避免把任意日志或凭据带入结构化输出。
 - Unix 在正常、异常、超时或取消后都会同步终止为 Godot 创建的独立进程组；同组子进程无论持有还是关闭输出管道，精确 PID residual 测试均通过。主动调用 `setsid` 脱组的后代不属于当前保证；leader 回收后立即 killpg 仍有极小的 PID/PGID 复用理论风险。
 - `status` 不跟随引用、不隐式修复、不迁移、不写状态；`.gameatelier` 和 `project.json` 符号链接会被拒绝。未来 schema 只进入 `observed_schema_version`，不会冒充当前 `schema_version`。

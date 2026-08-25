@@ -11,8 +11,8 @@
 - `command-result.schema.json`：一次确定性 CLI 调用的机器可读结果。
 - `error.schema.json`：稳定错误码、类别、可重试性和修复提示。
 - `evidence.schema.json`：日志、报告、构建或导出产物的可定位记录。
-- `run-intent.schema.json`：不可变 run 意图与声明写入范围；它不是成功记录。
-- `validation-report.schema.json`：首个 baseline validate payload 的严格检查列表和聚合结果。
+- `run-intent.schema.json`：不可变 run 意图与项目内/符号化外部写入范围；它不是成功记录。
+- `validation-report.schema.json`：baseline/headless validate payload 的严格检查列表和聚合结果。
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。
@@ -50,12 +50,12 @@
 | 命令 | 输入 | 默认副作用 | 当前完成边界 |
 | --- | --- | --- | --- |
 | `detect` | `--project`，可选 `--godot` | 零写入、不启动 Godot | 发现项目、Godot 候选和 Tier 1 宿主 |
-| `doctor` | 同上，加 `--timeout-ms` | 零文件写入；只执行固定的 `Godot --version` | 检查宿主、项目文件、GDScript 范围、可执行文件和官方 `4.7.2-stable` 版本 |
+| `doctor` | 同上，加 `--timeout-ms` | 零文件写入；只执行固定的 `Godot --version` | 检查宿主、项目文件、GDScript 范围、可执行文件和自报的 `4.7.2-stable` 标准版标识；不以版本文本替代二进制来源验证 |
 | `initialize` | `--project` | 首次只原子建立 `.gameatelier/project.json` 与持久 advisory lock 文件 | CSPRNG 项目身份、revision 0、standard mode；合法重跑零修改 |
 | `status` | `--project` | 零写入 | 严格读取 `.gameatelier/project.json`，不跟随引用、不修复或迁移 |
-| `validate` | `--project` | 默认写入一个自包含 immutable run/evidence；不启动 Godot | 静态 baseline：严格 state、pinned regular `project.godot`、GDScript 范围与持久化平台；不代表 headless、场景或资源验证 |
+| `validate` | `--project`；可选 `--headless`、`--godot`、`--timeout-ms`、`--allow-engine-user-data` | 默认只写自包含 immutable run/evidence；Headless 还需明确授权 Godot 标准 `user://` | 默认静态 baseline；显式 Headless 通过 pinned 项目目录，以及阶段独立的 runner/engine version/scene 快照，固定验证自报版本、主场景一帧、退出状态和 bounded `ERROR:` 输出；瞬时文件清理失败时禁止发布 result |
 
-所有子命令 stdout 只包含一个 command-result JSON。`detect`、`doctor`、`initialize`、`status` 的 `evidence` 为空；`validate` 成功完成事务时引用同一 run 内的一份严格 validation report。run root 前失败返回 `RUN_RECORDING_UNAVAILABLE`，无 intent orphan 返回 `RUN_PREPARE_FAILED`，intent 后/result 前失败返回 `RUN_COMMIT_FAILED`；三者都不冒充 committed result。result 已发布但最终 durability/cleanup 未确认时，stdout 和进程退出码保持与权威 result 完全一致，并在 stderr 输出固定警告；stdout 短写返回内部错误 8，不重写或重跑已提交 run。详见 ADR 0008。
+所有子命令 stdout 只包含一个 command-result JSON。`detect`、`doctor`、`initialize`、`status` 的 `evidence` 为空；`validate` 成功完成事务时引用同一 run 内的一份严格 validation report。Headless 未获用户数据授权时在 Godot 启动前提交 `BLOCKED` evidence；获授权时 intent 以 `godot:user-data:standard-os-location` 明示外部写入，不落盘用户绝对路径。只有获授权的 headless validate intent 必须声明该字段；旧 `1.0.0` baseline intent 不因新增可选字段而失效，其他命令不得借此声明外部写入。headless command、result `data.scope` 和 validation report `scope` 必须一致，`check_count` 必须等于 report checks 数量。run root 前失败返回 `RUN_RECORDING_UNAVAILABLE`，无 intent orphan 返回 `RUN_PREPARE_FAILED`，intent 后/result 前失败返回 `RUN_COMMIT_FAILED`；三者都保留原命令 scope 且不冒充 committed result。result 已发布但最终 durability/cleanup 未确认时，stdout 和进程退出码保持与权威 result 完全一致，并在 stderr 输出固定警告；stdout 短写返回内部错误 8，不重写或重跑已提交 run。详见 ADR 0008、0009。
 
 ## 版本策略
 

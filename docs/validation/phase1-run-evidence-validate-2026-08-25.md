@@ -3,6 +3,8 @@
 日期：2026-08-25  
 状态：PASS（限定范围）
 
+> 后续进展：本记录只描述当时的静态 baseline。ADR 0009 与 `phase1-godot-headless-2026-08-25.md` 已在其后加入显式 Headless 路径；以下历史验证结论不作追溯改写。
+
 ## 范围结论
 
 生产 Go CLI 已新增公开 `validate [--project <dir>]`。当前命令只做静态 baseline：严格 project state、pinned regular `project.godot`、Godot GDScript-only 边界，以及 run persistence readiness。它不启动 Godot，不代表 headless、场景、资源或脚本加载通过。

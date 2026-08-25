@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t010000.000000000z-0123456789ab",
+  "project_id": "project-0123456789abcdef0123456789abcdef",
+  "project_revision": 0,
+  "policy_mode": "standard",
+  "engine": {
+    "kind": "godot",
+    "requested_version": "4.7.2-stable",
+    "language": "gdscript"
+  },
+  "command": {
+    "name": "validate",
+    "arguments": {
+      "project": ".",
+      "headless": true,
+      "timeout_ms": 5000,
+      "engine_user_data": "standard-os-location",
+      "godot_source": "explicit"
+    }
+  },
+  "started_at": "2026-08-25T01:00:00Z",
+  "producer": {
+    "component": "gameatelier-cli",
+    "version": "0.1.0"
+  },
+  "expected_result_ref": ".gameatelier/runs/atelier-20260825t010000.000000000z-0123456789ab/result.json",
+  "declared_write_paths": [
+    ".gameatelier/runs/atelier-20260825t010000.000000000z-0123456789ab"
+  ],
+  "declared_external_writes": [
+    "godot:user-data:standard-os-location"
+  ]
+}

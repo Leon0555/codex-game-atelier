@@ -1,5 +1,5 @@
 [package]
-name = "gamefoundry-runtime-spike-rust"
+name = "gameatelier-runtime-spike-rust"
 version = "0.1.0"
 edition = "2024"
 publish = false

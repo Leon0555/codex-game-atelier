@@ -66,7 +66,7 @@ run 使用唯一目录、append-only/no-replace，正常提交不持有 project 
 
 ### 5. Schema 増补
 
-- 新增 immutable `run-intent`：schema/run/project/revision/mode/command/started_at/producer/expected result ref/declared write paths。
+- 新增 immutable `run-intent`：schema/run/project/revision/mode/command/started_at/producer/expected result ref/declared project writes/符号化 external writes。
 - evidence record 必须包含 `run_id`；持久事务中的 regular payload 必须包含 `sha256` 与 `byte_size`。
 - runtime 强制 `ref.id == record.id`、record/result/enclosing dir run ID 一致、payload hash/size 一致。
 - build/export 多文件产物使用 immutable artifact manifest；hash 只证明记录时快照，不宣称外部 artifact 永久不变。
@@ -87,7 +87,7 @@ run 使用唯一目录、append-only/no-replace，正常提交不持有 project 
 - macOS/APFS 以外的 durability、Windows/Linux、SMB/FAT/exFAT/网络盘在原生故障注入前保持 NOT RUN 或 gate。
 - macOS 实现对 pinned `.gameatelier`、`runs`、具体 run、`payloads` 与 `evidence` 逐层执行 `Fstatfs`，要求全部为 APFS 且 FSID 与 state root 相同；因此既有真实目录形式的嵌套其他卷/网络挂载也不能绕过 gate。可注入 FSID 回归已通过，真实嵌套非 APFS mount 故障演练仍记为 NOT RUN。
 - raw Godot stdout/stderr 必须有固定上限、UTF-8 策略、脱敏、truncated 与原始/保留字节计数；secret scan 在 result commit 前是硬门禁。
-- 已批准的 evidence 政策不等于允许 Godot 写用户 HOME、全局配置或网络。真正启动引擎前必须先验证进程级隔离，或形成用户可见且获批准的外部写入契约。
+- 已批准的 evidence 政策不等于允许 Godot 写用户 HOME、全局配置或网络。ADR 0009 仅允许用户显式授权 Godot 官方标准 `user://` 位置，并要求 intent 记录符号化外部写入；其他外部写入仍不获授权。
 - 不提供 `--no-record` 绕过关键命令 evidence，也不自动重试具有外部副作用的 engine/build/export 操作。
 
 ## 故障注入验收

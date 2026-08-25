@@ -59,16 +59,32 @@ func (buffer *limitedBuffer) snapshot() ([]byte, bool) {
 }
 
 func runManagedProcess(parent context.Context, timeout time.Duration, executable, directory string, arguments ...string) processResult {
+	return runManagedProcessWithLimit(parent, timeout, maxProcessOutputBytes, executable, directory, arguments...)
+}
+
+func runManagedProcessWithLimit(parent context.Context, timeout time.Duration, outputLimit int, executable, directory string, arguments ...string) processResult {
+	return runManagedProcessWithLimitAndFiles(parent, timeout, outputLimit, nil, executable, directory, arguments...)
+}
+
+func runManagedProcessWithLimitAndFiles(parent context.Context, timeout time.Duration, outputLimit int, extraFiles []*os.File, executable, directory string, arguments ...string) processResult {
+	return runManagedProcessWithLimitFilesEnv(parent, timeout, outputLimit, extraFiles, nil, executable, directory, arguments...)
+}
+
+func runManagedProcessWithLimitFilesEnv(parent context.Context, timeout time.Duration, outputLimit int, extraFiles []*os.File, environment []string, executable, directory string, arguments ...string) processResult {
 	ctx, cancel := context.WithTimeout(parent, timeout)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, executable, arguments...)
 	cmd.Dir = directory
+	cmd.ExtraFiles = extraFiles
+	if environment != nil {
+		cmd.Env = environment
+	}
 	cmd.WaitDelay = 500 * time.Millisecond
 	preparePlatformCommand(cmd)
 
-	stdout := &limitedBuffer{limit: maxProcessOutputBytes}
-	stderr := &limitedBuffer{limit: maxProcessOutputBytes}
+	stdout := &limitedBuffer{limit: outputLimit}
+	stderr := &limitedBuffer{limit: outputLimit}
 	cmd.Stdout = stdout
 	cmd.Stderr = stderr
 
@@ -87,7 +103,13 @@ func runManagedProcess(parent context.Context, timeout time.Duration, executable
 	}
 
 	if err := cmd.Start(); err != nil {
-		return processResult{Err: err}
+		result := processResult{Err: err}
+		if errors.Is(parent.Err(), context.Canceled) {
+			result.Cancelled = true
+		} else if errors.Is(parent.Err(), context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			result.TimedOut = true
+		}
+		return result
 	}
 	attached, err := attachPlatformProcess(cmd)
 	if err != nil {
@@ -124,9 +146,9 @@ func runManagedProcess(parent context.Context, timeout time.Duration, executable
 		exitCode := cmd.ProcessState.ExitCode()
 		result.ExitCode = &exitCode
 	}
-	if errors.Is(parent.Err(), context.Canceled) || errors.Is(parent.Err(), context.DeadlineExceeded) {
+	if errors.Is(parent.Err(), context.Canceled) {
 		result.Cancelled = true
-	} else if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+	} else if errors.Is(parent.Err(), context.DeadlineExceeded) || errors.Is(ctx.Err(), context.DeadlineExceeded) {
 		result.TimedOut = true
 	}
 	return result

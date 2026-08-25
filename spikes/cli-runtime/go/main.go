@@ -53,7 +53,7 @@ func main() {
 
 func run(args []string) int {
 	if len(args) == 1 && args[0] == "--version" {
-		fmt.Printf("gamefoundry-runtime-spike %s (go)\n", spikeVersion)
+		fmt.Printf("gameatelier-runtime-spike %s (go)\n", spikeVersion)
 		return 0
 	}
 	if len(args) == 0 || args[0] != "doctor" {

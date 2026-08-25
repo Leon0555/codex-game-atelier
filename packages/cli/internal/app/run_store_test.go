@@ -465,6 +465,15 @@ func TestCommitRunPreflightRejectsUnsafeOrSchemaInvalidContentBeforeWriting(t *t
 		{name: "mismatched check count", mutate: func(_ *projectState, result *contract.Result, _ *runPayload) {
 			result.Data = map[string]any{"scope": "baseline", "check_count": 1}
 		}},
+		{name: "command and result scope mismatch", mutate: func(_ *projectState, result *contract.Result, _ *runPayload) {
+			result.Command.Arguments = map[string]any{
+				"project":          ".",
+				"headless":         true,
+				"timeout_ms":       int64(5000),
+				"engine_user_data": "not-authorized",
+				"godot_source":     "explicit",
+			}
+		}},
 		{name: "invalid project state", mutate: func(state *projectState, _ *contract.Result, _ *runPayload) {
 			state.Mode = "unbounded"
 		}},

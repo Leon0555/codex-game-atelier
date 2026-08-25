@@ -82,7 +82,69 @@
     },
     {
       "if": { "properties": { "command": { "properties": { "name": { "const": "validate" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
-      "then": { "properties": { "data": { "$ref": "validate-data.schema.json" } } }
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project"],
+                    "properties": { "project": { "const": "." } }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project", "headless", "timeout_ms", "engine_user_data", "godot_source"],
+                    "properties": {
+                      "project": { "const": "." },
+                      "headless": { "const": true },
+                      "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                      "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                      "godot_source": { "type": "string", "enum": ["explicit", "discovery"] }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "data": { "$ref": "validate-data.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "properties": {
+              "name": { "const": "validate" },
+              "arguments": { "properties": { "headless": { "const": true } }, "required": ["headless"] }
+            },
+            "required": ["name", "arguments"]
+          },
+          "exit_code": { "not": { "const": 2 } }
+        },
+        "required": ["command", "exit_code"]
+      },
+      "then": { "properties": { "data": { "properties": { "scope": { "const": "headless" } } } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "properties": {
+              "name": { "const": "validate" },
+              "arguments": { "properties": { "project": { "const": "." } }, "required": ["project"], "maxProperties": 1 }
+            },
+            "required": ["name", "arguments"]
+          },
+          "exit_code": { "not": { "const": 2 } }
+        },
+        "required": ["command", "exit_code"]
+      },
+      "then": { "properties": { "data": { "properties": { "scope": { "const": "baseline" } } } } }
     }
   ]
 }
