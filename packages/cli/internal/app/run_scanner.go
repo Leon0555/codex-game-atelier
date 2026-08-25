@@ -58,6 +58,13 @@ type runScanResult struct {
 	Protected  []cleanRunEntry
 }
 
+type verifiedRun struct {
+	Result      contract.Result
+	PayloadKind string
+	Payload     []byte
+	Record      persistedEvidenceRecord
+}
+
 func scanRuns(ctx context.Context, stateRoot *os.Root, state projectState) (runScanResult, error) {
 	return scanRunsWithBudget(ctx, stateRoot, state, newRunScanBudget(maxRunScanTotalBytes, maxRunScanFiles))
 }
@@ -105,7 +112,7 @@ func scanRunsWithBudget(ctx context.Context, stateRoot *os.Root, state projectSt
 		if err != nil || !exists {
 			return runScanResult{}, errors.New("run store contains an unsafe directory entry")
 		}
-		stateName, reason, classifyErr := classifyRun(ctx, budget, runRoot, state, name)
+		stateName, reason, classifyErr := classifyRun(ctx, budget, runRoot, state, name, nil)
 		closeErr := runRoot.Close()
 		if classifyErr != nil {
 			return runScanResult{}, classifyErr
@@ -136,7 +143,7 @@ func scanRunsWithBudget(ctx context.Context, stateRoot *os.Root, state projectSt
 	return result, nil
 }
 
-func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, state projectState, runID string) (string, string, error) {
+func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, state projectState, runID string, verified *verifiedRun) (string, string, error) {
 	intentBytes, intentExists, err := readOptionalRunFile(ctx, budget, runRoot, "intent.json", maxRunIntentBytes)
 	if err != nil {
 		if isRunScanStop(err) {
@@ -159,6 +166,9 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 	}
 
 	var intent runIntentRecord
+	if version, versionErr := inspectSchemaVersion(intentBytes); versionErr == nil && version != contract.SchemaVersion {
+		return "corrupt", "SCHEMA_UNSUPPORTED", nil
+	}
 	if err := decodeStrictRunJSON(intentBytes, &intent); err != nil || validateScannedIntent(intent, state, runID) != nil {
 		return "corrupt", "INTENT_INVALID", nil
 	}
@@ -170,6 +180,9 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 	}
 
 	var commandResult contract.Result
+	if version, versionErr := inspectSchemaVersion(resultBytes); versionErr == nil && version != contract.SchemaVersion {
+		return "corrupt", "SCHEMA_UNSUPPORTED", nil
+	}
 	if err := decodeStrictRunJSON(resultBytes, &commandResult); err != nil {
 		return "corrupt", "RESULT_INVALID", nil
 	}
@@ -215,6 +228,9 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 		return "corrupt", "EVIDENCE_CLOSURE_INVALID", nil
 	}
 	var record persistedEvidenceRecord
+	if version, versionErr := inspectSchemaVersion(recordBytes); versionErr == nil && version != contract.SchemaVersion {
+		return "corrupt", "SCHEMA_UNSUPPORTED", nil
+	}
 	if err := decodeStrictRunJSON(recordBytes, &record); err != nil {
 		return "corrupt", "EVIDENCE_RECORD_INVALID", nil
 	}
@@ -235,6 +251,9 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 		Content:   payloadBytes,
 		Metadata:  record.Metadata,
 	}
+	if version, versionErr := inspectSchemaVersion(payloadBytes); versionErr == nil && version != contract.SchemaVersion {
+		return "corrupt", "SCHEMA_UNSUPPORTED", nil
+	}
 	if err := preflightRunFinish(transaction, preflightResult, []runPayload{payload}); err != nil {
 		return "corrupt", "RESULT_PREFLIGHT_FAILED", nil
 	}
@@ -243,6 +262,12 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 	}
 	if err := checkRunScanContext(ctx); err != nil {
 		return "", "", err
+	}
+	if verified != nil {
+		verified.Result = commandResult
+		verified.PayloadKind = payloadKind
+		verified.Payload = payloadBytes
+		verified.Record = record
 	}
 	return "committed", "RESULT_CLOSURE_VERIFIED", nil
 }

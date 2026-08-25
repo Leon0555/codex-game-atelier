@@ -70,7 +70,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 
 ## 4. 确定性 CLI
 
-候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议；其余仍是后续候选：
+候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议，`logs` 已按 ADR 0012 建立 committed run 的零自由文本结构投影；其余仍是后续候选：
 
 - `detect`：发现 Godot 与项目，纯读。
 - `doctor`：当前生产切片纯读验证宿主、项目文件、GDScript、Godot 可执行文件和自报的精确标准版标识；版本文本不替代安装来源、散列或签名验证。导出模板与更完整的平台/配置诊断属于后续实现。
@@ -79,7 +79,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 - `test`：当前固定执行 `res://tests/atelier_test_runner.gd`，不接受任意脚本/Godot 参数；复用 pinned version/test 双阶段执行，严格解析唯一 JSON marker，把断言失败映射为 3、引擎/协议失败映射为 5、超时/取消映射为 6，并原子记录逐项 test report。它执行用户拥有或已审阅的项目代码，不声称提供代码沙箱；第三方测试框架适配、过滤和原始日志保留属于后续切片。
 - `build --profile debug|release`：面向用户的默认目标工作流，执行相应门禁并复用 `export` 产生 runnable artifact；底层 evidence 只记录一次并互相引用，不假设 Godot 存在独立编译流水线。
 - `export`：对指定 Godot preset/目标执行直接导出与产物验证，是 Godot `--export-debug/--export-release` 的确定性包装。
-- `logs`：归一化和查询运行日志。
+- `logs`：当前要求显式 strict run ID，只从同次有界读取中验证 committed closure，输出由 CLI 编号的 check/test/error/result allow-list 结构事件与 evidence hash/size，不输出 source ID、error code、自由文本或 raw stdout/stderr；原始日志保留、脱敏、分片和 follow/tail 需要新的隐私与存储决策。
 - `status`：当前生产切片只读加载严格的项目状态摘要和引用计数，不跟随任务或 evidence 引用；任务、所有权、门禁和最近 evidence 聚合属于后续实现。
 - `clean`：当前只实现显式 `--list`，以 512 目录/2,048 文件/256 MiB 总预算和调用方 context 有界验证 committed 闭包，只把瞬时也可能是活动 writer 的 incomplete/orphan 列入预览，corrupt 受保护；实际删除必须先让 writer/cleaner/recovery 建立同一 per-run 协调协议，再实现精确范围、锁内重验与确认语义。
 - `release check/prepare`：框架级编排命令，聚合完整测试、build/export 矩阵、分发和审计 evidence；它不是引擎适配器能力，且不自行执行 npm/GitHub/Marketplace 外部发布。

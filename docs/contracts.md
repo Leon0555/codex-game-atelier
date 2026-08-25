@@ -17,7 +17,7 @@
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。
-- `clean-data.schema.json`、`detect-data.schema.json`、`doctor-data.schema.json`、`initialize-data.schema.json`、`status-data.schema.json`、`test-data.schema.json`、`validate-data.schema.json`：已实现命令的精确 `data` 形状。
+- `clean-data.schema.json`、`detect-data.schema.json`、`doctor-data.schema.json`、`initialize-data.schema.json`、`logs-data.schema.json`、`status-data.schema.json`、`test-data.schema.json`、`validate-data.schema.json`：已实现命令的精确 `data` 形状。
 - `common.schema.json`：上述 schema 共用的窄定义。
 
 ## 结果与状态边界
@@ -54,11 +54,12 @@
 | `detect` | `--project`，可选 `--godot` | 零写入、不启动 Godot | 发现项目、Godot 候选和 Tier 1 宿主 |
 | `doctor` | 同上，加 `--timeout-ms` | 零文件写入；只执行固定的 `Godot --version` | 检查宿主、项目文件、GDScript 范围、可执行文件和自报的 `4.7.2-stable` 标准版标识；不以版本文本替代二进制来源验证 |
 | `initialize` | `--project` | 首次只原子建立 `.gameatelier/project.json` 与持久 advisory lock 文件 | CSPRNG 项目身份、revision 0、standard mode；合法重跑零修改 |
+| `logs` | `--project`、必选 strict `--run-id` | 零写入、零 evidence、不启动 Godot | 同次有界读取并验证一个 committed validate/test 闭包；只输出 ID/outcome/level、时间、退出码和 evidence integrity metadata，不输出 source 自由文本、payload 路径或 raw stdout/stderr |
 | `status` | `--project` | 零写入 | 严格读取 `.gameatelier/project.json`，不跟随引用、不修复或迁移 |
 | `test` | `--project`；可选 `--godot`、`--timeout-ms`、`--allow-engine-user-data` | 写自包含 immutable run/evidence；启动 Godot 前必须授权标准 `user://` | 固定执行 `res://tests/atelier_test_runner.gd`，严格解析唯一 JSON marker，把逐项 PASS/FAIL、超时、取消、引擎错误和无效报告映射为稳定结果；不接受任意脚本或 Godot 参数 |
 | `validate` | `--project`；可选 `--headless`、`--godot`、`--timeout-ms`、`--allow-engine-user-data` | 默认只写自包含 immutable run/evidence；Headless 还需明确授权 Godot 标准 `user://` | 默认静态 baseline；显式 Headless 通过 pinned 项目目录，以及阶段独立的 runner/engine version/scene 快照，固定验证自报版本、主场景一帧、退出状态和 bounded `ERROR:` 输出；瞬时文件清理失败时禁止发布 result |
 
-所有子命令 stdout 只包含一个 command-result JSON。`clean --list`、`detect`、`doctor`、`initialize`、`status` 的 `evidence` 为空；`validate`/`test` 成功完成事务时分别引用同一 run 内的一份严格 validation/test report。`clean --list` 最多扫描 512 个严格 run ID 目录、2,048 个闭包文件和 256 MiB 内容；非法目录结构以 `RUN_SCAN_UNSAFE`、累计预算耗尽以 `RUN_SCAN_LIMIT_EXCEEDED` 整体失败且不返回部分候选。调用方取消/deadline 返回 `COMMAND_CANCELLED`/6；无隐式 wall-clock timeout，在 64 KiB 读取块间协作响应。活动 run 可能瞬时显示为 orphan 或 incomplete，因此候选只是预览；未来删除必须先让 writer/cleaner/recovery 实现同一 per-run 协调协议，再逐项锁内重验，详见 ADR 0010。Headless validate/test 未获用户数据授权时在 Godot 启动前提交 `BLOCKED` evidence；获授权时 intent 以 `godot:user-data:standard-os-location` 明示引擎标准外部写入，不落盘用户绝对路径。test command 固定 `test_runner`，result counts 必须与 report tests 一致；PASS 还要求 Godot exit 0、唯一有效报告和全部逐项 PASS。run root 前失败返回 `RUN_RECORDING_UNAVAILABLE`，无 intent orphan 返回 `RUN_PREPARE_FAILED`，intent 后/result 前失败返回 `RUN_COMMIT_FAILED`；三者都保留原命令 scope 且不冒充 committed result。result 已发布但最终 durability/cleanup 未确认时，stdout 和进程退出码保持与权威 result 完全一致，并在 stderr 输出固定警告；stdout 短写返回内部错误 8，不重写或重跑已提交 run。详见 ADR 0008、0009、0011。
+所有子命令 stdout 只包含一个 command-result JSON。`clean --list`、`detect`、`doctor`、`initialize`、`logs`、`status` 的 `evidence` 为空；`validate`/`test` 成功完成事务时分别引用同一 run 内的一份严格 validation/test report。`clean --list` 最多扫描 512 个严格 run ID 目录、2,048 个闭包文件和 256 MiB 内容；非法目录结构以 `RUN_SCAN_UNSAFE`、累计预算耗尽以 `RUN_SCAN_LIMIT_EXCEEDED` 整体失败且不返回部分候选。`logs` 只读取显式 run 的四个闭包文件，总预算 12.25 MiB；读取和闭包验证使用同一内存快照，输出不含 source 自由文本。调用方取消/deadline 返回 `COMMAND_CANCELLED`/6；无隐式 wall-clock timeout，在 64 KiB 读取块间协作响应。活动 run 可能瞬时显示为 orphan 或 incomplete，因此候选只是预览；未来删除必须先让 writer/cleaner/recovery 实现同一 per-run 协调协议，再逐项锁内重验，详见 ADR 0010。Headless validate/test 未获用户数据授权时在 Godot 启动前提交 `BLOCKED` evidence；获授权时 intent 以 `godot:user-data:standard-os-location` 明示引擎标准外部写入，不落盘用户绝对路径。test command 固定 `test_runner`，result counts 必须与 report tests 一致；PASS 还要求 Godot exit 0、唯一有效报告和全部逐项 PASS。run root 前失败返回 `RUN_RECORDING_UNAVAILABLE`，无 intent orphan 返回 `RUN_PREPARE_FAILED`，intent 后/result 前失败返回 `RUN_COMMIT_FAILED`；三者都保留原命令 scope 且不冒充 committed result。result 已发布但最终 durability/cleanup 未确认时，stdout 和进程退出码保持与权威 result 完全一致，并在 stderr 输出固定警告；stdout 短写返回内部错误 8，不重写或重跑已提交 run。详见 ADR 0008、0009、0011、0012。
 
 ## 版本策略
 

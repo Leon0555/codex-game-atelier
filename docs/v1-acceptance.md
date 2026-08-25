@@ -32,7 +32,7 @@
 | G-007 | 输入、信号、资源、UI 与基础玩法工作流可在参考游戏验证 | 自动化/可复现操作证据 | NOT RUN |
 | G-008 | `build --profile debug|release` 分别执行默认目标工作流并产生可辨识 runnable artifact；复用 export 时引用同一底层 evidence | 命令、调用链、产物 manifest/hash | NOT RUN |
 | G-009 | 指定 preset/目标的直接导出成功并在目标平台实际启动；macOS 只要求未签名/未公证产物的 Apple Silicon 技术验证 | Godot export 命令 + target smoke + 分发就绪标记 | NOT RUN |
-| G-010 | 日志结构化、secret redaction 和稳定退出码 | schema/fixture/端到端结果 | NOT RUN |
+| G-010 | 日志结构化、secret redaction 和稳定退出码 | schema/fixture/端到端结果 | PASS（committed run 零自由文本结构投影薄切片；raw 捕获、脱敏、分片和保留仍 NOT RUN） |
 | G-011 | 中文、空格和特殊路径无未声明失败 | 三宿主路径矩阵 | NOT RUN |
 | G-012 | 超时、取消、异常退出、残留进程/锁和恢复可诊断 | 故障注入与恢复 evidence | NOT RUN |
 

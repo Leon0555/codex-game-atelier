@@ -30,14 +30,15 @@
 7. 已用参考项目完成“CLI → Godot 4.7.2 Headless → 中文/空格资源 → 原子 evidence”的端到端薄切片；Codex 工作流入口和完整测试仍继续。
 8. 已建立 ADR 0010 的有界 run scanner 与只读 `clean --list` 生产切片；实际删除、恢复、索引仍留在 Phase 2。
 9. 已建立 ADR 0011 的固定 GDScript `test` 生产薄切片：零额外框架依赖、逐项报告、断言/引擎/超时映射与原子 evidence；第三方框架、过滤和三宿主原生验证仍待后续。
-10. 进行独立只读架构、安全和可恢复性评审。
+10. 已建立 ADR 0012 的只读 `logs --run-id` 生产薄切片：同次验证 committed closure，只投影零自由文本结构事件与 integrity metadata；raw 日志保留/脱敏仍待后续独立决策。
+11. 进行独立只读架构、安全和可恢复性评审。
 
 Phase 1 不应先铺开所有命令、Agents 或 Skills；先证明契约、运行时、分发与证据链能闭环。
 
 ## Phase 2：确定性核心与门禁
 
 - 在 Phase 1 已实现的只读 run scanner 基础上实现 schema 迁移、锁内恢复、确认式删除与派生索引；单文件初始化和首个多文件 evidence 提交已经建立。
-- 从已实现的一帧 Headless 和固定 GDScript test 薄切片扩展到完整场景/资源图、异步/fixture/过滤测试，并实现 `logs`；扩展 `initialize` 的迁移/clone 语义前另行决策。
+- 从已实现的一帧 Headless、固定 GDScript test 与结构化 logs 薄切片扩展到完整场景/资源图、异步/fixture/过滤测试；raw 日志捕获/脱敏/分片需先形成独立隐私决策，扩展 `initialize` 的迁移/clone 语义前另行决策。
 - 实现 `manual`、`standard`、`strict` 及命令内建门禁。
 - 建立稳定退出码、超时、取消、重试与幂等测试。
 - 建立 CI 基础检查；Git hooks 仅提供显式可选安装器和卸载说明。

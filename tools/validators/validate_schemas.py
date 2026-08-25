@@ -181,9 +181,47 @@ def main() -> None:
         "authorized test intent without its external write declaration",
     )
 
+    logs_result = load_json(FIXTURE_ROOT / "command-result.logs.json")
+    if not isinstance(logs_result, dict):
+        raise SystemExit("logs fixture must be an object")
+    logs_data = logs_result.get("data")
+    if not isinstance(logs_data, dict) or not isinstance(logs_data.get("events"), list):
+        raise SystemExit("logs fixture lacks structured events")
+    invalid_logs_evidence = copy.deepcopy(logs_result)
+    invalid_logs_evidence["evidence"] = [{"id": "unexpected", "path": ".gameatelier/unexpected.json"}]
+    expect_invalid(validators["command-result"], invalid_logs_evidence, "read-only logs result with evidence")
+    invalid_logs_project = copy.deepcopy(logs_result)
+    invalid_logs_project["command"]["arguments"]["project"] = "/private/project"
+    expect_invalid(validators["command-result"], invalid_logs_project, "logs result with an absolute project argument")
+    invalid_logs_message = copy.deepcopy(logs_result)
+    invalid_logs_message["data"]["events"][0]["message"] = "raw text"
+    expect_invalid(validators["command-result"], invalid_logs_message, "logs event with free text")
+    invalid_logs_empty = copy.deepcopy(logs_result)
+    invalid_logs_empty["data"]["events"] = []
+    expect_invalid(validators["command-result"], invalid_logs_empty, "passing logs result without events")
+    invalid_logs_event_kind = copy.deepcopy(logs_result)
+    invalid_logs_event_kind["data"]["events"][0]["kind"] = "check"
+    expect_invalid(validators["command-result"], invalid_logs_event_kind, "test report event with check kind")
+    invalid_logs_level = copy.deepcopy(logs_result)
+    invalid_logs_level["data"]["events"][0]["level"] = "ERROR"
+    expect_invalid(validators["command-result"], invalid_logs_level, "passing logs event with error level")
+    invalid_logs_evidence_kind = copy.deepcopy(logs_result)
+    invalid_logs_evidence_kind["data"]["evidence_kind"] = "validation-report"
+    expect_invalid(validators["command-result"], invalid_logs_evidence_kind, "test source with validation evidence kind")
+    invalid_logs_final_outcome = copy.deepcopy(logs_result)
+    invalid_logs_final_outcome["data"]["events"][-1]["outcome"] = "FAIL"
+    invalid_logs_final_outcome["data"]["events"][-1]["level"] = "ERROR"
+    expect_invalid(validators["command-result"], invalid_logs_final_outcome, "passing source with failing final event")
+    invalid_logs_source_exit = copy.deepcopy(logs_result)
+    invalid_logs_source_exit["data"]["source_exit_code"] = 5
+    expect_invalid(validators["command-result"], invalid_logs_source_exit, "passing source with nonzero exit")
+
     clean_result = load_json(FIXTURE_ROOT / "command-result.clean.json")
     if not isinstance(clean_result, dict):
         raise SystemExit("clean result fixture must be an object")
+    future_schema_clean = copy.deepcopy(clean_result)
+    future_schema_clean["data"]["protected"][0]["reason"] = "SCHEMA_UNSUPPORTED"
+    validators["command-result"].validate(future_schema_clean)
     invalid_clean_reason = copy.deepcopy(clean_result)
     invalid_clean_reason["data"]["candidates"][0]["reason"] = "INTENT_AND_RESULT_MISSING"
     expect_invalid(
@@ -199,7 +237,7 @@ def main() -> None:
         "failed clean scan with partial decisions",
     )
 
-    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 15 negative assertions, headless and test cross-fixture semantics")
+    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 24 negative assertions, headless, test, and logs cross-fixture semantics")
 
 
 if __name__ == "__main__":

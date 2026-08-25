@@ -18,7 +18,7 @@
 | Xcode Command Line Tools | `/Library/Developer/CommandLineTools` | 否 | macOS 原生构建/签名工具基础 | 已有；完整 Xcode/签名账号未检查也不登录 |
 | CMake | 未发现 | 否 | 不属于当前 Go v1 CLI 路径；仅在未来明确依赖需要时使用 | 不安装；如未来确有需要，先列明用途、体积和影响并请求批准 |
 | Rust / Cargo | `.tools` 内 `rustc 1.98.0`、`cargo 1.98.0` arm64；另含 rustfmt、clippy、rust-std 与离线 docs | 否 | 非生产对照与历史研究证据 | 官方清单校验、fmt/build/test/clippy 与结构化 Spike 已实测；不进入 v1 生产路径；Rust 目录约 1.3 GiB |
-| Go | `.tools/go/1.27.0`，`go1.27.0 darwin/arm64` | 否 | v1 CLI 生产实现工具链 | 官方 SHA-256 通过；`detect`/`doctor`/`initialize`/`status`/`validate`/固定 `test` 与 Godot Headless 薄切片已在正式包路径实现，完整 CLI 与目标宿主验证仍未完成 |
+| Go | `.tools/go/1.27.0`，`go1.27.0 darwin/arm64` | 否 | v1 CLI 生产实现工具链 | 官方 SHA-256 通过；`detect`/`doctor`/`initialize`/`logs`/`status`/`validate`/固定 `test` 与 Godot Headless 薄切片已在正式包路径实现，完整 CLI 与目标宿主验证仍未完成 |
 | Schema/Plugin validators | `.tools/python-validators`：PyYAML 6.0.3、jsonschema 4.25.1 及固定传递依赖 | 否 | Draft 2020-12 fixtures 与官方 Plugin/Skill validator | 仅项目本地约 2.9 MiB；不属于产品运行时，不修改系统 Python |
 | Docker / Podman | 均未发现 | 否 | 可选的 Linux 构建/干净环境工具，不是 v1 普通用户依赖 | 先评估 hosted runner/原生构建，不因 Phase 0 安装容器运行时 |
 | 磁盘 | 工作盘仍有约 452 GiB；仓库 `.tools` 当前约 6.2 GiB | 是，充足 | Godot/templates、已校验下载包、Go/Rust 工具链、缓存和 artifacts | 原 5 GiB 是预估警戒线；用户已允许按真实需要扩展，当前 8 GiB 仅作异常增长软告警 |

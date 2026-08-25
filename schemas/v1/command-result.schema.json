@@ -98,6 +98,46 @@
       "then": { "properties": { "data": { "$ref": "initialize-data.schema.json" } } }
     },
     {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "logs" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "run_id"],
+                "properties": {
+                  "project": { "const": "." },
+                  "run_id": { "type": "string", "pattern": "^atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$" }
+                }
+              }
+            }
+          },
+          "evidence": { "maxItems": 0 },
+          "data": { "$ref": "logs-data.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": { "properties": { "name": { "const": "logs" } }, "required": ["name"] },
+          "outcome": { "const": "PASS" }
+        },
+        "required": ["command", "outcome"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "properties": {
+              "events": { "minItems": 1 }
+            }
+          }
+        }
+      }
+    },
+    {
       "if": { "properties": { "command": { "properties": { "name": { "const": "status" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": { "properties": { "data": { "$ref": "status-data.schema.json" } } }
     },

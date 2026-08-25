@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t083000.000000000z-111111111111",
+  "command": {
+    "name": "logs",
+    "arguments": {
+      "project": ".",
+      "run_id": "atelier-20260825t074407.795469000z-1ae781734cd3"
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-25T08:30:00Z",
+  "finished_at": "2026-08-25T08:30:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Verified structured run logs were read without modification.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "scope": "run",
+    "target_run_id": "atelier-20260825t074407.795469000z-1ae781734cd3",
+    "source_command": "test",
+    "source_outcome": "PASS",
+    "source_started_at": "2026-08-25T07:44:07.795469Z",
+    "source_finished_at": "2026-08-25T07:44:17.678469Z",
+    "source_exit_code": 0,
+    "evidence_kind": "test-report",
+    "evidence_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "evidence_byte_size": 512,
+    "producer_version": "0.1.0-dev",
+    "raw_output_included": false,
+    "events": [
+      {
+        "source": "test-report",
+        "kind": "test",
+        "id": "test-0001",
+        "level": "INFO",
+        "outcome": "PASS"
+      },
+      {
+        "source": "result",
+        "kind": "result",
+        "id": "command-finished",
+        "level": "INFO",
+        "outcome": "PASS"
+      }
+    ]
+  }
+}

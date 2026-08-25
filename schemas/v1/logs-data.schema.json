@@ -1,0 +1,213 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "logs-data.schema.json",
+  "title": "Codex Game Atelier structured run log data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scope", "target_run_id", "raw_output_included", "events"],
+  "properties": {
+    "scope": { "const": "run" },
+    "target_run_id": {
+      "type": "string",
+      "pattern": "^atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$"
+    },
+    "source_command": { "type": "string", "enum": ["validate", "test"] },
+    "source_outcome": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED", "SKIPPED"] },
+    "source_started_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "source_finished_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "source_exit_code": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "evidence_kind": { "type": "string", "enum": ["validation-report", "test-report"] },
+    "evidence_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "evidence_byte_size": { "type": "integer", "minimum": 1, "maximum": 4194304 },
+    "producer_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[a-z0-9.-]+)?$" },
+    "raw_output_included": { "const": false },
+    "events": {
+      "type": "array",
+      "maxItems": 321,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "kind", "id", "level", "outcome"],
+        "properties": {
+          "source": { "type": "string", "enum": ["validation-report", "test-report", "result"] },
+          "kind": { "type": "string", "enum": ["check", "test", "error", "result"] },
+          "id": { "type": "string" },
+          "level": { "type": "string", "enum": ["INFO", "WARNING", "ERROR"] },
+          "outcome": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED", "SKIPPED"] }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "source": { "const": "validation-report" },
+              "kind": { "const": "check" },
+              "id": { "pattern": "^check-[0-9]{4}$" }
+            }
+          },
+          {
+            "properties": {
+              "source": { "const": "test-report" },
+              "kind": { "const": "test" },
+              "id": { "pattern": "^test-[0-9]{4}$" }
+            }
+          },
+          {
+            "properties": {
+              "source": { "const": "result" },
+              "kind": { "const": "error" },
+              "id": { "pattern": "^error-[0-9]{4}$" }
+            }
+          },
+          {
+            "properties": {
+              "source": { "const": "result" },
+              "kind": { "const": "result" },
+              "id": { "const": "command-finished" }
+            }
+          }
+        ],
+        "allOf": [
+          {
+            "if": { "properties": { "outcome": { "const": "FAIL" } }, "required": ["outcome"] },
+            "then": { "properties": { "level": { "const": "ERROR" } } }
+          },
+          {
+            "if": { "properties": { "outcome": { "const": "BLOCKED" } }, "required": ["outcome"] },
+            "then": { "properties": { "level": { "const": "WARNING" } } }
+          },
+          {
+            "if": { "properties": { "outcome": { "enum": ["PASS", "SKIPPED"] } }, "required": ["outcome"] },
+            "then": { "properties": { "level": { "const": "INFO" } } }
+          }
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "events": { "minItems": 1 } }, "required": ["events"] },
+      "then": {
+        "required": [
+          "source_command",
+          "source_outcome",
+          "source_started_at",
+          "source_finished_at",
+          "source_exit_code",
+          "evidence_kind",
+          "evidence_sha256",
+          "evidence_byte_size",
+          "producer_version"
+        ]
+      }
+    },
+    {
+      "if": { "properties": { "source_command": { "const": "validate" } }, "required": ["source_command"] },
+      "then": {
+        "properties": {
+          "evidence_kind": { "const": "validation-report" },
+          "events": {
+            "items": {
+              "properties": { "source": { "enum": ["validation-report", "result"] } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_command": { "const": "test" } }, "required": ["source_command"] },
+      "then": {
+        "properties": {
+          "evidence_kind": { "const": "test-report" },
+          "events": {
+            "items": {
+              "properties": { "source": { "enum": ["test-report", "result"] } }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_outcome": { "const": "PASS" } }, "required": ["source_outcome"] },
+      "then": {
+        "properties": {
+          "source_exit_code": { "const": 0 },
+          "events": {
+            "contains": {
+              "properties": {
+                "source": { "const": "result" },
+                "kind": { "const": "result" },
+                "id": { "const": "command-finished" },
+                "outcome": { "const": "PASS" }
+              },
+              "required": ["source", "kind", "id", "outcome"]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_outcome": { "const": "SKIPPED" } }, "required": ["source_outcome"] },
+      "then": {
+        "properties": {
+          "source_exit_code": { "const": 0 },
+          "events": {
+            "contains": {
+              "properties": {
+                "source": { "const": "result" },
+                "kind": { "const": "result" },
+                "id": { "const": "command-finished" },
+                "outcome": { "const": "SKIPPED" }
+              },
+              "required": ["source", "kind", "id", "outcome"]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_outcome": { "const": "BLOCKED" } }, "required": ["source_outcome"] },
+      "then": {
+        "properties": {
+          "source_exit_code": { "const": 4 },
+          "events": {
+            "contains": {
+              "properties": {
+                "source": { "const": "result" },
+                "kind": { "const": "result" },
+                "id": { "const": "command-finished" },
+                "outcome": { "const": "BLOCKED" }
+              },
+              "required": ["source", "kind", "id", "outcome"]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "source_outcome": { "const": "FAIL" } }, "required": ["source_outcome"] },
+      "then": {
+        "properties": {
+          "source_exit_code": { "enum": [2, 3, 5, 6, 7, 8] },
+          "events": {
+            "contains": {
+              "properties": {
+                "source": { "const": "result" },
+                "kind": { "const": "result" },
+                "id": { "const": "command-finished" },
+                "outcome": { "const": "FAIL" }
+              },
+              "required": ["source", "kind", "id", "outcome"]
+            },
+            "minContains": 1,
+            "maxContains": 1
+          }
+        }
+      }
+    }
+  ]
+}
