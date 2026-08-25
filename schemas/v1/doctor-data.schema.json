@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "doctor-data.schema.json",
+  "title": "Codex Game Atelier doctor data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project", "godot", "host", "checks"],
+  "properties": {
+    "project": { "$ref": "detect-data.schema.json#/$defs/projectDiscovery" },
+    "godot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected", "supported", "output_truncated"],
+      "properties": {
+        "detected": { "type": "boolean" },
+        "executable": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["explicit", "environment", "path", "platform-known"] },
+        "version": { "type": "string", "pattern": "^4\\.7\\.2\\.stable\\.official\\.[0-9a-fA-F]{7,40}$" },
+        "supported": { "type": "boolean" },
+        "process_exit_code": { "type": "integer" },
+        "output_truncated": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "detected": { "const": true } }, "required": ["detected"] },
+          "then": { "required": ["executable", "source"] }
+        },
+        {
+          "if": { "properties": { "supported": { "const": true } }, "required": ["supported"] },
+          "then": {
+            "required": ["version", "process_exit_code"],
+            "properties": { "process_exit_code": { "const": 0 } }
+          }
+        }
+      ]
+    },
+    "host": { "$ref": "detect-data.schema.json#/$defs/host" },
+    "checks": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "prefixItems": [
+        { "$ref": "#/$defs/hostCheck" },
+        { "$ref": "#/$defs/projectFileCheck" },
+        { "$ref": "#/$defs/projectLanguageCheck" },
+        { "$ref": "#/$defs/godotExecutableCheck" },
+        { "$ref": "#/$defs/godotVersionCheck" }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "checkBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "summary"],
+      "properties": {
+        "id": { "type": "string" },
+        "outcome": { "$ref": "common.schema.json#/$defs/assessmentOutcome" },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2048 }
+      }
+    },
+    "hostCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "host" } } }]
+    },
+    "projectFileCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "project_file" } } }]
+    },
+    "projectLanguageCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "project_language" } } }]
+    },
+    "godotExecutableCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "godot_executable" } } }]
+    },
+    "godotVersionCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "godot_version" } } }]
+    }
+  }
+}

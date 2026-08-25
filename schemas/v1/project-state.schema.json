@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "project-state.schema.json",
+  "title": "Codex Game Atelier project state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "project_id", "revision", "mode", "engine", "task_refs", "active_run_refs", "updated_at"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "project_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "revision": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+    "mode": { "type": "string", "enum": ["manual", "standard", "strict"] },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "requested_version", "language"],
+      "properties": {
+        "kind": { "const": "godot" },
+        "requested_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "language": { "const": "gdscript" }
+      }
+    },
+    "task_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/stateReference" }
+    },
+    "active_run_refs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/stateReference" }
+    },
+    "last_command_result_ref": { "$ref": "common.schema.json#/$defs/stateReference" },
+    "updated_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+  }
+}

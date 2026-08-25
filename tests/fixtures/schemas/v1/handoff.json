@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-thin-slice-001",
+  "task_id": "task-godot-thin-slice",
+  "from_owner": {
+    "id": "lead",
+    "kind": "agent"
+  },
+  "to_owner": {
+    "id": "godot-engineer",
+    "kind": "agent"
+  },
+  "created_at": "2026-08-24T01:05:00Z",
+  "summary": "Contract fixtures are ready; engine execution is waiting for an approved Godot installation.",
+  "completed_work": [
+    "Defined the Phase 1 command and evidence schemas."
+  ],
+  "remaining_work": [
+    "Run the headless thin slice with Godot 4.7.2-stable."
+  ],
+  "evidence": [
+    {
+      "id": "evidence-env-001",
+      "path": ".gameatelier/evidence/run-20260824-doctor-001/environment.json"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "GODOT_NOT_FOUND",
+      "category": "prerequisite",
+      "message": "The supported Godot version is not installed.",
+      "retryable": false
+    }
+  ]
+}

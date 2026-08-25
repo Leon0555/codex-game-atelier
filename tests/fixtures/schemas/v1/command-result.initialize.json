@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t000000.000000000z-0123456789ab",
+  "command": {
+    "name": "initialize",
+    "arguments": {}
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-25T00:00:00Z",
+  "finished_at": "2026-08-25T00:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Codex Game Atelier project state was initialized atomically.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "initialized": true,
+    "created": true,
+    "state_path": ".gameatelier/project.json",
+    "project_id": "project-0123456789abcdef0123456789abcdef",
+    "schema_version": "1.0.0",
+    "revision": 0,
+    "mode": "standard",
+    "engine": {
+      "kind": "godot",
+      "requested_version": "4.7.2-stable",
+      "language": "gdscript"
+    },
+    "updated_at": "2026-08-25T00:00:00Z"
+  }
+}

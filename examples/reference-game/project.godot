@@ -1,0 +1,20 @@
+; Codex Game Atelier Phase 1 reference-game thin slice.
+; The project intentionally keeps rendering requirements minimal for headless CI.
+
+config_version=5
+
+[application]
+
+config/name="Codex Game Atelier Thin Slice"
+run/main_scene="res://main.tscn"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true

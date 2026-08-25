@@ -1,0 +1,14 @@
+Codex Game Atelier
+Copyright (c) 2026 Leon0555
+
+This repository is being designed with clean-room-style architectural study of
+the projects listed in docs/provenance.md. No third-party source code, prompts,
+or substantial documentation have been copied into this Phase 0 baseline.
+
+This draft NOTICE therefore contains no third-party copyright attribution.
+If substantial third-party material is introduced later, update both this file
+and docs/provenance.md with the applicable copyright and license notices before
+distribution.
+
+“Codex” and “Godot” may be trademarks of their respective owners. Their use in
+this project name and documentation does not imply endorsement.

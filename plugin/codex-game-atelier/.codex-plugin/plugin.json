@@ -1,0 +1,21 @@
+{
+  "name": "codex-game-atelier",
+  "version": "0.1.0",
+  "description": "Phase 1 Codex workflows for supported Godot prerequisite checks and explicit Atelier state initialization.",
+  "author": {
+    "name": "Leon0555",
+    "url": "https://github.com/Leon0555"
+  },
+  "license": "MIT",
+  "keywords": ["codex", "game-development", "godot"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Game Atelier",
+    "shortDescription": "Inspect Godot projects or initialize Atelier state.",
+    "longDescription": "Phase 1 source skeleton for detect, doctor, explicit atomic initialize, and status workflows. It is not distribution-ready and does not yet persist evidence.",
+    "developerName": "Leon0555",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "defaultPrompt": ["Inspect this Godot project with Codex Game Atelier and initialize state only when explicitly requested."]
+  }
+}

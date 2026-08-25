@@ -1,0 +1,38 @@
+# Operating systems and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and build output
+node_modules/
+target/
+dist/
+build/
+coverage/
+*.log
+
+# Project-local development toolchains (never distributed)
+.tools/
+.tools-cache/
+
+# Godot-generated state
+.godot/
+.import/
+export.cfg
+export_credentials.cfg
+
+# Codex Game Atelier runtime state and evidence
+.gameatelier/
+
+# Temporary files
+.tmp/
+tmp/

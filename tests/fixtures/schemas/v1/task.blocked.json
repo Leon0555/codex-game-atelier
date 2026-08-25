@@ -1,0 +1,35 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-godot-thin-slice",
+  "revision": 1,
+  "title": "Run the Godot headless thin slice",
+  "scope": "Validate the first CLI-to-Godot evidence path.",
+  "acceptance": [
+    "A supported Godot process starts headlessly.",
+    "The result and evidence validate against schema v1."
+  ],
+  "owner": {
+    "id": "lead",
+    "kind": "agent",
+    "display_name": "Project Lead"
+  },
+  "allowed_paths": [
+    "packages/godot-adapter",
+    "tests/fixtures/中文 路径"
+  ],
+  "status": "blocked",
+  "dependencies": [],
+  "evidence": [
+    {
+      "id": "evidence-env-001",
+      "path": ".gameatelier/evidence/run-20260824-doctor-001/environment.json"
+    }
+  ],
+  "blocker": {
+    "code": "GODOT_NOT_FOUND",
+    "category": "prerequisite",
+    "message": "The supported Godot version is not installed.",
+    "retryable": false
+  },
+  "updated_at": "2026-08-24T01:00:00Z"
+}

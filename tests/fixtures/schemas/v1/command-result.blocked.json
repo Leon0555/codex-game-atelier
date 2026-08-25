@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "run-20260824-doctor-001",
+  "command": {
+    "name": "doctor",
+    "arguments": {
+      "project": "测试 项目"
+    }
+  },
+  "outcome": "BLOCKED",
+  "started_at": "2026-08-24T01:00:00Z",
+  "finished_at": "2026-08-24T01:00:00Z",
+  "duration_ms": 12,
+  "exit_code": 4,
+  "summary": "Supported Godot executable was not found.",
+  "errors": [
+    {
+      "code": "GODOT_NOT_FOUND",
+      "category": "prerequisite",
+      "message": "Godot 4.7.2-stable was not found in configured or discoverable locations.",
+      "retryable": false,
+      "remediation": "Install or configure the supported Godot version, then run doctor again."
+    }
+  ],
+  "evidence": [],
+  "data": {
+    "project": {
+      "detected": true,
+      "root": "测试 项目",
+      "project_file": "测试 项目/project.godot"
+    },
+    "godot": {
+      "detected": false,
+      "supported": false,
+      "output_truncated": false
+    },
+    "host": {
+      "os": "darwin",
+      "arch": "arm64",
+      "supported": true
+    },
+    "checks": [
+      { "id": "host", "outcome": "PASS", "summary": "The host is in the Tier 1 matrix." },
+      { "id": "project_file", "outcome": "PASS", "summary": "project.godot is readable." },
+      { "id": "project_language", "outcome": "PASS", "summary": "The project uses the supported GDScript edition." },
+      { "id": "godot_executable", "outcome": "BLOCKED", "summary": "A supported Godot executable was not found." },
+      { "id": "godot_version", "outcome": "SKIPPED", "summary": "Version validation requires a Godot executable." }
+    ]
+  }
+}

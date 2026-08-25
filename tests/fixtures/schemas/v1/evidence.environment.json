@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "id": "evidence-env-001",
+  "kind": "environment-snapshot",
+  "outcome": "BLOCKED",
+  "created_at": "2026-08-24T01:00:00Z",
+  "producer": {
+    "component": "gameatelier-cli",
+    "version": "0.1.0-spike"
+  },
+  "path": ".gameatelier/evidence/run-20260824-doctor-001/environment.json",
+  "media_type": "application/json",
+  "metadata": {
+    "host": "macos-arm64",
+    "godot_found": false
+  }
+}

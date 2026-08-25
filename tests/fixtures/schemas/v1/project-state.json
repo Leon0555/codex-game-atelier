@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "project_id": "sample-godot-project",
+  "revision": 1,
+  "mode": "standard",
+  "engine": {
+    "kind": "godot",
+    "requested_version": "4.7.2-stable",
+    "language": "gdscript"
+  },
+  "task_refs": [
+    ".gameatelier/tasks/task-godot-thin-slice.json"
+  ],
+  "active_run_refs": [],
+  "last_command_result_ref": ".gameatelier/runs/run-20260824-doctor-001/result.json",
+  "updated_at": "2026-08-24T01:05:00Z"
+}

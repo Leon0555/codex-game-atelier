@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "detect-data.schema.json",
+  "title": "Codex Game Atelier detect data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["project", "godot", "host"],
+  "properties": {
+    "project": { "$ref": "#/$defs/projectDiscovery" },
+    "godot": { "$ref": "#/$defs/godotDiscovery" },
+    "host": { "$ref": "#/$defs/host" }
+  },
+  "$defs": {
+    "projectDiscovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected", "root"],
+      "properties": {
+        "detected": { "type": "boolean" },
+        "root": { "type": "string", "minLength": 1 },
+        "project_file": { "type": "string", "minLength": 1 }
+      },
+      "if": { "properties": { "detected": { "const": true } }, "required": ["detected"] },
+      "then": { "required": ["project_file"] }
+    },
+    "godotDiscovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detected"],
+      "properties": {
+        "detected": { "type": "boolean" },
+        "executable": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["explicit", "environment", "path", "platform-known"] }
+      },
+      "if": { "properties": { "detected": { "const": true } }, "required": ["detected"] },
+      "then": { "required": ["executable", "source"] }
+    },
+    "host": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "arch", "supported"],
+      "properties": {
+        "os": { "type": "string", "minLength": 1 },
+        "arch": { "type": "string", "minLength": 1 },
+        "supported": { "type": "boolean" }
+      }
+    }
+  }
+}

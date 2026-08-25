@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "status-data.schema.json",
+  "title": "Codex Game Atelier status data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["initialized", "state_path", "task_ref_count", "active_run_ref_count"],
+  "properties": {
+    "initialized": { "type": "boolean" },
+    "state_path": { "const": ".gameatelier/project.json" },
+    "project_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "observed_schema_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "revision": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+    "mode": { "type": "string", "enum": ["manual", "standard", "strict"] },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "requested_version", "language"],
+      "properties": {
+        "kind": { "const": "godot" },
+        "requested_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "language": { "const": "gdscript" }
+      }
+    },
+    "task_ref_count": { "type": "integer", "minimum": 0 },
+    "active_run_ref_count": { "type": "integer", "minimum": 0 },
+    "last_command_result_ref": { "$ref": "common.schema.json#/$defs/stateReference" },
+    "updated_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+  },
+  "if": { "properties": { "initialized": { "const": true } }, "required": ["initialized"] },
+  "then": { "required": ["project_id", "schema_version", "revision", "mode", "engine", "updated_at"] }
+}

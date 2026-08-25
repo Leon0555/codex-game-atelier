@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "handoff.schema.json",
+  "title": "Codex Game Atelier task handoff",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "task_id", "from_owner", "to_owner", "created_at", "summary", "completed_work", "remaining_work", "evidence", "blockers"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "task_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "from_owner": { "$ref": "common.schema.json#/$defs/owner" },
+    "to_owner": { "$ref": "common.schema.json#/$defs/owner" },
+    "created_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "completed_work": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+    },
+    "remaining_work": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/evidenceRef" }
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "$ref": "error.schema.json" }
+    }
+  }
+}
