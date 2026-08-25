@@ -57,11 +57,20 @@ func preflightRunIntent(state projectState, result contract.Result, producerVers
 	if _, ok := allowedPersistedCommands[result.Command.Name]; !ok {
 		return errors.New("command is not eligible for persisted evidence")
 	}
-	if result.Command.Name != "validate" || result.Command.Arguments == nil {
+	if result.Command.Arguments == nil {
 		return errors.New("persisted command arguments are outside bounds")
 	}
-	if err := validatePersistedValidateArguments(result.Command.Arguments); err != nil {
-		return err
+	switch result.Command.Name {
+	case "validate":
+		if err := validatePersistedValidateArguments(result.Command.Arguments); err != nil {
+			return err
+		}
+	case "test":
+		if err := validatePersistedTestArguments(result.Command.Arguments); err != nil {
+			return err
+		}
+	default:
+		return errors.New("persisted command arguments are outside bounds")
 	}
 	if err := validatePersistedJSON(result.Command.Arguments); err != nil {
 		return fmt.Errorf("persisted command arguments are unsafe: %w", err)
@@ -108,6 +117,9 @@ func preflightRunFinish(transaction *runTransaction, result contract.Result, pay
 				return errors.New("structured error details are unsafe")
 			}
 		}
+	}
+	if result.Command.Name == "test" {
+		return preflightTestRunFinish(result, payloads)
 	}
 	data, ok := result.Data.(map[string]any)
 	if !ok || data == nil {

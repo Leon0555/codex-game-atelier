@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "test-data.schema.json",
+  "title": "Codex Game Atelier test data",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "test_count", "passed_count", "failed_count", "engine_version"],
+      "properties": {
+        "scope": { "const": "gdscript" },
+        "test_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "passed_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "failed_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "engine_version": {
+          "type": "string",
+          "pattern": "^(?:|4\\.7\\.2\\.stable\\.official\\.[0-9a-fA-F]{7,40})$"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "recorded"],
+      "properties": {
+        "scope": { "const": "gdscript" },
+        "recorded": { "const": false }
+      }
+    }
+  ]
+}

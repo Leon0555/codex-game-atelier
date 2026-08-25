@@ -78,7 +78,7 @@ command outcome 与提交状态继续分离：一个结构完整的 `FAIL`、`BL
 - 512 个目录、2,048 个读取文件或 256 MiB 累计内容以上的项目当前会整体失败，需要未来分页/派生索引方案。
 - 扫描成本与完整闭包数量线性相关；第一版选择有界、可取消、可证明正确性而非快速索引。
 - 只读扫描无法区分崩溃遗留与正处于 root→intent 或 intent→result 窗口的有效 active run，因此任何删除必须在共同 writer/cleaner 协议下锁内重验。
-- 当前闭包预检只覆盖已实现的 `validate` 记录。新增 `test/build/export/release check` 前必须扩展 scanner 的命令特定闭包验证，不能把未知形状误判为 committed。
+- 当前闭包预检覆盖已实现的 `validate` 与 ADR 0011 `test` 记录。新增 `build/export/release check` 前必须扩展 scanner 的命令特定闭包验证，不能把未知形状误判为 committed。
 
 ## 回退
 

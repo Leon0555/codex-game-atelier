@@ -25,7 +25,7 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 
 	started := time.Now().UTC()
 	if len(args) == 0 {
-		return emitUsage(stdout, started, "cli", "expected clean, detect, doctor, initialize, status, validate, or --version")
+		return emitUsage(stdout, started, "cli", "expected clean, detect, doctor, initialize, status, test, validate, or --version")
 	}
 
 	var result contract.Result
@@ -40,6 +40,8 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		result = runInitialize(started, args[1:])
 	case "status":
 		result = runStatus(started, args[1:])
+	case "test":
+		return emitEncodedExecution(stdout, stderr, runTest(ctx, started, args[1:]))
 	case "validate":
 		return emitEncodedExecution(stdout, stderr, runValidate(ctx, started, args[1:]))
 	default:

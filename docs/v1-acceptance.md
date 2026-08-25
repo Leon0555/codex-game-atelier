@@ -1,6 +1,6 @@
 # Codex Game Atelier v1.0 验收草案
 
-状态：Phase 1 验收基线；Godot/CLI 执行项仍为 `NOT RUN`
+状态：Phase 1 验收基线；部分 macOS Apple Silicon 薄切片已实证，其余项目保持 `NOT RUN` 或明确限定状态
 日期：2026-08-24
 
 ## 1. 结果词汇
@@ -28,7 +28,7 @@
 | G-003 | 项目初始化幂等，不覆盖用户文件 | 首次/重复/冲突运行 diff | NOT RUN |
 | G-004 | Headless 启动并正常退出 | 进程、退出码、Godot 日志 | NOT RUN |
 | G-005 | 场景和资源验证能发现损坏、缺失与循环问题 | 有效/无效 fixture 与定位 | NOT RUN |
-| G-006 | GDScript 测试可运行并映射通过/失败/超时 | 测试报告、退出码、日志 | NOT RUN |
+| G-006 | GDScript 测试可运行并映射通过/失败/超时 | 测试报告、退出码、日志 | PASS（macOS 固定入口薄切片；三宿主与完整框架仍 NOT RUN） |
 | G-007 | 输入、信号、资源、UI 与基础玩法工作流可在参考游戏验证 | 自动化/可复现操作证据 | NOT RUN |
 | G-008 | `build --profile debug|release` 分别执行默认目标工作流并产生可辨识 runnable artifact；复用 export 时引用同一底层 evidence | 命令、调用链、产物 manifest/hash | NOT RUN |
 | G-009 | 指定 preset/目标的直接导出成功并在目标平台实际启动；macOS 只要求未签名/未公证产物的 Apple Silicon 技术验证 | Godot export 命令 + target smoke + 分发就绪标记 | NOT RUN |

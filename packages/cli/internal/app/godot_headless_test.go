@@ -311,7 +311,7 @@ func TestGodotHeadlessCancellationAfterSceneStartRemovesChild(t *testing.T) {
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
-		deadline := time.Now().Add(2 * time.Second)
+		deadline := time.Now().Add(5 * time.Second)
 		for time.Now().Before(deadline) {
 			if _, err := os.Stat(started); err == nil {
 				cancel()

@@ -136,26 +136,7 @@ func runValidateWithFault(ctx context.Context, started time.Time, args []string,
 }
 
 func validationRunMustRemainIncomplete(result contract.Result, runRoot *os.Root) bool {
-	for _, failure := range result.Errors {
-		if failure.Code == "GODOT_EXECUTABLE_SNAPSHOT_CLEANUP_FAILED" {
-			return true
-		}
-	}
-	for _, name := range []string{
-		".atelier-version-runner",
-		".atelier-version-runner.cstemp",
-		".godot-version-snapshot",
-		".godot-version-snapshot.cstemp",
-		".atelier-scene-runner",
-		".atelier-scene-runner.cstemp",
-		".godot-scene-snapshot",
-		".godot-scene-snapshot.cstemp",
-	} {
-		if _, err := runRoot.Lstat(name); err == nil || !errors.Is(err, os.ErrNotExist) {
-			return true
-		}
-	}
-	return false
+	return fixedActionRunMustRemainIncomplete(result, runRoot, "scene")
 }
 
 func executeValidation(ctx context.Context, started time.Time, result contract.Result, runRoot, projectRoot *os.Root, projectPath string, options validateOptions) (contract.Result, runPayload) {
@@ -507,8 +488,8 @@ func finishUncommittedValidate(started time.Time, command contract.Command, scop
 func encodeRunCommitFailure(started time.Time, initial contract.Result) encodedExecution {
 	result := contract.NewResult(started, initial.Command)
 	result.RunID = initial.RunID
-	failure := contract.Error{Code: "RUN_COMMIT_FAILED", Category: "state", Message: "The validation run could not be committed atomically.", Retryable: true, Remediation: "Inspect incomplete run state, then retry as a new run."}
-	result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "Validation did not produce a committed result.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, failure)
+	failure := contract.Error{Code: "RUN_COMMIT_FAILED", Category: "state", Message: "The command run could not be committed atomically.", Retryable: true, Remediation: "Inspect incomplete run state, then retry as a new run."}
+	result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "The command did not produce a committed result.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, failure)
 	return encodeUncommittedResult(result)
 }
 
@@ -522,7 +503,7 @@ func encodeRunBeginFailure(started time.Time, initial contract.Result, err error
 		result := contract.NewResult(started, initial.Command)
 		result.RunID = initial.RunID
 		problem := contract.Error{Code: "RUN_PREPARE_FAILED", Category: "state", Message: "The run directory was created, but its immutable intent was not committed.", Retryable: true, Remediation: "Inspect the orphan run directory, then retry as a new run."}
-		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "Validation did not start with a committed intent.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, problem)
+		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "The command did not start with a committed intent.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, problem)
 		return encodeUncommittedResult(result)
 	case runBeginIncomplete:
 		return encodeRunCommitFailure(started, initial)
@@ -535,11 +516,14 @@ func encodeRunUnavailable(started time.Time, initial contract.Result) encodedExe
 	result := contract.NewResult(started, initial.Command)
 	result.RunID = initial.RunID
 	failure := contract.Error{Code: "RUN_RECORDING_UNAVAILABLE", Category: "state", Message: "Run evidence persistence was unavailable before a run root was created.", Retryable: true, Remediation: "Check project state, host, and filesystem support, then retry."}
-	result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "Validation could not start its evidence transaction.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, failure)
+	result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitState, "The command could not start its evidence transaction.", map[string]any{"scope": validateCommandScope(initial.Command), "recorded": false}, failure)
 	return encodeUncommittedResult(result)
 }
 
 func validateCommandScope(command contract.Command) string {
+	if command.Name == "test" {
+		return "gdscript"
+	}
 	if command.Arguments != nil && command.Arguments["headless"] == true {
 		return "headless"
 	}

@@ -184,7 +184,11 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 		return "corrupt", "EVIDENCE_CLOSURE_INVALID", nil
 	}
 
-	const evidenceName = "0001-validation-report.json"
+	payloadKind, ok := expectedRunPayloadKind(commandResult.Command.Name)
+	if !ok {
+		return "corrupt", "PAYLOAD_CLOSURE_INVALID", nil
+	}
+	evidenceName := "0001-" + payloadKind + ".json"
 	payloadRoot, exists, err := openExistingVerifiedDirectory(runRoot, "payloads")
 	if err != nil || !exists {
 		return "corrupt", "PAYLOAD_CLOSURE_INVALID", nil
@@ -241,6 +245,17 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 		return "", "", err
 	}
 	return "committed", "RESULT_CLOSURE_VERIFIED", nil
+}
+
+func expectedRunPayloadKind(commandName string) (string, bool) {
+	switch commandName {
+	case "validate":
+		return "validation-report", true
+	case "test":
+		return "test-report", true
+	default:
+		return "", false
+	}
 }
 
 func validateScannedIntent(intent runIntentRecord, state projectState, runID string) error {

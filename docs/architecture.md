@@ -70,13 +70,13 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 
 ## 4. 确定性 CLI
 
-候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner；其余仍是后续候选：
+候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议；其余仍是后续候选：
 
 - `detect`：发现 Godot 与项目，纯读。
 - `doctor`：当前生产切片纯读验证宿主、项目文件、GDScript、Godot 可执行文件和自报的精确标准版标识；版本文本不替代安装来源、散列或签名验证。导出模板与更完整的平台/配置诊断属于后续实现。
 - `initialize`：用户显式请求时，为已有 Godot/GDScript 项目原子创建最小状态；合法重跑零修改，不写 evidence、不修复或覆盖异常状态。
-- `validate`：默认验证 pinned 项目状态、regular `project.godot`、GDScript 边界和持久化能力；显式 `--headless` 在用户授权标准 `user://` 后，固定配套 runner 与 Godot 的已打开源文件身份，并为 version/scene 分别创建阶段独立的 runner/engine 快照，通过继承的 pinned 项目目录 fd 执行固定验证，再把外部写入符号化记录在 intent。项目公开路径身份在引擎前后核对，路径被并发替换时 observation 作废；Godot/runner 公共路径被替换不会重定向已固定执行。任何瞬时文件清理失败都会阻止 `result.json` 发布。完整场景/资源图、测试套件和日志保留仍属后续切片。
-- `test`：执行 GDScript/项目测试并记录结果。
+- `validate`：默认验证 pinned 项目状态、regular `project.godot`、GDScript 边界和持久化能力；显式 `--headless` 在用户授权标准 `user://` 后，固定配套 runner 与 Godot 的已打开源文件身份，并为 version/scene 分别创建阶段独立的 runner/engine 快照，通过继承的 pinned 项目目录 fd 执行固定验证，再把外部写入符号化记录在 intent。项目公开路径身份在引擎前后核对，路径被并发替换时 observation 作废；Godot/runner 公共路径被替换不会重定向已固定执行。任何瞬时文件清理失败都会阻止 `result.json` 发布。完整场景/资源图和日志保留仍属后续切片。
+- `test`：当前固定执行 `res://tests/atelier_test_runner.gd`，不接受任意脚本/Godot 参数；复用 pinned version/test 双阶段执行，严格解析唯一 JSON marker，把断言失败映射为 3、引擎/协议失败映射为 5、超时/取消映射为 6，并原子记录逐项 test report。它执行用户拥有或已审阅的项目代码，不声称提供代码沙箱；第三方测试框架适配、过滤和原始日志保留属于后续切片。
 - `build --profile debug|release`：面向用户的默认目标工作流，执行相应门禁并复用 `export` 产生 runnable artifact；底层 evidence 只记录一次并互相引用，不假设 Godot 存在独立编译流水线。
 - `export`：对指定 Godot preset/目标执行直接导出与产物验证，是 Godot `--export-debug/--export-release` 的确定性包装。
 - `logs`：归一化和查询运行日志。
@@ -112,7 +112,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 - 每条状态含 schema version；迁移必须可预览、备份和回退。
 - 需要进一步决定哪些状态默认提交 Git，哪些仅保留本地/CI artifact。
 
-默认持久化政策已经确定：`clean --list`/`detect`/`doctor`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export`/`release check` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭记录。`validate` 已实证以 `result.json` 最后发布的多文件正式提交点；run scanner 已能验证 committed 并预览 incomplete/orphan，实际 recovery/delete、派生索引与其他命令仍待后续薄切片。
+默认持久化政策已经确定：`clean --list`/`detect`/`doctor`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export`/`release check` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭记录。`validate` 与 `test` 已实证以 `result.json` 最后发布的多文件正式提交点；run scanner 已能验证两类 committed 闭包并预览 incomplete/orphan，实际 recovery/delete、派生索引与其他命令仍待后续薄切片。
 
 ## 6. 门禁模式
 
@@ -158,7 +158,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - Plugin 能否可靠携带/定位各平台 CLI，以及最小安装步骤。
 - Go CLI 的 Plugin 携带方式、包体积、目标宿主运行、升级/回滚路径。
 - `.gameatelier` 中应提交与不应提交的精确边界。
-- Godot 测试框架选择与“无额外依赖”降级路径。
+- 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
 - 构建、导出与 release 在三种模式下的精确门禁矩阵。
 
 ## 11. 当前依据

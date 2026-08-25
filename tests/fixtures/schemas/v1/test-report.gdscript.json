@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "gdscript",
+  "outcome": "PASS",
+  "engine_version": "4.7.2.stable.official.ed1daf0bf",
+  "tests": [
+    {
+      "id": "localized-resource",
+      "outcome": "PASS",
+      "summary": "A localized resource loaded."
+    },
+    {
+      "id": "signal-flow",
+      "outcome": "PASS",
+      "summary": "A signal connected and emitted."
+    }
+  ]
+}

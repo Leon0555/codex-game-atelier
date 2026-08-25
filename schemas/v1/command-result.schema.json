@@ -102,6 +102,51 @@
       "then": { "properties": { "data": { "$ref": "status-data.schema.json" } } }
     },
     {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "test" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "timeout_ms", "engine_user_data", "godot_source", "test_runner"],
+                "properties": {
+                  "project": { "const": "." },
+                  "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                  "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] },
+                  "test_runner": { "const": "res://tests/atelier_test_runner.gd" }
+                }
+              }
+            }
+          },
+          "data": { "$ref": "test-data.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": { "properties": { "name": { "const": "test" } }, "required": ["name"] },
+          "outcome": { "const": "PASS" }
+        },
+        "required": ["command", "outcome"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "properties": {
+              "test_count": { "type": "integer", "minimum": 1 },
+              "failed_count": { "const": 0 },
+              "engine_version": { "type": "string", "minLength": 1 }
+            },
+            "required": ["test_count", "failed_count", "engine_version"]
+          }
+        }
+      }
+    },
+    {
       "if": { "properties": { "command": { "properties": { "name": { "const": "validate" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": {
         "properties": {

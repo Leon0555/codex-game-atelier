@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t070000.000000000z-abcdef012345",
+  "command": {
+    "name": "test",
+    "arguments": {
+      "project": ".",
+      "timeout_ms": 30000,
+      "engine_user_data": "standard-os-location",
+      "godot_source": "explicit",
+      "test_runner": "res://tests/atelier_test_runner.gd"
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-25T07:00:00Z",
+  "finished_at": "2026-08-25T07:00:00.500Z",
+  "duration_ms": 500,
+  "exit_code": 0,
+  "summary": "GDScript tests passed.",
+  "errors": [],
+  "evidence": [
+    {
+      "id": "atelier-20260825t070000.000000000z-abcdef012345-e0001",
+      "path": ".gameatelier/runs/atelier-20260825t070000.000000000z-abcdef012345/evidence/0001-test-report.json"
+    }
+  ],
+  "data": {
+    "scope": "gdscript",
+    "test_count": 2,
+    "passed_count": 2,
+    "failed_count": 0,
+    "engine_version": "4.7.2.stable.official.ed1daf0bf"
+  }
+}

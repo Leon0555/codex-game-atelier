@@ -212,7 +212,7 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 }
 
 func declaredExternalWrites(command contract.Command) []string {
-	if command.Name == "validate" && command.Arguments["engine_user_data"] == "standard-os-location" {
+	if (command.Name == "validate" || command.Name == "test") && command.Arguments["engine_user_data"] == "standard-os-location" {
 		return []string{"godot:user-data:standard-os-location"}
 	}
 	return []string{}

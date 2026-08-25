@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -732,7 +733,12 @@ func assertStoredRunClosure(t *testing.T, project, runID string) {
 	if err := json.Unmarshal(resultBytes, &result); err != nil || result.RunID != runID || len(result.Evidence) != 1 {
 		t.Fatalf("invalid stored result closure: err=%v result=%+v", err, result)
 	}
-	recordBytes, err := os.ReadFile(filepath.Join(runRoot, "evidence", "0001-validation-report.json"))
+	evidencePrefix := ".gameatelier/runs/" + runID + "/evidence/"
+	evidenceName := strings.TrimPrefix(result.Evidence[0].Path, evidencePrefix)
+	if evidenceName == result.Evidence[0].Path || evidenceName == "" || filepath.Base(evidenceName) != evidenceName {
+		t.Fatalf("stored result has an unsafe evidence reference: %+v", result.Evidence[0])
+	}
+	recordBytes, err := os.ReadFile(filepath.Join(runRoot, "evidence", evidenceName))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -740,12 +746,17 @@ func assertStoredRunClosure(t *testing.T, project, runID string) {
 	if err := json.Unmarshal(recordBytes, &record); err != nil {
 		t.Fatal(err)
 	}
-	payloadBytes, err := os.ReadFile(filepath.Join(runRoot, "payloads", "0001-validation-report.json"))
+	payloadPrefix := ".gameatelier/runs/" + runID + "/payloads/"
+	payloadName := strings.TrimPrefix(record.Path, payloadPrefix)
+	if payloadName == record.Path || payloadName == "" || filepath.Base(payloadName) != payloadName {
+		t.Fatalf("stored evidence has an unsafe payload reference: %+v", record)
+	}
+	payloadBytes, err := os.ReadFile(filepath.Join(runRoot, "payloads", payloadName))
 	if err != nil {
 		t.Fatal(err)
 	}
 	sum := sha256.Sum256(payloadBytes)
-	if result.Evidence[0].ID != record.ID || result.Evidence[0].Path != ".gameatelier/runs/"+runID+"/evidence/0001-validation-report.json" || record.RunID != runID || record.Path != ".gameatelier/runs/"+runID+"/payloads/0001-validation-report.json" || record.SHA256 != hex.EncodeToString(sum[:]) || record.ByteSize != int64(len(payloadBytes)) {
+	if result.Evidence[0].ID != record.ID || record.RunID != runID || record.SHA256 != hex.EncodeToString(sum[:]) || record.ByteSize != int64(len(payloadBytes)) {
 		t.Fatalf("stored run closure is inconsistent: result=%+v record=%+v", result, record)
 	}
 }

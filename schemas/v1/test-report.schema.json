@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "test-report.schema.json",
+  "title": "Codex Game Atelier GDScript test report",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope", "outcome", "tests"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "scope": { "const": "gdscript" },
+    "outcome": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED"] },
+    "engine_version": {
+      "type": "string",
+      "pattern": "^4\\.7\\.2\\.stable\\.official\\.[0-9a-fA-F]{7,40}$"
+    },
+    "tests": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "outcome", "summary"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+          "outcome": { "type": "string", "enum": ["PASS", "FAIL"] },
+          "summary": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?=.*\\S)[^\\u0000-\\u001F\\u007F-\\u009F]+$"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "outcome": { "const": "PASS" } }, "required": ["outcome"] },
+      "then": {
+        "required": ["engine_version"],
+        "properties": {
+          "tests": {
+            "minItems": 1,
+            "items": {
+              "properties": { "outcome": { "const": "PASS" } },
+              "required": ["outcome"]
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "outcome": { "const": "FAIL" },
+          "tests": { "minItems": 1 }
+        },
+        "required": ["outcome", "tests"]
+      },
+      "then": {
+        "required": ["engine_version"],
+        "properties": {
+          "tests": {
+            "contains": {
+              "properties": { "outcome": { "const": "FAIL" } },
+              "required": ["outcome"]
+            },
+            "minContains": 1
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "outcome": { "const": "BLOCKED" } }, "required": ["outcome"] },
+      "then": { "properties": { "tests": { "maxItems": 0 } } }
+    }
+  ]
+}

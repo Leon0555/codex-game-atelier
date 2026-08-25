@@ -122,6 +122,65 @@ def main() -> None:
         "headless command result with baseline data scope",
     )
 
+    test_intent = load_json(FIXTURE_ROOT / "run-intent.test.json")
+    test_result = load_json(FIXTURE_ROOT / "command-result.test.json")
+    test_report = load_json(FIXTURE_ROOT / "test-report.gdscript.json")
+    if not isinstance(test_intent, dict) or not isinstance(test_result, dict) or not isinstance(test_report, dict):
+        raise SystemExit("test fixtures must be objects")
+    result_test_data = test_result.get("data")
+    report_tests = test_report.get("tests")
+    if not isinstance(result_test_data, dict) or not isinstance(report_tests, list):
+        raise SystemExit("test fixtures lack structured counts or cases")
+    if result_test_data.get("test_count") != len(report_tests):
+        raise SystemExit("test command result count differs from its report")
+    if result_test_data.get("passed_count") != sum(case.get("outcome") == "PASS" for case in report_tests):
+        raise SystemExit("test command result passed_count differs from its report")
+    if test_result.get("outcome") != test_report.get("outcome"):
+        raise SystemExit("test command result and report outcomes differ")
+
+    invalid_fail_without_engine = copy.deepcopy(test_report)
+    invalid_fail_without_engine["outcome"] = "FAIL"
+    invalid_fail_without_engine.pop("engine_version")
+    invalid_fail_without_engine["tests"][0]["outcome"] = "FAIL"
+    expect_invalid(
+        validators["test-report"],
+        invalid_fail_without_engine,
+        "nonempty failing test report without an engine version",
+    )
+    invalid_fail_without_failed_case = copy.deepcopy(test_report)
+    invalid_fail_without_failed_case["outcome"] = "FAIL"
+    expect_invalid(
+        validators["test-report"],
+        invalid_fail_without_failed_case,
+        "failing test report without a failed case",
+    )
+    for summary, label in (("\u0001", "control-character test summary"), ("   ", "whitespace-only test summary")):
+        invalid_test_summary = copy.deepcopy(test_report)
+        invalid_test_summary["tests"][0]["summary"] = summary
+        expect_invalid(validators["test-report"], invalid_test_summary, label)
+
+    invalid_test_runner = copy.deepcopy(test_result)
+    invalid_test_runner["command"]["arguments"]["test_runner"] = "res://tests/custom.gd"
+    expect_invalid(
+        validators["command-result"],
+        invalid_test_runner,
+        "test command with a caller-selected runner",
+    )
+    invalid_test_counts = copy.deepcopy(test_result)
+    invalid_test_counts["data"]["failed_count"] = 1
+    expect_invalid(
+        validators["command-result"],
+        invalid_test_counts,
+        "passing test command with a nonzero failed count",
+    )
+    invalid_test_intent = copy.deepcopy(test_intent)
+    invalid_test_intent["declared_external_writes"] = []
+    expect_invalid(
+        validators["run-intent"],
+        invalid_test_intent,
+        "authorized test intent without its external write declaration",
+    )
+
     clean_result = load_json(FIXTURE_ROOT / "command-result.clean.json")
     if not isinstance(clean_result, dict):
         raise SystemExit("clean result fixture must be an object")
@@ -140,7 +199,7 @@ def main() -> None:
         "failed clean scan with partial decisions",
     )
 
-    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 8 negative assertions, headless cross-fixture semantics")
+    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 15 negative assertions, headless and test cross-fixture semantics")
 
 
 if __name__ == "__main__":

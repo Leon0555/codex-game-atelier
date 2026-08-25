@@ -105,20 +105,70 @@
       "if": {
         "properties": {
           "command": {
-            "properties": {
-              "name": { "const": "validate" },
-              "arguments": {
-                "properties": {
-                  "headless": { "const": true },
-                  "engine_user_data": { "const": "standard-os-location" }
-                },
-                "required": ["headless", "engine_user_data"]
-              }
-            },
-            "required": ["name", "arguments"]
+            "properties": { "name": { "const": "test" } },
+            "required": ["name"]
           }
         },
         "required": ["command"]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "timeout_ms", "engine_user_data", "godot_source", "test_runner"],
+                "properties": {
+                  "project": { "const": "." },
+                  "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                  "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] },
+                  "test_runner": { "const": "res://tests/atelier_test_runner.gd" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "command": {
+                "properties": {
+                  "name": { "const": "validate" },
+                  "arguments": {
+                    "properties": {
+                      "headless": { "const": true },
+                      "engine_user_data": { "const": "standard-os-location" }
+                    },
+                    "required": ["headless", "engine_user_data"]
+                  }
+                },
+                "required": ["name", "arguments"]
+              }
+            },
+            "required": ["command"]
+          },
+          {
+            "properties": {
+              "command": {
+                "properties": {
+                  "name": { "const": "test" },
+                  "arguments": {
+                    "properties": { "engine_user_data": { "const": "standard-os-location" } },
+                    "required": ["engine_user_data"]
+                  }
+                },
+                "required": ["name", "arguments"]
+              }
+            },
+            "required": ["command"]
+          }
+        ]
       },
       "then": {
         "required": ["declared_external_writes"],

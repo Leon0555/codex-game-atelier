@@ -45,7 +45,7 @@ func execPinnedGodot(expectedNonce string) error {
 	if err := decoder.Decode(&control); err != nil {
 		return errors.New("runner control message is invalid")
 	}
-	if err := decoder.Decode(&struct{}{}); err != io.EOF || control.Nonce != expectedNonce || control.Stage != "version" && control.Stage != "scene" {
+	if err := decoder.Decode(&struct{}{}); err != io.EOF || control.Nonce != expectedNonce || control.Stage != "version" && control.Stage != "scene" && control.Stage != "test" {
 		return errors.New("runner control message is unauthorized")
 	}
 	executable, err := pinnedExecutablePath(engineExecutable)
@@ -71,6 +71,9 @@ func execPinnedGodot(expectedNonce string) error {
 	arguments := []string{executable, "--version"}
 	if control.Stage == "scene" {
 		arguments = []string{executable, "--headless", "--path", ".", "--quit-after", "1", "--no-header"}
+	}
+	if control.Stage == "test" {
+		arguments = []string{executable, "--headless", "--path", ".", "--script", "res://tests/atelier_test_runner.gd", "--no-header"}
 	}
 	environment := make([]string, 0, len(os.Environ()))
 	prefix := pinnedGodotHelperEnvironment + "="

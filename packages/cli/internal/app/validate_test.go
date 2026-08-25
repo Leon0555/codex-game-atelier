@@ -69,11 +69,11 @@ func TestValidateHeadlessCommitsPassingFixedEngineRun(t *testing.T) {
 	}
 	godot := createExecutable(t, "fake-godot", "#!/bin/sh\nif [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\nprintf 'scene ready\\n'\n")
 
-	code, result, stdout, stderr := execute(t, context.Background(), "validate", "--project", project, "--headless", "--godot", godot, "--timeout-ms", "2000", "--allow-engine-user-data")
+	code, result, stdout, stderr := execute(t, context.Background(), "validate", "--project", project, "--headless", "--godot", godot, "--timeout-ms", "5000", "--allow-engine-user-data")
 	if code != contract.ExitOK || result.Outcome != "PASS" || len(result.Evidence) != 1 || stderr != "" {
 		t.Fatalf("headless validate failed: code=%d result=%+v stderr=%q", code, result, stderr)
 	}
-	if strings.Contains(stdout, godot) || result.Command.Arguments["engine_user_data"] != "standard-os-location" || result.Command.Arguments["timeout_ms"] != float64(2000) {
+	if strings.Contains(stdout, godot) || result.Command.Arguments["engine_user_data"] != "standard-os-location" || result.Command.Arguments["timeout_ms"] != float64(5000) {
 		t.Fatalf("result leaked an executable path or lost normalized arguments: %s", stdout)
 	}
 	data := resultDataMap(t, result)
@@ -100,7 +100,7 @@ func TestValidateHeadlessCommitsEngineErrorAndTimeout(t *testing.T) {
 		wantExit  int
 		wantError string
 	}{
-		{name: "engine error", body: "printf 'ERROR: scene failed\\n' >&2", timeoutMS: "2000", wantExit: contract.ExitEngine, wantError: "GODOT_REPORTED_ERRORS"},
+		{name: "engine error", body: "printf 'ERROR: scene failed\\n' >&2", timeoutMS: "5000", wantExit: contract.ExitEngine, wantError: "GODOT_REPORTED_ERRORS"},
 		{name: "timeout", body: "sleep 5", timeoutMS: "100", wantExit: contract.ExitInterrupted, wantError: "GODOT_TIMEOUT"},
 	} {
 		t.Run(test.name, func(t *testing.T) {

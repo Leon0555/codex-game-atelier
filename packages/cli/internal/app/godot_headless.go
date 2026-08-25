@@ -34,6 +34,7 @@ type godotHeadlessExecution struct {
 	Failure        godotHeadlessFailure
 	FailureStage   string
 	VersionProcess processResult
+	ActionProcess  processResult
 	SceneProcess   processResult
 }
 
@@ -46,9 +47,19 @@ type godotHeadlessExecution struct {
 // The caller remains responsible for authorizing Godot's documented user://
 // side effect before invoking this function.
 func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSource, source *os.File, runRoot *os.Root, projectDirectory *os.File) godotHeadlessExecution {
+	return runGodotFixedAction(parent, timeout, runnerSource, source, runRoot, projectDirectory, "scene")
+}
+
+// runGodotFixedAction executes the fixed version check followed by one
+// allow-listed headless action. The private runner, rather than a public argv,
+// owns the exact engine arguments for each action.
+func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSource, source *os.File, runRoot *os.Root, projectDirectory *os.File, action string) godotHeadlessExecution {
 	operation, cancel := context.WithTimeout(parent, timeout)
 	defer cancel()
 
+	if action != "scene" && action != "test" {
+		return godotHeadlessExecution{Failure: headlessFailureProcess, FailureStage: action}
+	}
 	execution := godotHeadlessExecution{FailureStage: "version"}
 	sourceDigest, err := digestGodotExecutable(operation, source)
 	if err != nil {
@@ -134,21 +145,21 @@ func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSourc
 		return execution
 	}
 	if err := operation.Err(); err != nil {
-		execution.FailureStage = "scene"
+		execution.FailureStage = action
 		execution.Failure = classifyHeadlessContext(err)
 		return execution
 	}
 
-	execution.FailureStage = "scene"
-	sceneRunner, err := createPinnedRunnerSnapshot(operation, remainingDuration(operation, timeout), runRoot, runnerSource, ".atelier-scene-runner")
+	execution.FailureStage = action
+	actionRunner, err := createPinnedRunnerSnapshot(operation, remainingDuration(operation, timeout), runRoot, runnerSource, ".atelier-"+action+"-runner")
 	if err != nil {
 		execution.Failure = classifySnapshotCreationFailure(operation, err)
 		return execution
 	}
-	sceneRunnerDigest, runnerDigestErr := sceneRunner.digest(operation)
+	actionRunnerDigest, runnerDigestErr := actionRunner.digest(operation)
 	runnerSourceDigestAfterSceneSnapshot, runnerSourceVerifyErr := digestGodotExecutable(operation, runnerSource)
-	if runnerDigestErr != nil || runnerSourceVerifyErr != nil || sceneRunnerDigest != versionRunnerDigest || runnerSourceDigestAfterSceneSnapshot != runnerSourceDigest {
-		if cleanupErr := removeGodotSnapshots(runRoot, sceneRunner); cleanupErr != nil {
+	if runnerDigestErr != nil || runnerSourceVerifyErr != nil || actionRunnerDigest != versionRunnerDigest || runnerSourceDigestAfterSceneSnapshot != runnerSourceDigest {
+		if cleanupErr := removeGodotSnapshots(runRoot, actionRunner); cleanupErr != nil {
 			execution.Failure = headlessFailureSnapshotCleanup
 			return execution
 		}
@@ -159,19 +170,19 @@ func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSourc
 		execution.Failure = headlessFailureExecutableChanged
 		return execution
 	}
-	sceneSnapshot, err := createGodotEngineSnapshot(operation, remainingDuration(operation, timeout), runRoot, source, ".godot-scene-snapshot")
+	actionSnapshot, err := createGodotEngineSnapshot(operation, remainingDuration(operation, timeout), runRoot, source, ".godot-"+action+"-snapshot")
 	if err != nil {
-		if cleanupErr := removeGodotSnapshots(runRoot, sceneRunner); cleanupErr != nil {
+		if cleanupErr := removeGodotSnapshots(runRoot, actionRunner); cleanupErr != nil {
 			execution.Failure = headlessFailureSnapshotCleanup
 			return execution
 		}
 		execution.Failure = classifySnapshotCreationFailure(operation, err)
 		return execution
 	}
-	sceneDigest, err := sceneSnapshot.digest(operation)
+	actionDigest, err := actionSnapshot.digest(operation)
 	sourceDigestAfterSceneSnapshot, sourceVerifyErr := digestGodotExecutable(operation, source)
-	if err != nil || sourceVerifyErr != nil || sourceDigestAfterSceneSnapshot != sourceDigest || sceneDigest != versionDigest {
-		if cleanupErr := removeGodotSnapshots(runRoot, sceneSnapshot, sceneRunner); cleanupErr != nil {
+	if err != nil || sourceVerifyErr != nil || sourceDigestAfterSceneSnapshot != sourceDigest || actionDigest != versionDigest {
+		if cleanupErr := removeGodotSnapshots(runRoot, actionSnapshot, actionRunner); cleanupErr != nil {
 			execution.Failure = headlessFailureSnapshotCleanup
 			return execution
 		}
@@ -182,17 +193,20 @@ func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSourc
 		execution.Failure = headlessFailureExecutableChanged
 		return execution
 	}
-	execution.SceneProcess = runPinnedGodotStage(operation, remainingDuration(operation, timeout), sceneRunner.file, projectDirectory, sceneSnapshot.file, "scene")
-	sceneDigestAfter, sceneVerifyErr := sceneSnapshot.digest(operation)
-	sceneRunnerDigestAfter, sceneRunnerVerifyErr := sceneRunner.digest(operation)
+	execution.ActionProcess = runPinnedGodotStage(operation, remainingDuration(operation, timeout), actionRunner.file, projectDirectory, actionSnapshot.file, action)
+	if action == "scene" {
+		execution.SceneProcess = execution.ActionProcess
+	}
+	actionDigestAfter, actionVerifyErr := actionSnapshot.digest(operation)
+	actionRunnerDigestAfter, actionRunnerVerifyErr := actionRunner.digest(operation)
 	sourceDigestAfterScene, sourceAfterSceneErr := digestGodotExecutable(operation, source)
 	runnerSourceDigestAfterScene, runnerSourceAfterSceneErr := digestGodotExecutable(operation, runnerSource)
-	sceneCleanupErr := removeGodotSnapshots(runRoot, sceneSnapshot, sceneRunner)
-	if sceneCleanupErr != nil {
+	actionCleanupErr := removeGodotSnapshots(runRoot, actionSnapshot, actionRunner)
+	if actionCleanupErr != nil {
 		execution.Failure = headlessFailureSnapshotCleanup
 		return execution
 	}
-	if sceneVerifyErr != nil || sceneRunnerVerifyErr != nil || sourceAfterSceneErr != nil || runnerSourceAfterSceneErr != nil || sceneDigestAfter != sceneDigest || sceneRunnerDigestAfter != sceneRunnerDigest || sourceDigestAfterScene != sourceDigest || runnerSourceDigestAfterScene != runnerSourceDigest {
+	if actionVerifyErr != nil || actionRunnerVerifyErr != nil || sourceAfterSceneErr != nil || runnerSourceAfterSceneErr != nil || actionDigestAfter != actionDigest || actionRunnerDigestAfter != actionRunnerDigest || sourceDigestAfterScene != sourceDigest || runnerSourceDigestAfterScene != runnerSourceDigest {
 		if operation.Err() != nil {
 			execution.Failure = classifyHeadlessContext(operation.Err())
 			return execution
@@ -200,11 +214,11 @@ func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSourc
 		execution.Failure = headlessFailureExecutableChanged
 		return execution
 	}
-	if failure := classifyHeadlessResult(execution.SceneProcess); failure != headlessFailureNone {
+	if failure := classifyHeadlessResult(execution.ActionProcess); failure != headlessFailureNone {
 		execution.Failure = failure
 		return execution
 	}
-	if containsGodotError(execution.SceneProcess.Stderr) {
+	if containsGodotError(execution.ActionProcess.Stderr) {
 		execution.Failure = headlessFailureEngineErrors
 		return execution
 	}
