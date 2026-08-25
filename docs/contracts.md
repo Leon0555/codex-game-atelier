@@ -11,10 +11,12 @@
 - `command-result.schema.json`：一次确定性 CLI 调用的机器可读结果。
 - `error.schema.json`：稳定错误码、类别、可重试性和修复提示。
 - `evidence.schema.json`：日志、报告、构建或导出产物的可定位记录。
+- `run-intent.schema.json`：不可变 run 意图与声明写入范围；它不是成功记录。
+- `validation-report.schema.json`：首个 baseline validate payload 的严格检查列表和聚合结果。
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。
-- `detect-data.schema.json`、`doctor-data.schema.json`、`initialize-data.schema.json`、`status-data.schema.json`：首批命令的精确 `data` 形状。
+- `detect-data.schema.json`、`doctor-data.schema.json`、`initialize-data.schema.json`、`status-data.schema.json`、`validate-data.schema.json`：已实现命令的精确 `data` 形状。
 - `common.schema.json`：上述 schema 共用的窄定义。
 
 ## 结果与状态边界
@@ -51,8 +53,9 @@
 | `doctor` | 同上，加 `--timeout-ms` | 零文件写入；只执行固定的 `Godot --version` | 检查宿主、项目文件、GDScript 范围、可执行文件和官方 `4.7.2-stable` 版本 |
 | `initialize` | `--project` | 首次只原子建立 `.gameatelier/project.json` 与持久 advisory lock 文件 | CSPRNG 项目身份、revision 0、standard mode；合法重跑零修改 |
 | `status` | `--project` | 零写入 | 严格读取 `.gameatelier/project.json`，不跟随引用、不修复或迁移 |
+| `validate` | `--project` | 默认写入一个自包含 immutable run/evidence；不启动 Godot | 静态 baseline：严格 state、pinned regular `project.godot`、GDScript 范围与持久化平台；不代表 headless、场景或资源验证 |
 
-所有子命令 stdout 只包含一个 command-result JSON。当前已实现的四个命令中 `evidence` 必须为空；这表示多文件 evidence 写入尚未实现，而不是没有证据需求。用户已批准后续 `validate`、`test`、`build`、`export`、`release check` 默认持久化最小结构化 run/evidence；三种门禁模式只改变检查深度，不关闭关键证据。只读命令见 ADR 0006，初始化写入、锁和恢复边界见 ADR 0007，基础 evidence 政策见 ADR 0005。
+所有子命令 stdout 只包含一个 command-result JSON。`detect`、`doctor`、`initialize`、`status` 的 `evidence` 为空；`validate` 成功完成事务时引用同一 run 内的一份严格 validation report。run root 前失败返回 `RUN_RECORDING_UNAVAILABLE`，无 intent orphan 返回 `RUN_PREPARE_FAILED`，intent 后/result 前失败返回 `RUN_COMMIT_FAILED`；三者都不冒充 committed result。result 已发布但最终 durability/cleanup 未确认时，stdout 和进程退出码保持与权威 result 完全一致，并在 stderr 输出固定警告；stdout 短写返回内部错误 8，不重写或重跑已提交 run。详见 ADR 0008。
 
 ## 版本策略
 

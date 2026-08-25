@@ -79,6 +79,10 @@
     {
       "if": { "properties": { "command": { "properties": { "name": { "const": "status" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": { "properties": { "data": { "$ref": "status-data.schema.json" } } }
+    },
+    {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "validate" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": { "properties": { "data": { "$ref": "validate-data.schema.json" } } }
     }
   ]
 }

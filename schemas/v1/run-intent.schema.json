@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run-intent.schema.json",
+  "title": "Codex Game Atelier immutable run intent",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "project_id", "project_revision", "policy_mode", "engine", "command", "started_at", "producer", "expected_result_ref", "declared_write_paths"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "run_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "project_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "project_revision": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+    "policy_mode": { "type": "string", "enum": ["manual", "standard", "strict"] },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "requested_version", "language"],
+      "properties": {
+        "kind": { "const": "godot" },
+        "requested_version": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "language": { "const": "gdscript" }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "arguments"],
+      "properties": {
+        "name": { "type": "string", "enum": ["validate", "test", "build", "export", "release check"] },
+        "arguments": {
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": { "type": "string", "minLength": 1, "maxLength": 128 },
+          "additionalProperties": true
+        }
+      }
+    },
+    "started_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "version"],
+      "properties": {
+        "component": { "const": "gameatelier-cli" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "expected_result_ref": { "$ref": "common.schema.json#/$defs/stateReference" },
+    "declared_write_paths": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/relativePath" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "properties": { "name": { "const": "validate" } },
+            "required": ["name"]
+          }
+        },
+        "required": ["command"]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "properties": { "project": { "const": "." } },
+                "required": ["project"],
+                "maxProperties": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

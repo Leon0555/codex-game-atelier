@@ -2,11 +2,11 @@
 
 Codex Game Atelier is an open-source framework for Codex-native game-development collaboration. The planned v1.0 scope is production-grade Godot support through a Codex Plugin, Starter Template, deterministic CLI, and file-based state/evidence system.
 
-The v1 deterministic CLI production implementation language is Go. The first production vertical slice now implements read-only `detect`, `doctor`, and `status`; it is not yet a release-ready CLI. Rust remains a Phase 1 comparison artifact only and is not part of the production or distribution path.
+The v1 deterministic CLI production implementation language is Go. The Phase 1 production slices now implement read-only `detect`, `doctor`, and `status`, atomic `initialize`, and a recorded static-baseline `validate`; this is not yet a release-ready CLI. Rust remains a Phase 1 comparison artifact only and is not part of the production or distribution path.
 
 ## Current status
 
-Phase 1 contract and vertical-skeleton work. Phase 0 was approved on 2026-08-24. The Go CLI currently implements read-only detection/doctor/status plus atomic project-state initialization, and the Godot reference fixture exists. There is still no v1.0-ready implementation, published package, commit, or remote repository; the Support Matrix target is approved but lacks full production evidence.
+Phase 1 contract and vertical-skeleton work. Phase 0 was approved on 2026-08-24. The Go CLI now also proves a macOS Apple Silicon/APFS run/evidence transaction and static Godot/GDScript baseline validation, and the Godot reference fixture exists. There is still no v1.0-ready implementation, published package, or remote repository; Linux/Windows native transaction evidence and full Godot headless validation remain outstanding.
 
 Do not treat this repository as ready for game development until the v1.0 acceptance gates are implemented and verified.
 
@@ -19,7 +19,7 @@ Do not treat this repository as ready for game development until the v1.0 accept
 
 ## Project documents
 
-Start with [docs/project-brief.md](docs/project-brief.md), [docs/architecture.md](docs/architecture.md), [docs/support-matrix.md](docs/support-matrix.md), and [docs/v1-acceptance.md](docs/v1-acceptance.md). ADR 0004 freezes Go as the v1 CLI production language, ADR 0005 defines the proposed state/evidence contract, and ADR 0006 records the first production command slice.
+Start with [docs/project-brief.md](docs/project-brief.md), [docs/architecture.md](docs/architecture.md), [docs/support-matrix.md](docs/support-matrix.md), and [docs/v1-acceptance.md](docs/v1-acceptance.md). ADR 0004 freezes Go as the v1 CLI production language; ADRs 0005-0008 define the state/evidence policy, initial commands, initialization, and multi-file run commit protocol.
 
 ## License
 

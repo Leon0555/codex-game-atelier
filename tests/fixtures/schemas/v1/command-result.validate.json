@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260825t000000.000000000z-0123456789ab",
+  "command": {
+    "name": "validate",
+    "arguments": {
+      "project": "."
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-25T00:00:00Z",
+  "finished_at": "2026-08-25T00:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Baseline project validation passed.",
+  "errors": [],
+  "evidence": [
+    {
+      "id": "atelier-20260825t000000.000000000z-0123456789ab-e0001",
+      "path": ".gameatelier/runs/atelier-20260825t000000.000000000z-0123456789ab/evidence/0001-validation-report.json"
+    }
+  ],
+  "data": {
+    "scope": "baseline",
+    "check_count": 4
+  }
+}

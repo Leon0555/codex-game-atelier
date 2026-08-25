@@ -1,6 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "id": "evidence-env-001",
+  "id": "atelier-20260824t010000.000000000z-0123456789ab-e0001",
+  "run_id": "atelier-20260824t010000.000000000z-0123456789ab",
   "kind": "environment-snapshot",
   "outcome": "BLOCKED",
   "created_at": "2026-08-24T01:00:00Z",
@@ -8,8 +9,10 @@
     "component": "gameatelier-cli",
     "version": "0.1.0-spike"
   },
-  "path": ".gameatelier/evidence/run-20260824-doctor-001/environment.json",
+  "path": ".gameatelier/runs/atelier-20260824t010000.000000000z-0123456789ab/payloads/0001-environment-snapshot.json",
   "media_type": "application/json",
+  "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+  "byte_size": 128,
   "metadata": {
     "host": "macos-arm64",
     "godot_found": false

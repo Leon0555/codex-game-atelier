@@ -70,12 +70,12 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 
 ## 4. 确定性 CLI
 
-候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现；其余仍是后续候选：
+候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，静态 baseline `validate` 与 run/evidence 事务已按 ADR 0008 建立第三个薄切片；其余仍是后续候选：
 
 - `detect`：发现 Godot 与项目，纯读。
 - `doctor`：当前生产切片纯读验证宿主、项目文件、GDScript、Godot 可执行文件和精确版本；导出模板与更完整的平台/配置诊断属于后续实现。
 - `initialize`：用户显式请求时，为已有 Godot/GDScript 项目原子创建最小状态；合法重跑零修改，不写 evidence、不修复或覆盖异常状态。
-- `validate`：场景、资源、脚本、配置和门禁检查。
+- `validate`：当前只验证 pinned 项目状态、regular `project.godot`、GDScript 边界和持久化能力并记录 evidence；场景、资源、脚本加载和 Godot headless 属于下一切片。
 - `test`：执行 GDScript/项目测试并记录结果。
 - `build --profile debug|release`：面向用户的默认目标工作流，执行相应门禁并复用 `export` 产生 runnable artifact；底层 evidence 只记录一次并互相引用，不假设 Godot 存在独立编译流水线。
 - `export`：对指定 Godot preset/目标执行直接导出与产物验证，是 Godot `--export-debug/--export-release` 的确定性包装。
@@ -95,8 +95,11 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 ├── project.json              # schema version, engine, policy mode
 ├── tasks/                    # task, owner, acceptance, status
 ├── handoffs/                 # bounded recovery summaries
-├── runs/                     # immutable run records
-├── evidence/                 # logs, summaries, hashes, artifact manifests
+├── runs/<run-id>/            # self-contained immutable run closure
+│   ├── intent.json
+│   ├── payloads/             # bounded reports/logs/manifests
+│   ├── evidence/             # hashes, sizes, producer and payload refs
+│   └── result.json           # published last; only logical commit point
 ├── locks/                    # short-lived ownership/operation leases
 └── cache/                    # disposable derived data
 ```
@@ -109,7 +112,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 - 每条状态含 schema version；迁移必须可预览、备份和回退。
 - 需要进一步决定哪些状态默认提交 Git，哪些仅保留本地/CI artifact。
 
-默认持久化政策已经确定：`detect`/`doctor`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export`/`release check` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭记录。多文件正式提交点和崩溃恢复仍需下一薄切片实证。
+默认持久化政策已经确定：`detect`/`doctor`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export`/`release check` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭记录。`validate` 已实证以 `result.json` 最后发布的多文件正式提交点；run scanner、recovery/clean、索引与其他命令仍待后续薄切片。
 
 ## 6. 门禁模式
 

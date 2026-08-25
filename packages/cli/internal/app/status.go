@@ -262,47 +262,67 @@ var allowedProjectStateEngineFields = map[string]struct{}{
 }
 
 func rejectDuplicateObjectKeys(decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		return err
-	}
-	delimiter, isDelimiter := token.(json.Delim)
-	if !isDelimiter {
-		return nil
-	}
-	switch delimiter {
-	case '{':
-		seen := make(map[string]struct{})
-		for decoder.More() {
-			keyToken, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return errors.New("object key is not a string")
-			}
-			if _, exists := seen[key]; exists {
-				return fmt.Errorf("duplicate object key %q", key)
-			}
-			seen[key] = struct{}{}
-			if err := rejectDuplicateObjectKeys(decoder); err != nil {
-				return err
-			}
+	return rejectDuplicateObjectKeysWithin(decoder, 64, 65536)
+}
+
+func rejectDuplicateObjectKeysWithin(decoder *json.Decoder, maximumDepth, maximumNodes int) error {
+	nodes := 0
+	var walk func(int) error
+	walk = func(depth int) error {
+		if depth > maximumDepth {
+			return errors.New("JSON nesting exceeds its bound")
 		}
-		_, err = decoder.Token()
-		return err
-	case '[':
-		for decoder.More() {
-			if err := rejectDuplicateObjectKeys(decoder); err != nil {
-				return err
-			}
+		nodes++
+		if nodes > maximumNodes {
+			return errors.New("JSON node count exceeds its bound")
 		}
-		_, err = decoder.Token()
-		return err
-	default:
-		return errors.New("unexpected JSON delimiter")
+		token, err := decoder.Token()
+		if err != nil {
+			return err
+		}
+		delimiter, isDelimiter := token.(json.Delim)
+		if !isDelimiter {
+			return nil
+		}
+		switch delimiter {
+		case '{':
+			seen := make(map[string]struct{})
+			for decoder.More() {
+				nodes++
+				if nodes > maximumNodes {
+					return errors.New("JSON node count exceeds its bound")
+				}
+				keyToken, err := decoder.Token()
+				if err != nil {
+					return err
+				}
+				key, ok := keyToken.(string)
+				if !ok {
+					return errors.New("object key is not a string")
+				}
+				if _, exists := seen[key]; exists {
+					return fmt.Errorf("duplicate object key %q", key)
+				}
+				seen[key] = struct{}{}
+				if err := walk(depth + 1); err != nil {
+					return err
+				}
+			}
+			_, err = decoder.Token()
+			return err
+		case '[':
+			for decoder.More() {
+				if err := walk(depth + 1); err != nil {
+					return err
+				}
+			}
+			_, err = decoder.Token()
+			return err
+		default:
+			return errors.New("unexpected JSON delimiter")
+		}
 	}
+	return walk(0)
 }
 
 func validateProjectState(state projectState) error {

@@ -2,6 +2,8 @@
 
 package app
 
+import "runtime"
+
 func initializePlatformReady() bool {
-	return true
+	return runtime.GOARCH == "arm64"
 }

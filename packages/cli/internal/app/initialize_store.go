@@ -39,7 +39,14 @@ func openExistingStateRoot(projectRoot string) (*os.Root, bool, error) {
 		return nil, false, err
 	}
 	defer root.Close()
-	_, err = root.Lstat(".gameatelier")
+	return openExistingStateRootFromProjectRoot(root)
+}
+
+func openExistingStateRootFromProjectRoot(root *os.Root) (*os.Root, bool, error) {
+	if root == nil {
+		return nil, false, errors.New("project root is not open")
+	}
+	_, err := root.Lstat(".gameatelier")
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, false, nil
 	}
@@ -99,7 +106,21 @@ func readStateFromRootSafely(root *os.Root, expected os.FileInfo) ([]byte, error
 }
 
 func publishProjectState(root *os.Root, runID string, content []byte) statePublishResult {
-	tempName := ".project.json.tmp-" + runID
+	return publishImmutableFile(root, ".project.json.tmp-"+runID, "project.json", content)
+}
+
+func publishImmutableFile(root *os.Root, tempName, finalName string, content []byte) statePublishResult {
+	return publishImmutableFileWithFault(root, tempName, finalName, content, nil)
+}
+
+type immutablePublishFault func(stage string) error
+
+func publishImmutableFileWithFault(root *os.Root, tempName, finalName string, content []byte, fault immutablePublishFault) statePublishResult {
+	if fault != nil {
+		if err := fault("before-create"); err != nil {
+			return statePublishResult{err: err}
+		}
+	}
 	file, err := root.OpenFile(tempName, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		return statePublishResult{err: err}
@@ -110,25 +131,58 @@ func publishProjectState(root *os.Root, runID string, content []byte) statePubli
 			_ = root.Remove(tempName)
 		}
 	}()
+	if fault != nil {
+		if err := fault("before-write"); err != nil {
+			_ = file.Close()
+			return statePublishResult{err: err}
+		}
+	}
 	if _, err := io.Copy(file, bytes.NewReader(content)); err != nil {
 		_ = file.Close()
 		return statePublishResult{err: err}
+	}
+	if fault != nil {
+		if err := fault("before-file-sync"); err != nil {
+			_ = file.Close()
+			return statePublishResult{err: err}
+		}
 	}
 	if err := file.Sync(); err != nil {
 		_ = file.Close()
 		return statePublishResult{err: err}
 	}
+	if fault != nil {
+		if err := fault("before-close"); err != nil {
+			_ = file.Close()
+			return statePublishResult{err: err}
+		}
+	}
 	if err := file.Close(); err != nil {
 		return statePublishResult{err: err}
 	}
-	if err := linkStateFileNoReplace(root, tempName, "project.json"); err != nil {
+	if fault != nil {
+		if err := fault("before-link"); err != nil {
+			return statePublishResult{err: err}
+		}
+	}
+	if err := linkStateFileNoReplace(root, tempName, finalName); err != nil {
 		return classifyStatePublishError(err)
 	}
-	cleanupErr := root.Remove(tempName)
 	// Once final is visible, never let the deferred pre-publish cleanup mutate
 	// the directory after its durability sync. A failed exact-temp removal is
 	// reported and left for explicit recovery rather than retried by a glob.
 	removeTemp = false
+	if fault != nil {
+		if err := fault("before-remove"); err != nil {
+			return statePublishResult{durabilityErr: err}
+		}
+	}
+	cleanupErr := root.Remove(tempName)
+	if fault != nil {
+		if err := fault("before-directory-sync"); err != nil {
+			return statePublishResult{durabilityErr: err}
+		}
+	}
 	durabilityErr := syncStateDirectory(root)
 	if durabilityErr == nil && cleanupErr != nil {
 		durabilityErr = cleanupErr

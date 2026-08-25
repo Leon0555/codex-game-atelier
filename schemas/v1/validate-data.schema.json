@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "validate-data.schema.json",
+  "title": "Codex Game Atelier validate data",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "check_count"],
+      "properties": {
+        "scope": { "const": "baseline" },
+        "check_count": { "type": "integer", "minimum": 1, "maximum": 64 }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "recorded"],
+      "properties": {
+        "scope": { "const": "baseline" },
+        "recorded": { "const": false }
+      }
+    }
+  ]
+}

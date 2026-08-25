@@ -1,0 +1,17 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "baseline",
+  "outcome": "PASS",
+  "checks": [
+    {
+      "id": "project-state",
+      "outcome": "PASS",
+      "summary": "Project state is valid."
+    },
+    {
+      "id": "project-file",
+      "outcome": "PASS",
+      "summary": "Godot project file is present."
+    }
+  ]
+}

@@ -176,6 +176,18 @@ func projectUsesDotNet(root string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	usesDotNet, err := projectContentUsesDotNet(content)
+	if err != nil || usesDotNet {
+		return usesDotNet, err
+	}
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return false, err
+	}
+	return directoryEntriesUseDotNet(entries), nil
+}
+
+func projectContentUsesDotNet(content []byte) (bool, error) {
 	scanner := bufio.NewScanner(bytes.NewReader(content))
 	scanner.Buffer(make([]byte, 4096), 1024*1024)
 	for scanner.Scan() {
@@ -198,16 +210,20 @@ func projectUsesDotNet(root string) (bool, error) {
 	if err := scanner.Err(); err != nil {
 		return false, err
 	}
-	entries, err := os.ReadDir(root)
-	if err != nil {
-		return false, err
-	}
+	return false, nil
+}
+
+func directoryEntriesUseDotNet(entries []os.DirEntry) bool {
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.EqualFold(filepath.Ext(entry.Name()), ".csproj") {
-			return true, nil
+		if directoryEntryUsesDotNet(entry) {
+			return true
 		}
 	}
-	return false, nil
+	return false
+}
+
+func directoryEntryUsesDotNet(entry os.DirEntry) bool {
+	return !entry.IsDir() && strings.EqualFold(filepath.Ext(entry.Name()), ".csproj")
 }
 
 func readSmallFile(path string, limit int64) ([]byte, error) {
