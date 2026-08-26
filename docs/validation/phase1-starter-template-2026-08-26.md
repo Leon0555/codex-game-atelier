@@ -15,16 +15,16 @@
 
 ## 复制后端到端结果
 
-最终验证副本路径：`.tools/Starter 模板验证 #2 当前`（包含空格、中文与 `#`）。该目录被仓库 `.gitignore` 排除，未进入 Git；早期 `#1` 副本保留首次前置条件和实现中验证历史，不作为最终源快照。
+方案 A 冻结后的最终验证副本路径：`.tools/Starter 模板验证 #3 方案A`（包含空格、中文与 `#`）。该目录被仓库 `.gitignore` 排除，未进入 Git；早期 `#1`/`#2` 副本保留实现中验证历史，不作为当前源快照。
 
 | 步骤 | 状态 | 证据 |
 | --- | --- | --- |
 | 未显式 Godot 的 detect | BLOCKED（预期，早期 `#1`） | 项目识别成功；隔离 Godot 不在 PATH，`GODOT_NOT_FOUND`/4；零写入 |
 | 显式 Godot detect | PASS | project/Godot/host 均 detected，退出 0 |
 | 首次 initialize | PASS | 新 `project_id`，created=true，revision 0，退出 0 |
-| 重复 initialize | PASS | created=false；当前 `project.json` SHA-256 `95b0db96bf7dfa561d213c4097a52750c15aa4b5b982d25d1a0fa424aa132fd0`、329-byte size 与 mtime 前后完全相同 |
-| Headless validate | PASS | run `atelier-20260826t011433.227719000z-e87b041778c2`，8 checks，退出 0 |
-| 固定 GDScript test | PASS | run `atelier-20260826t011519.670404000z-bb6b8c57a2d4`，5/5，退出 0 |
+| 重复 initialize | PASS | created=false；当前 `project.json` SHA-256 `4e0bbbd6dae66eb90a81f81e2fdc6cb5e8d7fb1bf49646a9947f66a73d9326e7`、330-byte size 与 mtime 前后完全相同 |
+| Headless validate | PASS | run `atelier-20260826t015452.322710000z-5be5443b9bd7`，8 checks，退出 0 |
+| 固定 GDScript test | PASS | run `atelier-20260826t015509.471623000z-45fb9bf3a65d`，5/5，退出 0 |
 | 源/副本差异 | PASS（限定） | `diff -qr` 只发现副本新增 `.gameatelier`；源模板未生成身份或缓存 |
 
 Headless/test 按既有授权在沙箱外允许 Godot 写标准 `user://`；CLI intent 只记录符号化 `standard-os-location`。
@@ -54,8 +54,8 @@ Headless/test 按既有授权在沙箱外允许 Godot 写标准 `user://`；CLI 
 
 ## 尚未运行
 
-- Template 是独立携带 Skill/CLI，还是与 Plugin 配套；ADR 0014 保持 Proposed。
+- Plugin 配套的 Codex 客户端真实安装/发现；ADR 0014 已 Accepted 方案 A，但客户端生命周期证据仍未完成。
 - Codex 客户端新任务中的发现、三步可用性录制和真实用户安装。
-- Template archive/checksum、升级、卸载、失败回滚与干净环境复验。
+- Template archive/checksum 已在本地 candidate PASS；真实取得、Plugin 升级/卸载/失败回滚与干净 Codex 环境复验未运行。
 - `.gameatelier` 的最终版本控制政策。
 - Linux/Windows 原生与 Intel Mac smoke。

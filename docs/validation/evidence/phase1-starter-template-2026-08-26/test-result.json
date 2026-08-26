@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "run_id": "atelier-20260826t011519.670404000z-bb6b8c57a2d4",
+  "run_id": "atelier-20260826t015509.471623000z-45fb9bf3a65d",
   "command": {
     "name": "test",
     "arguments": {
@@ -12,16 +12,16 @@
     }
   },
   "outcome": "PASS",
-  "started_at": "2026-08-26T01:15:19.670404Z",
-  "finished_at": "2026-08-26T01:15:34.544512Z",
-  "duration_ms": 14874,
+  "started_at": "2026-08-26T01:55:09.471623Z",
+  "finished_at": "2026-08-26T01:55:25.66744Z",
+  "duration_ms": 16195,
   "exit_code": 0,
   "summary": "GDScript tests passed.",
   "errors": [],
   "evidence": [
     {
-      "id": "atelier-20260826t011519.670404000z-bb6b8c57a2d4-e0001",
-      "path": ".gameatelier/runs/atelier-20260826t011519.670404000z-bb6b8c57a2d4/evidence/0001-test-report.json"
+      "id": "atelier-20260826t015509.471623000z-45fb9bf3a65d-e0001",
+      "path": ".gameatelier/runs/atelier-20260826t015509.471623000z-45fb9bf3a65d/evidence/0001-test-report.json"
     }
   ],
   "data": {

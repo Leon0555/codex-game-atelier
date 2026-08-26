@@ -4,7 +4,7 @@ This is a clean Godot 4.7.2-stable standard/GDScript starting point. It contains
 
 ## Start in three steps
 
-This three-step count starts after the Codex Game Atelier Plugin is installed and Godot 4.7.2-stable is available. Plugin installation/discovery is not yet a completed Phase 1 acceptance result; this directory is a candidate template, not a released product.
+This three-step count starts after the Codex Game Atelier Plugin is installed and Godot 4.7.2-stable is available. The template intentionally does not embed the Plugin, Skill, or platform CLI binaries. Plugin installation/discovery is not yet a completed Phase 1 acceptance result; this directory is a candidate template, not a released product.
 
 1. Copy this directory and rename the copy for your game.
 2. Open the copy in Codex with the Codex Game Atelier Plugin, then ask Codex to initialize the project.

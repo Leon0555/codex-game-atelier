@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0.0",
-  "run_id": "atelier-20260826t011433.227719000z-e87b041778c2",
+  "run_id": "atelier-20260826t015452.322710000z-5be5443b9bd7",
   "command": {
     "name": "validate",
     "arguments": {
@@ -12,16 +12,16 @@
     }
   },
   "outcome": "PASS",
-  "started_at": "2026-08-26T01:14:33.227719Z",
-  "finished_at": "2026-08-26T01:14:50.464503Z",
-  "duration_ms": 17236,
+  "started_at": "2026-08-26T01:54:52.32271Z",
+  "finished_at": "2026-08-26T01:55:09.426825Z",
+  "duration_ms": 17104,
   "exit_code": 0,
   "summary": "Godot headless project validation passed.",
   "errors": [],
   "evidence": [
     {
-      "id": "atelier-20260826t011433.227719000z-e87b041778c2-e0001",
-      "path": ".gameatelier/runs/atelier-20260826t011433.227719000z-e87b041778c2/evidence/0001-validation-report.json"
+      "id": "atelier-20260826t015452.322710000z-5be5443b9bd7-e0001",
+      "path": ".gameatelier/runs/atelier-20260826t015452.322710000z-5be5443b9bd7/evidence/0001-validation-report.json"
     }
   ],
   "data": {

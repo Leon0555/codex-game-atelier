@@ -21,14 +21,14 @@
     "gameatelier_exists": false
   },
   "state_after_initialize": {
-    "sha256": "95b0db96bf7dfa561d213c4097a52750c15aa4b5b982d25d1a0fa424aa132fd0",
-    "byte_size": 329,
-    "mtime_unix": 1787681226
+    "sha256": "4e0bbbd6dae66eb90a81f81e2fdc6cb5e8d7fb1bf49646a9947f66a73d9326e7",
+    "byte_size": 330,
+    "mtime_unix": 1787709272
   },
   "state_after_repeat_initialize": {
-    "sha256": "95b0db96bf7dfa561d213c4097a52750c15aa4b5b982d25d1a0fa424aa132fd0",
-    "byte_size": 329,
-    "mtime_unix": 1787681226
+    "sha256": "4e0bbbd6dae66eb90a81f81e2fdc6cb5e8d7fb1bf49646a9947f66a73d9326e7",
+    "byte_size": 330,
+    "mtime_unix": 1787709272
   },
   "commands": [
     "codex-game-atelier detect --project <copy> --godot <godot-4.7.2-standard>",

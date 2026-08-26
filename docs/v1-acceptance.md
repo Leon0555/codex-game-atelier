@@ -66,7 +66,7 @@
 | D-001 | 普通用户不 clone 源码、不执行项目构建即可使用 | 干净用户流程录像/日志 | NOT RUN |
 | D-002 | 已有 Godot 前置条件时，安装与初始化最多三个主要步骤 | 可复现步骤与计数规则 | NOT RUN |
 | D-003 | Plugin 在支持的 Codex 客户端安装、加载、调用、卸载 | 干净环境矩阵 | NOT RUN |
-| D-004 | Starter Template 可独立取得、初始化和回滚 | 包内容与端到端证据 | PARTIAL：干净模板副本可初始化/验证/test；独立分发配对、archive 与生命周期 NOT RUN |
+| D-004 | Starter Template 可独立取得、初始化和回滚 | 包内容与端到端证据 | PARTIAL：方案 A 已冻结，干净模板副本可 initialize/validate/test，可复现 archive/checksum PASS；真实取得、Plugin 配对发现与生命周期 NOT RUN |
 | D-005 | CLI 预构建/已打包，不要求 Node 前沿版或本地编译 | 三宿主安装与版本证据 | PARTIAL：本地多宿主 bundle/archive 与 Apple Silicon 入口通过；实际安装及 Linux/Windows 原生 NOT RUN |
 | D-006 | 安装、升级、卸载和回滚保留用户项目与凭据 | 生命周期 diff/evidence | NOT RUN |
 | D-007 | 无默认遥测、隐藏网络请求或隐藏外部写入 | 网络/文件系统审计 | NOT RUN |

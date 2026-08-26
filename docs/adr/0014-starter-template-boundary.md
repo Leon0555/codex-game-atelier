@@ -1,6 +1,6 @@
 # ADR 0014：Starter Template 干净身份与分发配对边界
 
-- 状态：Proposed（模板项目本体已本地实证；独立分发还是与 Plugin 配套尚待用户决定）
+- 状态：Accepted（用户于 2026-08-26 选择方案 A：Starter Template 与已安装 Plugin 配套）
 - 日期：2026-08-26
 - 决策范围：Starter Template 内容、身份/缓存边界、固定测试入口和普通用户首次使用路径
 
@@ -18,15 +18,19 @@ Starter Template 是普通用户主要入口之一，但不能把源码仓库研
 6. 模板 README 使用三个主要步骤，并明确计数从 Plugin 已安装、Godot 已具备后开始；同时说明 Headless/test 的 `user://` 授权、Phase 1 仅 Apple Silicon 原生实证和不得复制仓库根 `AGENTS.md`。
 7. 静态 validator 使用固定文件/目录 allowlist，拒绝 root/内部 symlink、hardlink、特殊/空/超限/可执行内容、.NET、缺失固定结构标记、常见具体模型家族 ID、内部身份或未冻结状态忽略规则。静态模式不可能证明所有未来模型命名，也不冒充 GDScript 解析器；完整分发扫描/审计与可信副本上的真实 Godot Headless/test 都是独立门禁。
 
-## 尚待冻结的分发选择
+## 分发决策
 
-### A. Template 与 Codex Plugin 配套（当前候选，推荐）
+### A. Template 与 Codex Plugin 配套（已采用）
 
-用户取得干净游戏模板，Codex 工作流与预构建 CLI 由单独安装的 Plugin 提供。优点是 Skill、CLI、checksum、升级和回滚只有一个 owner，不在每个游戏仓库复制平台二进制；缺点是“取得 Starter Template”本身不能替代 Plugin 安装，需要把三步文案解释为“模板 + Plugin 配套入口”。
+用户取得干净游戏模板，Codex 工作流与预构建 CLI 由单独安装的 Plugin 提供。Skill、CLI、checksum、升级和回滚只有一个 owner，不在每个游戏仓库复制平台二进制。“取得 Starter Template”不替代 Plugin 安装；三步文案固定为“Godot 与 Plugin 前置条件已满足后的模板起步路径”。
 
-### B. Template 自带项目级 Skill 与三宿主 CLI
+确定性 Template archive 不嵌入 `bin/`、`skills/` 或 Plugin manifest；包内 `TEMPLATE-MANIFEST.json` 记录 `embedded=false`、配套 Plugin 名称和本 candidate 已验证的 Plugin 版本。该字段不声称是最低版本或兼容范围；兼容策略在真实升级/回滚实证后另行冻结。Plugin 安装后可离线使用，不得在模板首次打开时隐式下载工具。
 
-模板单独复制即可提供工作流。优点是离线、单包；缺点是每个游戏项目携带约 26 MiB CLI/runner、Skill 副本与许可证，更新容易漂移，而且会把工具生命周期混入游戏源码。还需要实证 Codex 对项目级 Skill/二进制的发现、权限和安全边界。
+archive 旁的 `.sha256` 和包内 manifest 只能证明同源文件的完整性与自洽，不能证明发布者身份或来源可信。对外执行授权必须来自独立可信渠道中的预期摘要、签名或 package provenance；当前 D-008 仍为 NOT RUN。
+
+### B. Template 自带项目级 Skill 与三宿主 CLI（v1.0 不采用）
+
+模板单独复制即可提供工作流，但每个游戏项目会携带约 26 MiB CLI/runner、Skill 副本与许可证，更新容易漂移，而且会把工具生命周期混入游戏源码。作为未来显式离线/内网变体可重新提案，但不属于 v1.0 默认分发。
 
 ### C. Template 首次使用时在线下载 CLI
 
@@ -38,15 +42,17 @@ Starter Template 是普通用户主要入口之一，但不能把源码仓库研
 
 脱敏命令、宿主/引擎/工具哈希、initialize 前后状态、Headless/test 结构化结果和模板源哈希已持久化到 [`docs/validation/evidence/phase1-starter-template-2026-08-26/`](../validation/evidence/phase1-starter-template-2026-08-26/)，并由回归测试检查源哈希与结果间的一致性。
 
+方案 A 接受后，已生成不含 Plugin 二进制/Skill 的确定性 `0.2.0` candidate archive，并通过双份逐字节复现、外部 SHA-256、安全解包、配套元数据和源契约重验。证据记录见 [`phase1-starter-template-package-2026-08-26.md`](../validation/phase1-starter-template-package-2026-08-26.md)。
+
 这些证据不等于：Template 已独立分发、Codex 客户端实际从模板发现 Skill、Plugin 已安装、升级/卸载/回滚通过，或 Linux/Windows 原生通过。
 
 ## 风险
 
 - `.gameatelier` VCS 政策尚未冻结；当前“保持可见”只避免静默隐藏，不代表建议提交全部 run evidence。
 - 模板固定测试是最小基线，不是完整测试框架或游戏架构。
-- Option A 会要求修订“Plugin 或 Starter Template”措辞；Option B 会扩大 artifact 与生命周期矩阵。
+- 方案 A 要求普通用户先安装一次 Plugin；后续必须用明确 doctor 诊断、版本兼容和可回滚安装降低全局工具版本的影响。
 - Godot 打开项目后可能生成 `.godot/` 等正常缓存；这些不属于模板源或 Atelier 身份。
 
 ## 回退
 
-在 ADR Accepted 前，模板只作为 Phase 1 candidate。回退可以移除未发布模板源和 validator，但不得删除任何用户已从模板创建的游戏项目或 `.gameatelier` evidence。最终分发选择必须由用户确认，并在真实安装/卸载与三步演练后把本 ADR 转为 Accepted。
+若方案 A 无法在受支持 Codex 客户端实现可诊断、可回滚的安装路径，以新 ADR 重新评估分平台 Plugin 或显式 standalone bundle。回退未发布候选不得删除任何用户已从模板创建的游戏项目或 `.gameatelier` evidence。

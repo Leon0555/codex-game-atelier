@@ -1,0 +1,84 @@
+{
+  "engine": {
+    "edition": "standard",
+    "kind": "godot",
+    "language": "gdscript",
+    "version": "4.7.2-stable"
+  },
+  "expanded_byte_size": 8474,
+  "file_count": 10,
+  "files": [
+    {
+      "byte_size": 218,
+      "mode": 420,
+      "path": ".gitignore",
+      "sha256": "e3369421cc1ebb2a9a0293bd64bdc61c8df96c1a92e24defef8f0b3999a2b0a0"
+    },
+    {
+      "byte_size": 1065,
+      "mode": 420,
+      "path": "LICENSE",
+      "sha256": "6d4cdff73a3f9005236b70dc884712a7e5b780ae3b5e9e6a7df1f6f93b803f90"
+    },
+    {
+      "byte_size": 682,
+      "mode": 420,
+      "path": "NOTICE",
+      "sha256": "3de1724b71f098a5fe10901741b9307127941c4a05bbc9ce4e81b70c0aa6d123"
+    },
+    {
+      "byte_size": 1809,
+      "mode": 420,
+      "path": "README.md",
+      "sha256": "7e9b050e67281c591db587d4f6c594425d60be67bffe1c78b00ba3c4a431f1be"
+    },
+    {
+      "byte_size": 1080,
+      "mode": 420,
+      "path": "main.tscn",
+      "sha256": "7c73febbe68e7f61d4643c7df3ddae7d73d5c7dc81f0a3aa6626053395bd4cbe"
+    },
+    {
+      "byte_size": 516,
+      "mode": 420,
+      "path": "project.godot",
+      "sha256": "e4a246cb1494d35181859184ab75fc8a5ce7030dd59a0a16db759d3cc55cb815"
+    },
+    {
+      "byte_size": 92,
+      "mode": 420,
+      "path": "scripts/game_state.gd",
+      "sha256": "2a251a3062be70ae0b1e209ca336fe6eabadcfcce36ea350b61822d28ff61db9"
+    },
+    {
+      "byte_size": 422,
+      "mode": 420,
+      "path": "scripts/main.gd",
+      "sha256": "cc7d4a7b0845085b47374caa56d513520aa611056749f1778eb9e9baa35e2973"
+    },
+    {
+      "byte_size": 2497,
+      "mode": 420,
+      "path": "tests/atelier_test_runner.gd",
+      "sha256": "78e0340c3209ba69cc3d09e021f410a6b4ab8c718fe40c096541c62571985af2"
+    },
+    {
+      "byte_size": 93,
+      "mode": 420,
+      "path": "中文 资源/status_payload.gd",
+      "sha256": "201d5f332e65c56d84e492b8d85ad802a2324ba967b90ad3c83a2de12ddf7bab"
+    }
+  ],
+  "pairing": {
+    "embedded": false,
+    "kind": "codex-plugin",
+    "name": "codex-game-atelier",
+    "verified_plugin_version": "0.2.0"
+  },
+  "schema_version": "1.0.0",
+  "telemetry_enabled": false,
+  "template": {
+    "name": "codex-game-atelier-starter",
+    "version": "0.2.0"
+  }
+}

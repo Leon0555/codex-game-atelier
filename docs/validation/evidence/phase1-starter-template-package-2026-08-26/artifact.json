@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "phase1-starter-template-option-a-local-candidate",
+  "decision": {
+    "adr": "0014-starter-template-boundary",
+    "option": "A",
+    "status": "Accepted"
+  },
+  "host": {
+    "os": "macos",
+    "version": "26.6.2",
+    "kernel": "Darwin 25.6.0",
+    "architecture": "arm64"
+  },
+  "pairing": {
+    "plugin": "codex-game-atelier",
+    "verified_plugin_version": "0.2.0",
+    "embedded": false
+  },
+  "archive": {
+    "name": "codex-game-atelier-starter-0.2.0.tar.gz",
+    "byte_size": 5100,
+    "sha256": "4b76336a82539f692820e98672653c94d5abd455ef452bfb6e98698dc0bbd547",
+    "member_count": 15,
+    "reproducible_copy_equal": true
+  },
+  "manifest": {
+    "name": "TEMPLATE-MANIFEST.json",
+    "byte_size": 2205,
+    "sha256": "3724fbd8d1346ef34bfaa9e9a28330c33917897be192ce69c918913c00257c71",
+    "declared_file_count": 10,
+    "declared_expanded_byte_size": 8474
+  },
+  "checks": [
+    "fixed-source-allowlist",
+    "no-embedded-plugin-skill-or-binary",
+    "plugin-version-pairing",
+    "source-contract-revalidation",
+    "deterministic-tar-gzip-metadata",
+    "external-sha256",
+    "bounded-single-gzip-stream-and-safe-unpack",
+    "path-link-mode-and-case-collision-rejection"
+  ]
+}
