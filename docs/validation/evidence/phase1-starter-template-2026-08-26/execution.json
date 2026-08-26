@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "phase1-starter-template-local-candidate",
+  "host": {
+    "os": "macos",
+    "version": "26.6.2",
+    "kernel": "Darwin 25.6.0",
+    "architecture": "arm64"
+  },
+  "engine": {
+    "version": "4.7.2.stable.official.ed1daf0bf",
+    "edition": "standard"
+  },
+  "bundle": {
+    "plugin_version": "0.2.0",
+    "cli_sha256": "a64cab0273e9d3f4bd3fd82882b3eb5fe52f8e0fb1fda4c02e004c40b08f2fb6",
+    "runner_sha256": "7246207bc0a25f385ec63ec08b475c68afb78fd57d737e9f491f9978359429f0"
+  },
+  "copy_path_fixture": "project-local ignored path containing Chinese, spaces, and #",
+  "state_before_initialize": {
+    "gameatelier_exists": false
+  },
+  "state_after_initialize": {
+    "sha256": "95b0db96bf7dfa561d213c4097a52750c15aa4b5b982d25d1a0fa424aa132fd0",
+    "byte_size": 329,
+    "mtime_unix": 1787681226
+  },
+  "state_after_repeat_initialize": {
+    "sha256": "95b0db96bf7dfa561d213c4097a52750c15aa4b5b982d25d1a0fa424aa132fd0",
+    "byte_size": 329,
+    "mtime_unix": 1787681226
+  },
+  "commands": [
+    "codex-game-atelier detect --project <copy> --godot <godot-4.7.2-standard>",
+    "codex-game-atelier initialize --project <copy>",
+    "codex-game-atelier validate --project <copy> --headless --godot <godot-4.7.2-standard> --timeout-ms 30000 --allow-engine-user-data",
+    "codex-game-atelier test --project <copy> --godot <godot-4.7.2-standard> --timeout-ms 30000 --allow-engine-user-data",
+    "codex-game-atelier initialize --project <copy>"
+  ]
+}

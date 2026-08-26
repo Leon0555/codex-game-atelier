@@ -15,6 +15,7 @@ from referencing import Registry, Resource
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = ROOT / "schemas" / "v1"
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "schemas" / "v1"
+STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "phase1-starter-template-2026-08-26"
 
 
 def load_json(path: Path) -> object:
@@ -56,6 +57,18 @@ def main() -> None:
             raise SystemExit(f"fixture has no matching schema: {path}")
         validator.validate(load_json(path))
         fixture_count += 1
+
+    persisted_evidence = {
+        "initialize-first.json": "command-result",
+        "initialize-repeat.json": "command-result",
+        "project-state.json": "project-state",
+        "validate-result.json": "command-result",
+        "validation-report.json": "validation-report",
+        "test-result.json": "command-result",
+        "test-report.json": "test-report",
+    }
+    for name, schema_name in persisted_evidence.items():
+        validators[schema_name].validate(load_json(STARTER_EVIDENCE_ROOT / name))
 
     initialize = load_json(FIXTURE_ROOT / "command-result.initialize.json")
     if not isinstance(initialize, dict):
@@ -237,7 +250,11 @@ def main() -> None:
         "failed clean scan with partial decisions",
     )
 
-    print(f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, {fixture_count} fixtures, 24 negative assertions, headless, test, and logs cross-fixture semantics")
+    print(
+        f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
+        f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
+        "24 negative assertions, headless, test, and logs cross-fixture semantics"
+    )
 
 
 if __name__ == "__main__":

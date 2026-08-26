@@ -1,0 +1,14 @@
+{
+  "schema_version": "1.0.0",
+  "project_id": "project-3695f09731ac181cd7be3f1ecab2eb26",
+  "revision": 0,
+  "mode": "standard",
+  "engine": {
+    "kind": "godot",
+    "requested_version": "4.7.2-stable",
+    "language": "gdscript"
+  },
+  "task_refs": [],
+  "active_run_refs": [],
+  "updated_at": "2026-08-25T18:07:06.10231Z"
+}

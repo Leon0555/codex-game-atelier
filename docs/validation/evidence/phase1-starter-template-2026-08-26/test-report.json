@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "gdscript",
+  "outcome": "PASS",
+  "engine_version": "4.7.2.stable.official.ed1daf0bf",
+  "tests": [
+    {"id": "starter-scene-ui", "outcome": "PASS", "summary": "The starter scene and basic UI controls instantiate."},
+    {"id": "localized-resource", "outcome": "PASS", "summary": "A localized resource path loads correctly."},
+    {"id": "signal-flow", "outcome": "PASS", "summary": "A signal connects and emits synchronously."},
+    {"id": "input-action", "outcome": "PASS", "summary": "An input action can be added, observed, and removed in memory."},
+    {"id": "gameplay-state", "outcome": "PASS", "summary": "The starter gameplay state updates deterministically."}
+  ]
+}

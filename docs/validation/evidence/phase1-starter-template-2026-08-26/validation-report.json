@@ -1,0 +1,15 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "headless",
+  "outcome": "PASS",
+  "checks": [
+    {"id": "project-state", "outcome": "PASS", "summary": "Project state is valid."},
+    {"id": "persistence-platform", "outcome": "PASS", "summary": "Run evidence persistence is enabled on this host and filesystem."},
+    {"id": "project-file", "outcome": "PASS", "summary": "Godot project file is present."},
+    {"id": "project-language", "outcome": "PASS", "summary": "Project is within the standard Godot GDScript scope."},
+    {"id": "engine-user-data", "outcome": "PASS", "summary": "The caller explicitly authorized Godot's standard OS user-data location for this run."},
+    {"id": "project-identity", "outcome": "PASS", "summary": "The engine execution directory remained pinned to the validated project."},
+    {"id": "godot-version", "outcome": "PASS", "summary": "The selected executable self-reported the supported Godot 4.7.2-stable official standard build identifier."},
+    {"id": "headless-scene", "outcome": "PASS", "summary": "The main scene completed one headless frame with exit 0 and no bounded Godot ERROR output."}
+  ]
+}

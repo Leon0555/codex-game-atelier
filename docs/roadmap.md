@@ -32,7 +32,8 @@
 9. 已建立 ADR 0011 的固定 GDScript `test` 生产薄切片：零额外框架依赖、逐项报告、断言/引擎/超时映射与原子 evidence；第三方框架、过滤和三宿主原生验证仍待后续。
 10. 已建立 ADR 0012 的只读 `logs --run-id` 生产薄切片：同次验证 committed closure，只投影零自由文本结构事件与 integrity metadata；raw 日志保留/脱敏仍待后续独立决策。
 11. 已提出 ADR 0013 并完成预构建 Plugin bundle 本地候选：显式 source allowlist、真实二进制格式/架构检查、CLI/plugin 版本闭合、deterministic archive 与安全解包；ADR 在实际 Codex 安装和 quarantine 验证前保持 Proposed。
-12. 进行独立只读架构、安全和可恢复性评审。
+12. 已提出 ADR 0014 并完成干净 Starter Template 项目本体：无身份/缓存/内部 AGENTS，可在特殊路径显式初始化并通过 Headless 与固定 test；独立携带 CLI 还是与 Plugin 配套仍待用户决定。
+13. 进行独立只读架构、安全和可恢复性评审。
 
 Phase 1 不应先铺开所有命令、Agents 或 Skills；先证明契约、运行时、分发与证据链能闭环。
 
