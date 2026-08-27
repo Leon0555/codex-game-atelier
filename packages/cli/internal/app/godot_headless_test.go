@@ -8,6 +8,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -87,6 +88,64 @@ func TestGodotHeadlessUsesFixedArgumentsAndPinnedProjectDescriptor(t *testing.T)
 	wantDirectory, canonicalErr := canonicalProjectRoot(project)
 	if err != nil || canonicalErr != nil || strings.TrimSpace(string(directoryContent)) != wantDirectory {
 		t.Fatalf("scene did not execute from the pinned project: content=%q err=%v", directoryContent, err)
+	}
+}
+
+func TestGodotExportUsesFixedArgumentsPinnedTemplatesAndCleansRuntime(t *testing.T) {
+	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+		t.Skip("the first production export action is enabled only on macOS Apple Silicon")
+	}
+	project := createProject(t, "导出 项目 🚀")
+	if err := os.MkdirAll(filepath.Join(project, godotProjectOutputDirectory), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	output := godotProjectOutputDirectory + "/game-release.zip"
+	observation := filepath.Join(t.TempDir(), "export-arguments.txt")
+	script := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\n" +
+		"runtime_dir=$(dirname \"$0\")\n" +
+		"test -f \"$runtime_dir/_sc_\" || exit 41\n" +
+		"test -f \"$runtime_dir/editor_data/export_templates/4.7.2.stable/macos.zip\" || exit 42\n" +
+		"printf '%s\\n' \"$@\" > '" + observation + "'\n" +
+		"printf 'artifact' > \"$7\"\n"
+	godot := createExecutable(t, "fake-godot", script)
+	writeExportTemplateFixture(t, godot, true)
+	templates, err := locateGodotExportTemplates(godot, []string{"icudt_godot.dat", "macos.zip"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, err := os.Open(godot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer source.Close()
+	runRootPath := t.TempDir()
+	runRoot, err := os.OpenRoot(runRootPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer runRoot.Close()
+	runnerSource, err := os.Open(os.Args[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer runnerSource.Close()
+
+	execution := runGodotExportAction(context.Background(), 10*time.Second, runnerSource, source, runRoot, openProjectDirectory(t, project), "release", defaultMacOSExportPreset, output, templates)
+	if execution.Failure != headlessFailureNone || execution.Version != "4.7.2.stable.official.ed1daf0bf" {
+		t.Fatalf("unexpected export execution: %+v", execution)
+	}
+	wantArguments := strings.Join([]string{"--headless", "--path", ".", "--no-header", "--export-release", defaultMacOSExportPreset, output, ""}, "\n")
+	arguments, err := os.ReadFile(observation)
+	if err != nil || string(arguments) != wantArguments {
+		t.Fatalf("unexpected export arguments: %q err=%v", arguments, err)
+	}
+	if artifact, err := os.ReadFile(filepath.Join(project, filepath.FromSlash(output))); err != nil || string(artifact) != "artifact" {
+		t.Fatalf("export artifact was not created at the fixed path: content=%q err=%v", artifact, err)
+	}
+	entries, err := os.ReadDir(runRootPath)
+	if err != nil || len(entries) != 0 {
+		t.Fatalf("export execution left transient runtime state: entries=%v err=%v", entries, err)
 	}
 }
 

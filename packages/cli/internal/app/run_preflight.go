@@ -69,6 +69,10 @@ func preflightRunIntent(state projectState, result contract.Result, producerVers
 		if err := validatePersistedTestArguments(result.Command.Arguments); err != nil {
 			return err
 		}
+	case "export", "build":
+		if err := validatePersistedExportArguments(result.Command.Arguments); err != nil {
+			return err
+		}
 	default:
 		return errors.New("persisted command arguments are outside bounds")
 	}
@@ -120,6 +124,9 @@ func preflightRunFinish(transaction *runTransaction, result contract.Result, pay
 	}
 	if result.Command.Name == "test" {
 		return preflightTestRunFinish(result, payloads)
+	}
+	if result.Command.Name == "export" || result.Command.Name == "build" {
+		return preflightExportRunFinish(result, payloads)
 	}
 	data, ok := result.Data.(map[string]any)
 	if !ok || data == nil {

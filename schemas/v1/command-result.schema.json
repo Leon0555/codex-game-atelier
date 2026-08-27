@@ -94,6 +94,53 @@
       "then": { "properties": { "data": { "$ref": "doctor-data.schema.json" } } }
     },
     {
+      "if": { "properties": { "command": { "properties": { "name": { "enum": ["export", "build"] } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "profile", "preset", "target", "timeout_ms", "engine_user_data", "godot_source"],
+                "properties": {
+                  "project": { "const": "." },
+                  "profile": { "type": "string", "enum": ["debug", "release"] },
+                  "preset": { "const": "macOS Technical" },
+                  "target": { "const": "macos-universal2" },
+                  "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                  "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] }
+                }
+              }
+            }
+          },
+          "data": { "$ref": "export-data.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": { "properties": { "name": { "enum": ["export", "build"] } }, "required": ["name"] },
+          "outcome": { "const": "PASS" }
+        },
+        "required": ["command", "outcome"]
+      },
+      "then": {
+        "properties": {
+          "evidence": { "minItems": 1, "maxItems": 1 },
+          "data": {
+            "properties": {
+              "artifact_count": { "const": 1 },
+              "engine_version": { "type": "string", "minLength": 1 }
+            },
+            "required": ["artifact_count", "engine_version"]
+          }
+        }
+      }
+    },
+    {
       "if": { "properties": { "command": { "properties": { "name": { "const": "initialize" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": { "properties": { "data": { "$ref": "initialize-data.schema.json" } } }
     },

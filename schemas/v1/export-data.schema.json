@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "export-data.schema.json",
+  "title": "Codex Game Atelier export data",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "target", "profile", "preset", "artifact_count", "engine_version"],
+      "properties": {
+        "scope": { "const": "godot-export" },
+        "target": { "const": "macos-universal2" },
+        "profile": { "type": "string", "enum": ["debug", "release"] },
+        "preset": { "const": "macOS Technical" },
+        "artifact_count": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "engine_version": {
+          "type": "string",
+          "pattern": "^(?:|4\\.7\\.2\\.stable\\.official\\.[0-9a-fA-F]{7,40})$"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope", "recorded"],
+      "properties": {
+        "scope": { "const": "godot-export" },
+        "recorded": { "const": false }
+      }
+    }
+  ]
+}

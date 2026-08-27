@@ -174,7 +174,7 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 		StartedAt:         result.StartedAt,
 		Producer:          evidenceProducer{Component: "gameatelier-cli", Version: Version},
 		ExpectedResultRef: runBase + "/result.json",
-		DeclaredWrites:    []string{runBase},
+		DeclaredWrites:    declaredWritePaths(frozenCommand, result.RunID),
 		DeclaredExternal:  declaredExternalWrites(frozenCommand),
 	}
 	intentBytes, err := marshalRunJSON(intent)
@@ -212,10 +212,18 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 }
 
 func declaredExternalWrites(command contract.Command) []string {
-	if (command.Name == "validate" || command.Name == "test") && command.Arguments["engine_user_data"] == "standard-os-location" {
+	if (command.Name == "validate" || command.Name == "test" || command.Name == "export" || command.Name == "build") && command.Arguments["engine_user_data"] == "standard-os-location" {
 		return []string{"godot:user-data:standard-os-location"}
 	}
 	return []string{}
+}
+
+func declaredWritePaths(command contract.Command, runID string) []string {
+	writes := []string{".gameatelier/runs/" + runID}
+	if command.Name == "export" || command.Name == "build" {
+		writes = append(writes, ".gameatelier/artifacts/"+runID)
+	}
+	return writes
 }
 
 func (transaction *runTransaction) finish(result contract.Result, payloads []runPayload) runCommit {

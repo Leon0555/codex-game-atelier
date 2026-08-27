@@ -20,10 +20,10 @@
 
 仓库内原始下载的 headless Godot 文件在 macOS 上直接执行会因本地签名状态被系统终止。与既有 Headless 验证一致，本次使用已有的临时 ad-hoc 签名 Godot 副本执行固定 `--version`；为了让只读 template locator 看到已批准安装在项目 `.tools/godot/4.7.2/editor_data/export_templates/` 下的模板，测试期间在该临时副本旁创建一个指向上述目录的临时 `editor_data` symlink，命令完成后立即移除。没有修改用户级 Godot 数据目录。
 
-这证明当前 locator 与真实 Godot/模板集合能闭合，不证明 export/build、产物 smoke、Windows/Linux 原生执行或普通用户 Godot 安装布局已经通过。
+这证明当前 locator 与真实 Godot/模板集合能闭合。后续 `build`/`export` 实机结果另见 [`m1-macos-export-build-2026-08-27.md`](m1-macos-export-build-2026-08-27.md)；本记录本身仍不证明产物 smoke、Windows/Linux 原生执行或普通用户 Godot 安装布局已经通过。
 
 ## 未覆盖
 
-- `export` 与 `build` 命令尚未实现。
-- macOS Debug/Release 导出、artifact manifest/hash 与 target smoke 尚未执行。
+- 本次 doctor 记录没有执行 `export`/`build`；相关实现和 artifact evidence 是后续独立验证。
+- target smoke 尚未执行。
 - Windows x64、Linux x64 原生模板检查按已批准路线延期。

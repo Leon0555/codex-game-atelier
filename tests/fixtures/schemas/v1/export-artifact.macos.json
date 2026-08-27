@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "godot-export",
+  "outcome": "PASS",
+  "target": "macos-universal2",
+  "profile": "release",
+  "preset": "macOS Technical",
+  "engine_version": "4.7.2.stable.official.ed1daf0bf",
+  "artifact": {
+    "path": ".gameatelier/artifacts/atelier-20260827t140000.000000000z-123456abcdef/game-release.zip",
+    "media_type": "application/zip",
+    "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "byte_size": 1048576,
+    "unsigned": true,
+    "not_notarized": true,
+    "public_distribution_ready": false
+  }
+}

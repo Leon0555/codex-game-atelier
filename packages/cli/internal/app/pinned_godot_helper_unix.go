@@ -16,6 +16,7 @@ import (
 const maxPinnedRunnerControlBytes = 1024
 
 var runnerNoncePattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
+var exportOutputPattern = regexp.MustCompile(`^\.atelier-output/game-(?:debug|release)\.zip$`)
 
 func execPinnedGodot(expectedNonce string) error {
 	if !runnerNoncePattern.MatchString(expectedNonce) {
@@ -45,7 +46,7 @@ func execPinnedGodot(expectedNonce string) error {
 	if err := decoder.Decode(&control); err != nil {
 		return errors.New("runner control message is invalid")
 	}
-	if err := decoder.Decode(&struct{}{}); err != io.EOF || control.Nonce != expectedNonce || control.Stage != "version" && control.Stage != "scene" && control.Stage != "test" {
+	if err := decoder.Decode(&struct{}{}); err != io.EOF || control.Nonce != expectedNonce || !validPinnedRunnerControl(control) {
 		return errors.New("runner control message is unauthorized")
 	}
 	executable, err := pinnedExecutablePath(engineExecutable)
@@ -75,6 +76,12 @@ func execPinnedGodot(expectedNonce string) error {
 	if control.Stage == "test" {
 		arguments = []string{executable, "--headless", "--path", ".", "--script", "res://tests/atelier_test_runner.gd", "--no-header"}
 	}
+	if control.Stage == "export-debug" {
+		arguments = []string{executable, "--headless", "--path", ".", "--no-header", "--export-debug", control.Preset, control.Output}
+	}
+	if control.Stage == "export-release" {
+		arguments = []string{executable, "--headless", "--path", ".", "--no-header", "--export-release", control.Preset, control.Output}
+	}
 	environment := make([]string, 0, len(os.Environ()))
 	prefix := pinnedGodotHelperEnvironment + "="
 	for _, item := range os.Environ() {
@@ -83,4 +90,14 @@ func execPinnedGodot(expectedNonce string) error {
 		}
 	}
 	return syscall.Exec(executable, arguments, environment)
+}
+
+func validPinnedRunnerControl(control pinnedRunnerControl) bool {
+	if control.Stage == "version" || control.Stage == "scene" || control.Stage == "test" {
+		return control.Preset == "" && control.Output == ""
+	}
+	if control.Stage != "export-debug" && control.Stage != "export-release" {
+		return false
+	}
+	return control.Preset == defaultMacOSExportPreset && exportOutputPattern.MatchString(control.Output)
 }

@@ -524,6 +524,9 @@ func validateCommandScope(command contract.Command) string {
 	if command.Name == "test" {
 		return "gdscript"
 	}
+	if command.Name == "export" || command.Name == "build" {
+		return "godot-export"
+	}
 	if command.Arguments != nil && command.Arguments["headless"] == true {
 		return "headless"
 	}

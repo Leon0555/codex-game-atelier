@@ -38,6 +38,13 @@ type godotHeadlessExecution struct {
 	SceneProcess   processResult
 }
 
+type godotFixedActionOptions struct {
+	Action    string
+	Preset    string
+	Output    string
+	Templates exportTemplateInspection
+}
+
 // runGodotHeadless executes only the fixed Atelier validation sequence. It does
 // not accept caller-provided Godot arguments. On the supported Unix hosts, the
 // paired runner changes directory through the already-open project descriptor
@@ -54,10 +61,27 @@ func runGodotHeadless(parent context.Context, timeout time.Duration, runnerSourc
 // allow-listed headless action. The private runner, rather than a public argv,
 // owns the exact engine arguments for each action.
 func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSource, source *os.File, runRoot *os.Root, projectDirectory *os.File, action string) godotHeadlessExecution {
+	return runGodotFixedActionWithOptions(parent, timeout, runnerSource, source, runRoot, projectDirectory, godotFixedActionOptions{Action: action})
+}
+
+func runGodotExportAction(parent context.Context, timeout time.Duration, runnerSource, source *os.File, runRoot *os.Root, projectDirectory *os.File, profile, preset, output string, templates exportTemplateInspection) godotHeadlessExecution {
+	return runGodotFixedActionWithOptions(parent, timeout, runnerSource, source, runRoot, projectDirectory, godotFixedActionOptions{
+		Action:    "export-" + profile,
+		Preset:    preset,
+		Output:    output,
+		Templates: templates,
+	})
+}
+
+func runGodotFixedActionWithOptions(parent context.Context, timeout time.Duration, runnerSource, source *os.File, runRoot *os.Root, projectDirectory *os.File, options godotFixedActionOptions) godotHeadlessExecution {
 	operation, cancel := context.WithTimeout(parent, timeout)
 	defer cancel()
 
-	if action != "scene" && action != "test" {
+	action := options.Action
+	if action != "scene" && action != "test" && action != "export-debug" && action != "export-release" {
+		return godotHeadlessExecution{Failure: headlessFailureProcess, FailureStage: action}
+	}
+	if (action == "export-debug" || action == "export-release") && (options.Preset != defaultMacOSExportPreset || !exportOutputPattern.MatchString(options.Output) || options.Templates.Root == "" || len(options.Templates.Files) == 0) {
 		return godotHeadlessExecution{Failure: headlessFailureProcess, FailureStage: action}
 	}
 	execution := godotHeadlessExecution{FailureStage: "version"}
@@ -170,7 +194,16 @@ func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSo
 		execution.Failure = headlessFailureExecutableChanged
 		return execution
 	}
-	actionSnapshot, err := createGodotEngineSnapshot(operation, remainingDuration(operation, timeout), runRoot, source, ".godot-"+action+"-snapshot")
+	var exportRuntime *godotExportRuntime
+	var actionSnapshot *godotEngineSnapshot
+	if action == "export-debug" || action == "export-release" {
+		exportRuntime, err = createGodotExportRuntime(operation, remainingDuration(operation, timeout), runRoot, source, options.Templates)
+		if exportRuntime != nil {
+			actionSnapshot = exportRuntime.snapshot
+		}
+	} else {
+		actionSnapshot, err = createGodotEngineSnapshot(operation, remainingDuration(operation, timeout), runRoot, source, ".godot-"+action+"-snapshot")
+	}
 	if err != nil {
 		if cleanupErr := removeGodotSnapshots(runRoot, actionRunner); cleanupErr != nil {
 			execution.Failure = headlessFailureSnapshotCleanup
@@ -182,7 +215,16 @@ func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSo
 	actionDigest, err := actionSnapshot.digest(operation)
 	sourceDigestAfterSceneSnapshot, sourceVerifyErr := digestGodotExecutable(operation, source)
 	if err != nil || sourceVerifyErr != nil || sourceDigestAfterSceneSnapshot != sourceDigest || actionDigest != versionDigest {
-		if cleanupErr := removeGodotSnapshots(runRoot, actionSnapshot, actionRunner); cleanupErr != nil {
+		cleanupErr := error(nil)
+		if exportRuntime != nil {
+			cleanupErr = exportRuntime.remove(runRoot)
+		} else {
+			cleanupErr = removeGodotSnapshots(runRoot, actionSnapshot)
+		}
+		if runnerCleanupErr := removeGodotSnapshots(runRoot, actionRunner); cleanupErr == nil {
+			cleanupErr = runnerCleanupErr
+		}
+		if cleanupErr != nil {
 			execution.Failure = headlessFailureSnapshotCleanup
 			return execution
 		}
@@ -193,20 +235,32 @@ func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSo
 		execution.Failure = headlessFailureExecutableChanged
 		return execution
 	}
-	execution.ActionProcess = runPinnedGodotStage(operation, remainingDuration(operation, timeout), actionRunner.file, projectDirectory, actionSnapshot.file, action)
+	execution.ActionProcess = runPinnedGodotStageWithControl(operation, remainingDuration(operation, timeout), actionRunner.file, projectDirectory, actionSnapshot.file, pinnedRunnerControl{Stage: action, Preset: options.Preset, Output: options.Output})
 	if action == "scene" {
 		execution.SceneProcess = execution.ActionProcess
 	}
 	actionDigestAfter, actionVerifyErr := actionSnapshot.digest(operation)
+	exportRuntimeVerifyErr := error(nil)
+	if exportRuntime != nil {
+		exportRuntimeVerifyErr = exportRuntime.verify(operation)
+	}
 	actionRunnerDigestAfter, actionRunnerVerifyErr := actionRunner.digest(operation)
 	sourceDigestAfterScene, sourceAfterSceneErr := digestGodotExecutable(operation, source)
 	runnerSourceDigestAfterScene, runnerSourceAfterSceneErr := digestGodotExecutable(operation, runnerSource)
-	actionCleanupErr := removeGodotSnapshots(runRoot, actionSnapshot, actionRunner)
+	actionCleanupErr := error(nil)
+	if exportRuntime != nil {
+		actionCleanupErr = exportRuntime.remove(runRoot)
+	} else {
+		actionCleanupErr = removeGodotSnapshots(runRoot, actionSnapshot)
+	}
+	if runnerCleanupErr := removeGodotSnapshots(runRoot, actionRunner); actionCleanupErr == nil {
+		actionCleanupErr = runnerCleanupErr
+	}
 	if actionCleanupErr != nil {
 		execution.Failure = headlessFailureSnapshotCleanup
 		return execution
 	}
-	if actionVerifyErr != nil || actionRunnerVerifyErr != nil || sourceAfterSceneErr != nil || runnerSourceAfterSceneErr != nil || actionDigestAfter != actionDigest || actionRunnerDigestAfter != actionRunnerDigest || sourceDigestAfterScene != sourceDigest || runnerSourceDigestAfterScene != runnerSourceDigest {
+	if actionVerifyErr != nil || exportRuntimeVerifyErr != nil || actionRunnerVerifyErr != nil || sourceAfterSceneErr != nil || runnerSourceAfterSceneErr != nil || actionDigestAfter != actionDigest || actionRunnerDigestAfter != actionRunnerDigest || sourceDigestAfterScene != sourceDigest || runnerSourceDigestAfterScene != runnerSourceDigest {
 		if operation.Err() != nil {
 			execution.Failure = classifyHeadlessContext(operation.Err())
 			return execution
@@ -228,6 +282,10 @@ func runGodotFixedAction(parent context.Context, timeout time.Duration, runnerSo
 }
 
 func runPinnedGodotStage(parent context.Context, timeout time.Duration, runnerExecutable, projectDirectory, engineExecutable *os.File, stage string) processResult {
+	return runPinnedGodotStageWithControl(parent, timeout, runnerExecutable, projectDirectory, engineExecutable, pinnedRunnerControl{Stage: stage})
+}
+
+func runPinnedGodotStageWithControl(parent context.Context, timeout time.Duration, runnerExecutable, projectDirectory, engineExecutable *os.File, control pinnedRunnerControl) processResult {
 	runner, err := pinnedExecutablePath(runnerExecutable)
 	if err != nil {
 		return processResult{Err: err}
@@ -242,7 +300,8 @@ func runPinnedGodotStage(parent context.Context, timeout time.Duration, runnerEx
 		return processResult{Err: err}
 	}
 	nonce := hex.EncodeToString(nonceBytes)
-	control, err := json.Marshal(pinnedRunnerControl{Nonce: nonce, Stage: stage})
+	control.Nonce = nonce
+	controlBytes, err := json.Marshal(control)
 	if err != nil {
 		return processResult{Err: err}
 	}
@@ -250,7 +309,7 @@ func runPinnedGodotStage(parent context.Context, timeout time.Duration, runnerEx
 	if err != nil {
 		return processResult{Err: err}
 	}
-	if _, err := controlWriter.Write(control); err != nil {
+	if _, err := controlWriter.Write(controlBytes); err != nil {
 		controlReader.Close()
 		controlWriter.Close()
 		return processResult{Err: err}

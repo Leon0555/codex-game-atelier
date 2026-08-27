@@ -1,0 +1,37 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260827t141000.000000000z-fedcba654321",
+  "command": {
+    "name": "build",
+    "arguments": {
+      "project": ".",
+      "profile": "debug",
+      "preset": "macOS Technical",
+      "target": "macos-universal2",
+      "timeout_ms": 180000,
+      "engine_user_data": "standard-os-location",
+      "godot_source": "explicit"
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-27T14:10:00Z",
+  "finished_at": "2026-08-27T14:10:02Z",
+  "duration_ms": 2000,
+  "exit_code": 0,
+  "summary": "Godot macOS technical build passed.",
+  "errors": [],
+  "evidence": [
+    {
+      "id": "atelier-20260827t141000.000000000z-fedcba654321-e0001",
+      "path": ".gameatelier/runs/atelier-20260827t141000.000000000z-fedcba654321/evidence/0001-export-artifact.json"
+    }
+  ],
+  "data": {
+    "scope": "godot-export",
+    "target": "macos-universal2",
+    "profile": "debug",
+    "preset": "macOS Technical",
+    "artifact_count": 1,
+    "engine_version": "4.7.2.stable.official.ed1daf0bf"
+  }
+}

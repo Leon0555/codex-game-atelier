@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "export-artifact.schema.json",
+  "title": "Codex Game Atelier macOS export artifact manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scope", "outcome", "target", "profile", "preset"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "scope": { "const": "godot-export" },
+    "outcome": { "type": "string", "enum": ["PASS", "FAIL", "BLOCKED", "SKIPPED"] },
+    "target": { "const": "macos-universal2" },
+    "profile": { "type": "string", "enum": ["debug", "release"] },
+    "preset": { "const": "macOS Technical" },
+    "engine_version": {
+      "type": "string",
+      "pattern": "^4\\.7\\.2\\.stable\\.official\\.[0-9a-fA-F]{7,40}$"
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "media_type", "sha256", "byte_size", "unsigned", "not_notarized", "public_distribution_ready"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^\\.gameatelier/artifacts/atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}/game-(?:debug|release)\\.zip$"
+        },
+        "media_type": { "const": "application/zip" },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "byte_size": { "type": "integer", "minimum": 1, "maximum": 4294967296 },
+        "unsigned": { "const": true },
+        "not_notarized": { "const": true },
+        "public_distribution_ready": { "const": false }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "outcome": { "const": "PASS" } }, "required": ["outcome"] },
+      "then": { "required": ["engine_version", "artifact"] },
+      "else": { "not": { "required": ["artifact"] } }
+    }
+  ]
+}

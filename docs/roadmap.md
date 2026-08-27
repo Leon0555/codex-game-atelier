@@ -27,11 +27,13 @@ Phase 1 已完成的生产薄切片包括：
 
 实施顺序：
 
-1. `doctor` 检查与冻结 Godot 版本匹配的 export templates。
-2. 实现指定 preset/profile 的 Debug/Release `export`，记录超时、退出码、产物 manifest/hash 和分发就绪限制。
-3. 实现 `build --profile debug|release` 薄封装；复用同一 export 执行和 evidence，不制造第二条 Godot 流水线。
+1. **已完成**：`doctor` 检查并冻结 Godot 版本匹配的 export templates。
+2. **已完成**：指定 preset/profile 的 Debug/Release `export`，记录超时、退出码、产物 manifest/hash 和分发就绪限制；Universal 2 由实际 Mach-O slices 验证。
+3. **已完成**：`build --profile debug|release` 薄封装；复用同一 export 执行和 evidence，不制造第二条 Godot 流水线。
 4. 把 Starter Template 扩展为小而完整的参考游戏/玩法垂直切片。
 5. 在中文、空格和特殊路径完成 `initialize → validate → test → build/export → target smoke`。
+
+前三项的最终 macOS Debug/Release 实机结果见 [`m1-macos-export-build-2026-08-27.md`](validation/m1-macos-export-build-2026-08-27.md)。M1 尚未退出：玩法扩展、完整特殊路径 E2E 与 target smoke 仍未完成。
 
 M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整场景图解析器、第三方测试框架适配、raw 日志系统。
 

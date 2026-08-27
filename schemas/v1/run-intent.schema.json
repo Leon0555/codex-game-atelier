@@ -134,6 +134,47 @@
     },
     {
       "if": {
+        "properties": {
+          "command": {
+            "properties": { "name": { "enum": ["export", "build"] } },
+            "required": ["name"]
+          }
+        },
+        "required": ["command"]
+      },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project", "profile", "preset", "target", "timeout_ms", "engine_user_data", "godot_source"],
+                "properties": {
+                  "project": { "const": "." },
+                  "profile": { "type": "string", "enum": ["debug", "release"] },
+                  "preset": { "const": "macOS Technical" },
+                  "target": { "const": "macos-universal2" },
+                  "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
+                  "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
+                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] }
+                }
+              }
+            }
+          },
+          "declared_write_paths": {
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              { "type": "string", "pattern": "^\\.gameatelier/runs/atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$" },
+              { "type": "string", "pattern": "^\\.gameatelier/artifacts/atelier-[0-9]{8}t[0-9]{6}\\.[0-9]{9}z-[a-f0-9]{12}$" }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
         "anyOf": [
           {
             "properties": {
@@ -158,6 +199,21 @@
               "command": {
                 "properties": {
                   "name": { "const": "test" },
+                  "arguments": {
+                    "properties": { "engine_user_data": { "const": "standard-os-location" } },
+                    "required": ["engine_user_data"]
+                  }
+                },
+                "required": ["name", "arguments"]
+              }
+            },
+            "required": ["command"]
+          },
+          {
+            "properties": {
+              "command": {
+                "properties": {
+                  "name": { "enum": ["export", "build"] },
                   "arguments": {
                     "properties": { "engine_user_data": { "const": "standard-os-location" } },
                     "required": ["engine_user_data"]

@@ -9,8 +9,10 @@ import (
 const pinnedGodotHelperEnvironment = "CODEX_GAME_ATELIER_INTERNAL_RUNNER_NONCE"
 
 type pinnedRunnerControl struct {
-	Nonce string `json:"nonce"`
-	Stage string `json:"stage"`
+	Nonce  string `json:"nonce"`
+	Stage  string `json:"stage"`
+	Preset string `json:"preset,omitempty"`
+	Output string `json:"output,omitempty"`
 }
 
 // RunPinnedGodotHelper handles the private fd-only protocol of the separate

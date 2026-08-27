@@ -73,6 +73,7 @@ type pinnedGodotExecutionSources struct {
 	projectDirectory *os.File
 	runnerSource     *os.File
 	engineSource     *os.File
+	enginePath       string
 }
 
 func (sources *pinnedGodotExecutionSources) close() {
@@ -261,7 +262,7 @@ func openPinnedGodotExecutionSources(root *os.Root, projectPath, requestedGodot 
 		failure := prerequisiteError("GODOT_EXECUTABLE_PIN_UNAVAILABLE", "The selected executable could not be opened as a fixed file identity.", "Stop concurrent engine updates, then retry.")
 		return nil, &failure
 	}
-	return &pinnedGodotExecutionSources{projectDirectory: projectDirectory, runnerSource: runnerSource, engineSource: engineSource}, nil
+	return &pinnedGodotExecutionSources{projectDirectory: projectDirectory, runnerSource: runnerSource, engineSource: engineSource, enginePath: discovery.Executable}, nil
 }
 
 func openStableRegularFile(path string) (*os.File, error) {
@@ -462,6 +463,8 @@ func fixedActionRunMustRemainIncomplete(result contract.Result, runRoot *os.Root
 		".atelier-" + action + "-runner.cstemp",
 		".godot-" + action + "-snapshot",
 		".godot-" + action + "-snapshot.cstemp",
+		exportRuntimeDirectory,
+		godotProjectSnapshotDirectory,
 	} {
 		if _, err := runRoot.Lstat(name); err == nil || !errors.Is(err, os.ErrNotExist) {
 			return true

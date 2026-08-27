@@ -194,6 +194,52 @@ def main() -> None:
         "authorized test intent without its external write declaration",
     )
 
+    export_intent = load_json(FIXTURE_ROOT / "run-intent.export.json")
+    export_result = load_json(FIXTURE_ROOT / "command-result.export.json")
+    export_manifest = load_json(FIXTURE_ROOT / "export-artifact.macos.json")
+    if not isinstance(export_intent, dict) or not isinstance(export_result, dict) or not isinstance(export_manifest, dict):
+        raise SystemExit("export fixtures must be objects")
+    export_data = export_result.get("data")
+    export_artifact = export_manifest.get("artifact")
+    if not isinstance(export_data, dict) or not isinstance(export_artifact, dict):
+        raise SystemExit("export fixtures lack result data or artifact metadata")
+    for field in ("target", "profile", "preset", "engine_version"):
+        if export_data.get(field) != export_manifest.get(field):
+            raise SystemExit(f"export result and manifest differ on {field}")
+    if export_result.get("outcome") != export_manifest.get("outcome"):
+        raise SystemExit("export result and manifest outcomes differ")
+    expected_artifact = (
+        f".gameatelier/artifacts/{export_result['run_id']}/"
+        f"game-{export_data['profile']}.zip"
+    )
+    if export_artifact.get("path") != expected_artifact:
+        raise SystemExit("export artifact path does not bind its run and profile")
+    expected_writes = [
+        f".gameatelier/runs/{export_result['run_id']}",
+        f".gameatelier/artifacts/{export_result['run_id']}",
+    ]
+    if export_intent.get("declared_write_paths") != expected_writes:
+        raise SystemExit("export intent does not declare its exact run and artifact roots")
+
+    invalid_export_preset = copy.deepcopy(export_result)
+    invalid_export_preset["command"]["arguments"]["preset"] = "Custom"
+    expect_invalid(validators["command-result"], invalid_export_preset, "export result with a custom preset")
+    invalid_export_count = copy.deepcopy(export_result)
+    invalid_export_count["data"]["artifact_count"] = 0
+    expect_invalid(validators["command-result"], invalid_export_count, "passing export without one artifact")
+    invalid_export_external = copy.deepcopy(export_intent)
+    invalid_export_external["declared_external_writes"] = []
+    expect_invalid(validators["run-intent"], invalid_export_external, "authorized export without external write declaration")
+    invalid_export_writes = copy.deepcopy(export_intent)
+    invalid_export_writes["declared_write_paths"].pop()
+    expect_invalid(validators["run-intent"], invalid_export_writes, "export intent without artifact write root")
+    invalid_public_artifact = copy.deepcopy(export_manifest)
+    invalid_public_artifact["artifact"]["public_distribution_ready"] = True
+    expect_invalid(validators["export-artifact"], invalid_public_artifact, "unsigned artifact marked distribution ready")
+    invalid_failed_artifact = copy.deepcopy(export_manifest)
+    invalid_failed_artifact["outcome"] = "FAIL"
+    expect_invalid(validators["export-artifact"], invalid_failed_artifact, "failed export containing an artifact")
+
     logs_result = load_json(FIXTURE_ROOT / "command-result.logs.json")
     if not isinstance(logs_result, dict):
         raise SystemExit("logs fixture must be an object")
@@ -253,7 +299,7 @@ def main() -> None:
     print(
         f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
         f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
-        "24 negative assertions, headless, test, and logs cross-fixture semantics"
+        "30 negative assertions, headless, test, export, and logs cross-fixture semantics"
     )
 
 

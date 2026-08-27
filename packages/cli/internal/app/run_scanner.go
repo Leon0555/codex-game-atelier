@@ -278,6 +278,8 @@ func expectedRunPayloadKind(commandName string) (string, bool) {
 		return "validation-report", true
 	case "test":
 		return "test-report", true
+	case "export", "build":
+		return "export-artifact", true
 	default:
 		return "", false
 	}
@@ -291,7 +293,7 @@ func validateScannedIntent(intent runIntentRecord, state projectState, runID str
 	if intent.Producer.Component != "gameatelier-cli" || !producerVersionPattern.MatchString(intent.Producer.Version) {
 		return errors.New("intent producer is invalid")
 	}
-	if intent.ExpectedResultRef != base+"/result.json" || !equalStringSlices(intent.DeclaredWrites, []string{base}) || !equalStringSlices(intent.DeclaredExternal, declaredExternalWrites(intent.Command)) {
+	if intent.ExpectedResultRef != base+"/result.json" || !equalStringSlices(intent.DeclaredWrites, declaredWritePaths(intent.Command, runID)) || !equalStringSlices(intent.DeclaredExternal, declaredExternalWrites(intent.Command)) {
 		return errors.New("intent write declaration is invalid")
 	}
 	probe := contract.Result{

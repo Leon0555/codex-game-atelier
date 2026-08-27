@@ -25,17 +25,21 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 
 	started := time.Now().UTC()
 	if len(args) == 0 {
-		return emitUsage(stdout, started, "cli", "expected clean, detect, doctor, initialize, logs, status, test, validate, or --version")
+		return emitUsage(stdout, started, "cli", "expected build, clean, detect, doctor, export, initialize, logs, status, test, validate, or --version")
 	}
 
 	var result contract.Result
 	switch args[0] {
+	case "build":
+		return emitEncodedExecution(stdout, stderr, runBuild(ctx, started, args[1:]))
 	case "clean":
 		result = runClean(ctx, started, args[1:])
 	case "detect":
 		result = runDetect(started, args[1:])
 	case "doctor":
 		result = runDoctor(ctx, started, args[1:])
+	case "export":
+		return emitEncodedExecution(stdout, stderr, runExport(ctx, started, args[1:]))
 	case "initialize":
 		result = runInitialize(started, args[1:])
 	case "logs":
