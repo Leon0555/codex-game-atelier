@@ -4,7 +4,7 @@
   "title": "Codex Game Atelier doctor data",
   "type": "object",
   "additionalProperties": false,
-  "required": ["project", "godot", "host", "checks"],
+  "required": ["project", "godot", "export_templates", "host", "checks"],
   "properties": {
     "project": { "$ref": "detect-data.schema.json#/$defs/projectDiscovery" },
     "godot": {
@@ -34,17 +34,48 @@
         }
       ]
     },
+    "export_templates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required", "detected", "platform", "platform_template_detected"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "detected": { "type": "boolean" },
+        "version": { "const": "4.7.2.stable" },
+        "platform": { "type": "string", "pattern": "^[a-z0-9_]{1,32}$" },
+        "platform_template_detected": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "detected": { "const": true } }, "required": ["detected"] },
+          "then": {
+            "required": ["version"],
+            "properties": { "platform_template_detected": { "const": true } }
+          }
+        },
+        {
+          "if": { "properties": { "required": { "const": false } }, "required": ["required"] },
+          "then": {
+            "properties": {
+              "detected": { "const": false },
+              "platform_template_detected": { "const": false }
+            }
+          }
+        }
+      ]
+    },
     "host": { "$ref": "detect-data.schema.json#/$defs/host" },
     "checks": {
       "type": "array",
-      "minItems": 5,
-      "maxItems": 5,
+      "minItems": 6,
+      "maxItems": 6,
       "prefixItems": [
         { "$ref": "#/$defs/hostCheck" },
         { "$ref": "#/$defs/projectFileCheck" },
         { "$ref": "#/$defs/projectLanguageCheck" },
         { "$ref": "#/$defs/godotExecutableCheck" },
-        { "$ref": "#/$defs/godotVersionCheck" }
+        { "$ref": "#/$defs/godotVersionCheck" },
+        { "$ref": "#/$defs/exportTemplatesCheck" }
       ],
       "items": false
     }
@@ -74,6 +105,9 @@
     },
     "godotVersionCheck": {
       "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "godot_version" } } }]
+    },
+    "exportTemplatesCheck": {
+      "allOf": [{ "$ref": "#/$defs/checkBase" }, { "properties": { "id": { "const": "export_templates" } } }]
     }
   }
 }

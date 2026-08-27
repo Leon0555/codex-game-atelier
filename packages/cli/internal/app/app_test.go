@@ -41,6 +41,50 @@ func TestDoctorAcceptsSupportedOfficialGodot(t *testing.T) {
 		t.Fatalf("doctor failed: code=%d result=%+v stdout=%s stderr=%s", code, result, stdout, stderr)
 	}
 	assertResultInvariant(t, result)
+	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
+}
+
+func TestDoctorExportRequiresMatchingHostTemplates(t *testing.T) {
+	requireUnixShell(t)
+	project := createProject(t, "export-ready")
+	godot := createExecutable(t, "godot", "#!/bin/sh\nprintf '4.7.2.stable.official.ed1daf0bf\\n'\n")
+	writeExportTemplateFixture(t, godot, true)
+
+	code, result, _, _ := execute(t, context.Background(), "doctor", "--project", project, "--godot", godot, "--export")
+	if code != contract.ExitOK || result.Outcome != "PASS" {
+		t.Fatalf("export doctor failed: code=%d result=%+v", code, result)
+	}
+	data := resultDataMap(t, result)
+	templates, ok := data["export_templates"].(map[string]any)
+	if !ok || templates["required"] != true || templates["detected"] != true || templates["version"] != supportedExportTemplateVersion || templates["platform_template_detected"] != true {
+		t.Fatalf("unexpected export template data: %#v", data["export_templates"])
+	}
+	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
+}
+
+func TestDoctorExportBlocksMissingOrMismatchedTemplates(t *testing.T) {
+	requireUnixShell(t)
+	project := createProject(t, "export-blocked")
+	for _, test := range []struct {
+		name         string
+		writeFixture bool
+		matchVersion bool
+	}{
+		{name: "missing"},
+		{name: "mismatched-version", writeFixture: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			godot := createExecutable(t, "godot", "#!/bin/sh\nprintf '4.7.2.stable.official.ed1daf0bf\\n'\n")
+			if test.writeFixture {
+				writeExportTemplateFixture(t, godot, test.matchVersion)
+			}
+			code, result, _, _ := execute(t, context.Background(), "doctor", "--project", project, "--godot", godot, "--export")
+			if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "GODOT_EXPORT_TEMPLATES_MISSING" {
+				t.Fatalf("unexpected export doctor result: code=%d result=%+v", code, result)
+			}
+			assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
+		})
+	}
 }
 
 func TestDoctorRejectsUnsupportedAndNonGodotExecutables(t *testing.T) {
@@ -97,7 +141,7 @@ func TestDoctorBlocksUnreadableOrOversizedProjectBeforeStartingGodot(t *testing.
 	if _, err := os.Stat(marker); !os.IsNotExist(err) {
 		t.Fatalf("doctor started Godot after project language check failed; marker stat=%v", err)
 	}
-	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version")
+	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
 }
 
 func TestDoctorAlwaysReportsAllFiveChecks(t *testing.T) {
@@ -112,7 +156,7 @@ func TestDoctorAlwaysReportsAllFiveChecks(t *testing.T) {
 	if code != contract.ExitPrerequisite {
 		t.Fatalf("unexpected missing project result: code=%d result=%+v", code, result)
 	}
-	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version")
+	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
 }
 
 func TestProjectDotNetDetectionParsesConfigurationInsteadOfComments(t *testing.T) {
@@ -152,7 +196,7 @@ func TestDoctorCancelledBeforeStartStillReportsAllChecks(t *testing.T) {
 	if code != contract.ExitInterrupted || firstErrorCode(result) != "COMMAND_CANCELLED" {
 		t.Fatalf("unexpected cancelled result: code=%d result=%+v", code, result)
 	}
-	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version")
+	assertDoctorCheckIDs(t, result, "host", "project_file", "project_language", "godot_executable", "godot_version", "export_templates")
 }
 
 func TestDoctorTimesOutAndBoundsOutput(t *testing.T) {
@@ -544,6 +588,30 @@ func createExecutable(t *testing.T, name, content string) string {
 		t.Fatal(err)
 	}
 	return path
+}
+
+func writeExportTemplateFixture(t *testing.T, godot string, matchingVersion bool) {
+	t.Helper()
+	root := filepath.Join(filepath.Dir(godot), "editor_data", "export_templates", supportedExportTemplateVersion)
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	version := supportedExportTemplateVersion
+	if !matchingVersion {
+		version = "4.7.1.stable"
+	}
+	if err := os.WriteFile(filepath.Join(root, "version.txt"), []byte(version+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	files, supported := requiredExportTemplateFiles(runtime.GOOS, runtime.GOARCH)
+	if !supported {
+		t.Skip("host export templates are outside the current test matrix")
+	}
+	for _, name := range files {
+		if err := os.WriteFile(filepath.Join(root, name), []byte("fixture\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 func writeState(t *testing.T, project, content string) {

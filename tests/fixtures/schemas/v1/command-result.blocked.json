@@ -34,6 +34,12 @@
       "supported": false,
       "output_truncated": false
     },
+    "export_templates": {
+      "required": false,
+      "detected": false,
+      "platform": "darwin",
+      "platform_template_detected": false
+    },
     "host": {
       "os": "darwin",
       "arch": "arm64",
@@ -44,7 +50,8 @@
       { "id": "project_file", "outcome": "PASS", "summary": "project.godot is readable." },
       { "id": "project_language", "outcome": "PASS", "summary": "The project uses the supported GDScript edition." },
       { "id": "godot_executable", "outcome": "BLOCKED", "summary": "A supported Godot executable was not found." },
-      { "id": "godot_version", "outcome": "SKIPPED", "summary": "Version validation requires a Godot executable." }
+      { "id": "godot_version", "outcome": "SKIPPED", "summary": "Version validation requires a Godot executable." },
+      { "id": "export_templates", "outcome": "SKIPPED", "summary": "Export templates require a supported Godot executable." }
     ]
   }
 }

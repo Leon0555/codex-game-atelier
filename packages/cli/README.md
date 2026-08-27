@@ -6,7 +6,7 @@ Implemented commands:
 
 - `clean --list`: strictly scans at most 512 run directories, 2,048 closure files, and 256 MiB without writing; it cooperatively honors caller cancellation between 64 KiB read chunks, lists only incomplete/orphan cleanup previews, and protects corrupt closures. It does not delete, recover, repair, or create locks.
 - `detect`: read-only project, Godot candidate, and host discovery; it does not start Godot.
-- `doctor`: read-only prerequisite checks plus the fixed external call `Godot --version`.
+- `doctor`: read-only prerequisite checks plus the fixed external call `Godot --version`; explicit `--export` also requires the matching bounded host export-template set without starting an editor or exporting.
 - `initialize`: on the currently verified macOS Apple Silicon host, atomically creates the first strict `.gameatelier/project.json` for an existing supported Godot/GDScript project; valid reruns are byte-for-byte no-ops. Linux x64 and Windows x64 return `INITIALIZE_HOST_NOT_VERIFIED` until their native transaction matrices pass.
 - `logs --run-id <id>`: reads one explicitly selected committed validate/test closure with a four-file/12.25 MiB budget and emits only allow-listed structural events plus verified integrity metadata. It never returns source summaries, error text/details, report summaries, payload paths, or raw stdout/stderr, and it performs no writes.
 - `status`: strict read-only parsing of `.gameatelier/project.json`.

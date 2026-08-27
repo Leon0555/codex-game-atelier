@@ -37,7 +37,7 @@ ADR 0004 已冻结 Go 为 v1 CLI 生产实现语言，ADR 0005 定义通用结�
 
 - 先执行与 `detect` 相同的纯读检查，再只受控执行已解析的 Godot executable 及固定参数 `--version`。
 - 只接受选中进程自报的标准版标识 `4.7.2.stable.official.<7..40 hex>`；该文本门禁不单独证明二进制来源，官方包身份由安装来源、散列和平台签名验证另行证明。Godot .NET/C# 和伪前缀不进入 v1 基线。
-- 首批 checks 为 `host`、`project_file`、`project_language`、`godot_executable`、`godot_version`；不声称已检查 export templates 或完整项目加载。
+- checks 固定为 `host`、`project_file`、`project_language`、`godot_executable`、`godot_version`、`export_templates`。默认 doctor 将 `export_templates` 标为 `SKIPPED`，不让只读项目/引擎诊断依赖约 2 GiB 的模板安装；显式 `--export` 才要求版本标记和当前宿主的 bounded platform template 文件全部存在。build/export 必须内建复用这一前置条件，不能依赖用户事先运行 doctor。
 - Godot 非零退出返回 `FAIL`/5；超时或取消返回 `FAIL`/6；不受支持版本返回 `BLOCKED`/4。
 - 任意 Godot stdout/stderr 不直接进入结果；只有未截断输出中的完整白名单版本字符串可以进入结果。任一输出流截断都返回 `FAIL`/5，不能用截断前缀判定版本，避免误判或泄露凭据。
 
@@ -81,7 +81,7 @@ ADR 0004 已冻结 Go 为 v1 CLI 生产实现语言，ADR 0005 定义通用结�
 - Unix 只保证清理 CLI 为 Godot 建立的同一进程组；主动 `setsid` 脱组的后代不属于首批保证。
 - Unix 在 leader 已被同步回收后立即清理残余进程组；仍存在极小的 PID/PGID 瞬时复用理论风险，后续若扩大到不可信任意工具执行需采用更强 supervisor，而不是扩大当前声明。
 - Linux x64 产物当前也只有交叉构建形状，未运行。
-- `doctor` 首批不是完整 Godot doctor；export templates、headless 项目加载和用户数据目录边界仍在后续薄切片中实现。
+- `doctor` 仍不是完整 Godot doctor；它已能在显式 `--export` 时只读检查 export templates，但 Headless 项目加载和用户数据目录边界由对应执行命令负责。
 - 状态读取实现先于状态写入；`initialize` 和原子 evidence 提交仍未实现。
 - 绝对项目路径会出现在即时 JSON 结果中；在未来持久化前必须定义相对化和脱敏规则。
 

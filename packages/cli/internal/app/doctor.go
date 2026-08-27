@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 
@@ -37,11 +38,20 @@ type doctorGodotData struct {
 	OutputTruncated bool   `json:"output_truncated"`
 }
 
+type doctorExportTemplatesData struct {
+	Required                 bool   `json:"required"`
+	Detected                 bool   `json:"detected"`
+	Version                  string `json:"version,omitempty"`
+	Platform                 string `json:"platform"`
+	PlatformTemplateDetected bool   `json:"platform_template_detected"`
+}
+
 type doctorData struct {
-	Project projectDiscovery `json:"project"`
-	Godot   doctorGodotData  `json:"godot"`
-	Host    hostData         `json:"host"`
-	Checks  []doctorCheck    `json:"checks"`
+	Project         projectDiscovery          `json:"project"`
+	Godot           doctorGodotData           `json:"godot"`
+	ExportTemplates doctorExportTemplatesData `json:"export_templates"`
+	Host            hostData                  `json:"host"`
+	Checks          []doctorCheck             `json:"checks"`
 }
 
 func runDoctor(ctx context.Context, started time.Time, args []string) contract.Result {
@@ -49,11 +59,12 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	project := set.String("project", ".", "Godot project directory")
 	godot := set.String("godot", "", "Godot executable")
 	timeoutMS := set.Int64("timeout-ms", defaultTimeoutMS, "timeout in milliseconds")
+	requireExport := set.Bool("export", false, "require matching host export templates")
 	if err := rejectDuplicateFlags(args); err != nil {
 		return parseError(started, "doctor", err.Error(), map[string]any{})
 	}
 	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || *timeoutMS < 1 || *timeoutMS > maxTimeoutMS {
-		return parseError(started, "doctor", "doctor accepts --project, optional --godot, and --timeout-ms from 1 to 3600000", map[string]any{})
+		return parseError(started, "doctor", "doctor accepts --project, optional --godot, --timeout-ms from 1 to 3600000, and --export", map[string]any{})
 	}
 	explicitGodot := flagWasProvided(args, "godot")
 	if explicitGodot && *godot == "" {
@@ -63,6 +74,9 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	arguments := map[string]any{"project": *project, "timeout_ms": *timeoutMS}
 	if explicitGodot {
 		arguments["godot"] = *godot
+	}
+	if *requireExport {
+		arguments["export"] = true
 	}
 	result := contract.NewResult(started, contract.Command{Name: "doctor", Arguments: arguments})
 	projectData, projectFailure := discoverProject(*project)
@@ -74,8 +88,12 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 			Executable: godotData.Executable,
 			Source:     godotData.Source,
 		},
+		ExportTemplates: doctorExportTemplatesData{
+			Required: *requireExport,
+			Platform: runtime.GOOS,
+		},
 		Host:   currentHostData(),
-		Checks: make([]doctorCheck, 0, 5),
+		Checks: make([]doctorCheck, 0, 6),
 	}
 	failures := make([]contract.Error, 0, 4)
 
@@ -114,11 +132,13 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 		if godotFailure == nil {
 			data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "SKIPPED", Summary: "Godot version was not checked because another required prerequisite failed."})
 		}
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because another required prerequisite failed."})
 		result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Godot doctor found missing or unsupported prerequisites.", data, failures...)
 		return result
 	}
 	if ctx.Err() != nil {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "FAIL", Summary: "Godot version check was cancelled before the process started."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because Godot version verification was cancelled."})
 		failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "The doctor command was cancelled before Godot started.", Retryable: true}
 		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitInterrupted, "Godot doctor was cancelled.", data, failure)
 		return result
@@ -129,18 +149,21 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	data.Godot.OutputTruncated = process.StdoutTruncated || process.StderrTruncated
 	if process.Cancelled {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "FAIL", Summary: "Godot version check was cancelled."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because Godot version verification was cancelled."})
 		failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "The Godot version check was cancelled.", Retryable: true}
 		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitInterrupted, "Godot doctor was cancelled.", data, failure)
 		return result
 	}
 	if process.TimedOut {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "FAIL", Summary: "Godot version check timed out."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because Godot version verification timed out."})
 		failure := contract.Error{Code: "GODOT_TIMEOUT", Category: "timeout", Message: "Godot did not exit before the configured timeout.", Retryable: true}
 		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitInterrupted, "Godot version check timed out.", data, failure)
 		return result
 	}
 	if process.Err != nil {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "FAIL", Summary: "Godot version process failed."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because Godot version verification failed."})
 		details := map[string]any{"output_truncated": data.Godot.OutputTruncated}
 		if process.ExitCode != nil {
 			details["process_exit_code"] = *process.ExitCode
@@ -151,6 +174,7 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	}
 	if data.Godot.OutputTruncated {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "FAIL", Summary: "Godot version output exceeded the safety limit."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because Godot version output was untrusted."})
 		failure := contract.Error{Code: "GODOT_OUTPUT_TRUNCATED", Category: "engine", Message: "Godot version output exceeded the bounded capture limit and was not trusted.", Retryable: false, Details: map[string]any{"output_truncated": true}}
 		result.Finish(started, time.Now().UTC(), "FAIL", contract.ExitEngine, "Godot version output could not be validated safely.", data, failure)
 		return result
@@ -159,6 +183,7 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	version := findGodotVersion(process.Stdout, process.Stderr)
 	if version == "" || !supportedGodotVersion.MatchString(version) {
 		data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "BLOCKED", Summary: "Godot did not report the supported official version."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export templates were not checked because the Godot version is unsupported."})
 		failure := prerequisiteError("GODOT_VERSION_UNSUPPORTED", "The selected executable did not report the supported Godot 4.7.2-stable official standard build identifier.", "Install or select the official standard Godot 4.7.2-stable executable.")
 		result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Godot version is outside the v1.0 support matrix.", data, failure)
 		return result
@@ -166,7 +191,21 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	data.Godot.Version = version
 	data.Godot.Supported = true
 	data.Checks = append(data.Checks, doctorCheck{ID: "godot_version", Outcome: "PASS", Summary: "The selected executable self-reported the supported Godot 4.7.2-stable official standard build identifier."})
-	result.Finish(started, time.Now().UTC(), "PASS", contract.ExitOK, "Godot project and supported engine prerequisites passed the Phase 1 doctor checks.", data)
+	if !*requireExport {
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "SKIPPED", Summary: "Export readiness was not requested; rerun doctor with --export before build or export."})
+		result.Finish(started, time.Now().UTC(), "PASS", contract.ExitOK, "Godot project and supported engine prerequisites passed the doctor checks.", data)
+		return result
+	}
+	templates, templateFailure := inspectGodotExportTemplates(godotData.Executable)
+	data.ExportTemplates = templates
+	data.ExportTemplates.Required = true
+	if templateFailure != nil {
+		data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "BLOCKED", Summary: "Matching host export templates were not found or were incomplete."})
+		result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Godot export prerequisites are incomplete.", data, *templateFailure)
+		return result
+	}
+	data.Checks = append(data.Checks, doctorCheck{ID: "export_templates", Outcome: "PASS", Summary: "Matching Godot 4.7.2 host export templates are present as bounded regular files."})
+	result.Finish(started, time.Now().UTC(), "PASS", contract.ExitOK, "Godot project, engine, and export-template prerequisites passed the requested doctor checks.", data)
 	return result
 }
 
