@@ -1,7 +1,7 @@
-# Codex Game Atelier v1.0 验收草案
+# Codex Game Atelier v1.0 验收基线
 
-状态：Phase 1 验收基线；部分 macOS Apple Silicon 薄切片已实证，其余项目保持 `NOT RUN` 或明确限定状态
-日期：2026-08-24
+状态：三里程碑发布门禁；macOS Apple Silicon 薄切片部分已实证
+更新日期：2026-08-27
 
 ## 1. 结果词汇
 
@@ -13,81 +13,55 @@
 
 每条 evidence 至少记录命令/操作、产品与 Godot 版本、宿主、时间、退出状态、结构化结果、关键日志、产物/hash、失败复现和未覆盖范围。
 
-## 2. 发布阻断原则
+任一冻结矩阵必选门禁为 `FAIL`、`BLOCKED` 或 `NOT RUN` 时，不得宣称对应组合生产级稳定。失败 evidence 不删除、不覆盖；修复后产生新 run 并关联旧记录。
 
-- 任一冻结矩阵的必选项为 `FAIL`、`BLOCKED` 或 `NOT RUN` 时，不得宣称对应组合生产级稳定。
-- `SKIPPED` 必须有已冻结规则和理由，不能用于隐藏缺口。
-- 失败 evidence 不删除、不覆盖；修复后产生新的 run 并关联旧记录。
+## 2. 十二个发布门禁
 
-## 3. 功能验收
+以下十二项是 v1.0 对外发布的唯一顶层阻断清单。实现与测试仍可保留更细编号，但不得为同一行为制造重复审批或重复演练。
 
-| ID | 验收条件 | 最低证据 | 当前状态 |
-| --- | --- | --- | --- |
-| G-001 | 检测冻结版本 Godot、路径、架构和项目 | JSON + 实际二进制版本 | NOT RUN |
-| G-002 | `doctor` 诊断缺失/错误版本、export templates、平台限制 | 正反例矩阵与稳定错误码 | NOT RUN |
-| G-003 | 项目初始化幂等，不覆盖用户文件 | 首次/重复/冲突运行 diff | NOT RUN |
-| G-004 | Headless 启动并正常退出 | 进程、退出码、Godot 日志 | NOT RUN |
-| G-005 | 场景和资源验证能发现损坏、缺失与循环问题 | 有效/无效 fixture 与定位 | NOT RUN |
-| G-006 | GDScript 测试可运行并映射通过/失败/超时 | 测试报告、退出码、日志 | PASS（macOS 固定入口薄切片；三宿主与完整框架仍 NOT RUN） |
-| G-007 | 输入、信号、资源、UI 与基础玩法工作流可在参考游戏验证 | 自动化/可复现操作证据 | NOT RUN |
-| G-008 | `build --profile debug|release` 分别执行默认目标工作流并产生可辨识 runnable artifact；复用 export 时引用同一底层 evidence | 命令、调用链、产物 manifest/hash | NOT RUN |
-| G-009 | 指定 preset/目标的直接导出成功并在目标平台实际启动；macOS 只要求未签名/未公证产物的 Apple Silicon 技术验证 | Godot export 命令 + target smoke + 分发就绪标记 | NOT RUN |
-| G-010 | 日志结构化、secret redaction 和稳定退出码 | schema/fixture/端到端结果 | PASS（committed run 零自由文本结构投影薄切片；raw 捕获、脱敏、分片和保留仍 NOT RUN） |
-| G-011 | 中文、空格和特殊路径无未声明失败 | 三宿主路径矩阵 | NOT RUN |
-| G-012 | 超时、取消、异常退出、残留进程/锁和恢复可诊断 | 故障注入与恢复 evidence | NOT RUN |
+| 门禁 | 里程碑 | 验收结果 | 最低证据 | 当前状态 |
+| --- | --- | --- | --- | --- |
+| V1-01 环境与项目 | M1 | 正确检测 Godot/宿主/项目；`doctor` 覆盖版本、export templates 和限制；初始化幂等且不覆盖用户文件；Headless 可正常退出 | 正反例 JSON、稳定错误码、首次/重复 diff、实际进程 | NOT RUN（detect/doctor/initialize/Headless 薄切片已有独立证据，尚未含 export templates 完整矩阵） |
+| V1-02 验证、测试与玩法 | M1 | Godot 实际加载场景/资源并定位损坏；GDScript 通过/失败/超时可映射；参考游戏覆盖输入、信号、资源、UI 和基础玩法 | 有效/无效 fixture、测试报告、参考游戏操作证据 | NOT RUN（固定零依赖 GDScript 入口在 macOS 已 PASS） |
+| V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | NOT RUN |
+| V1-04 路径、日志与恢复 | M1 | 中文/空格/特殊路径可用；结构化日志与稳定退出码可诊断；超时、取消、异常退出和残留进程/锁有明确恢复结果 | 路径矩阵、故障注入、进程/锁检查、结构化日志 | NOT RUN（结构化 run 投影及部分特殊路径已 PASS） |
+| V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | NOT RUN |
+| V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | NOT RUN |
+| V1-07 零构建分发入口 | M3 | 普通用户无需 clone/npm build；已有 Godot 时最多三个主要步骤；Plugin 可安装/加载/调用，Starter Template 可取得/初始化，CLI 为预构建产物 | 干净用户路径及步骤计数、包内容、实际调用 | NOT RUN（Plugin/Template bundle、archive 与 Apple Silicon 入口已有候选证据） |
+| V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；发布物包含 checksum、来源和许可；npm 方案使用 Trusted Publishing/2FA/provenance | 生命周期前后 diff、网络/文件审计、artifact manifest、预发布配置审计 | NOT RUN |
+| V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN |
+| V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | NOT RUN（Windows/Linux 原生范围在 M2 结束时决策） |
+| V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | NOT RUN |
+| V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN |
 
-## 4. Agent、Skill 与状态验收
+## 3. 原验收覆盖映射
 
-| ID | 验收条件 | 最低证据 | 当前状态 |
-| --- | --- | --- | --- |
-| A-001 | 分发内容不含具体模型 ID | 全分发包扫描 | NOT RUN |
-| A-002 | 逻辑 Profile 支持能力等级、会话继承和用户覆盖 | 解析测试矩阵 | NOT RUN |
-| A-003 | 原生子代理有界并行，默认不超过三，且单一 owner | 多任务演练与状态文件 | NOT RUN |
-| A-004 | 只读 Auditor 不能在同一步修改并自批 | 权限/流程负例 | NOT RUN |
-| A-005 | 中断后可从 task/handoff/evidence 恢复 | 进程中断与新会话恢复 | NOT RUN |
-| A-006 | 顶层 Agents/Skills 数量精简、职责无重叠 | 触发测试与评审 | NOT RUN |
-| A-007 | 内部 `AGENTS.md` 不进入任何分发物或用户项目 | 包内容扫描 | NOT RUN |
+三里程碑方案只收敛流程，不删除原始要求。2026-08-24 验收草案的细项映射如下：
 
-## 5. 门禁验收
+| 原细项 | 顶层门禁 |
+| --- | --- |
+| G-001 至 G-004 | V1-01 |
+| G-005 至 G-007 | V1-02 |
+| G-008 至 G-009 | V1-03 |
+| G-010 至 G-012 | V1-04 |
+| A-001 至 A-007 | V1-05；其中内部 `AGENTS.md` 分发扫描同时属于 V1-07 |
+| E-001 至 E-006 | V1-06 |
+| D-001 至 D-005 | V1-07 |
+| D-006 至 D-009 | V1-08 |
+| R-002、R-005 | V1-09 |
+| R-001、R-003、R-004 | V1-10 |
+| R-006 至 R-009 | V1-11 |
+| R-010 | V1-12 |
 
-| ID | 验收条件 | 最低证据 | 当前状态 |
-| --- | --- | --- | --- |
-| E-001 | `manual` 仍执行安全、输入、目标和必需前置门禁 | 命令负例 | NOT RUN |
-| E-002 | `standard` 的 build/export 自动执行相应验证子集 | 调用/证据链 | NOT RUN |
-| E-003 | `strict` 强制完整测试、证据新鲜度和发布条件 | 绕过负例 | NOT RUN |
-| E-004 | 未安装或绕过 Git hook 不能绕过 CLI/CI 门禁 | `--no-verify`/无 hook 演练 | NOT RUN |
-| E-005 | Git hooks 只在用户显式安装后存在，并可完整卸载 | 安装前后精确路径清单 | NOT RUN |
-| E-006 | 发布 CI 检查必选、最小权限、受保护来源触发 | workflow 审计与演练 | NOT RUN |
+详细 fixture、平台组合和失败案例进入测试/evidence 清单，不再作为第二套发布审批表。
 
-## 6. 分发与生命周期验收
+## 4. 当前延期项的验收语义
 
-| ID | 验收条件 | 最低证据 | 当前状态 |
-| --- | --- | --- | --- |
-| D-001 | 普通用户不 clone 源码、不执行项目构建即可使用 | 干净用户流程录像/日志 | NOT RUN |
-| D-002 | 已有 Godot 前置条件时，安装与初始化最多三个主要步骤 | 可复现步骤与计数规则 | NOT RUN |
-| D-003 | Plugin 在支持的 Codex 客户端安装、加载、调用、卸载 | 干净环境矩阵 | NOT RUN |
-| D-004 | Starter Template 可独立取得、初始化和回滚 | 包内容与端到端证据 | PARTIAL：方案 A 已冻结，干净模板副本可 initialize/validate/test，可复现 archive/checksum PASS；真实取得、Plugin 配对发现与生命周期 NOT RUN |
-| D-005 | CLI 预构建/已打包，不要求 Node 前沿版或本地编译 | 三宿主安装与版本证据 | PARTIAL：本地多宿主 bundle/archive 与 Apple Silicon 入口通过；实际安装及 Linux/Windows 原生 NOT RUN |
-| D-006 | 安装、升级、卸载和回滚保留用户项目与凭据 | 生命周期 diff/evidence | NOT RUN |
-| D-007 | 无默认遥测、隐藏网络请求或隐藏外部写入 | 网络/文件系统审计 | NOT RUN |
-| D-008 | 发布物带 checksum、来源记录和许可文件 | artifact manifest | NOT RUN |
-| D-009 | npm 发布采用 Trusted Publishing、2FA 策略和 provenance | 预发布演练，不含真实发布 | NOT RUN |
+- Windows x64 与 Linux x64 原生 runner 当前 `NOT RUN`。到 M2 结束时决定补齐 Tier 1 证据或正式调整 Support Matrix；在此之前不能 PASS V1-10。
+- npm 只在候选版本阶段做预发布配置审计；任何真实登录、组织创建、Token、publish 或 GitHub Release 都需要单独用户授权。
+- Plugin 生命周期只在 M3 候选包稳定后集中演练一次；已有本地 bundle 不等于安装/升级/卸载已经通过。
+- `clean` 实际删除、通用 schema migration、派生索引、raw 日志平台和第三方测试框架不是当前发布门禁，除非实现过程中出现没有它们就无法满足上述门禁的真实用例。
 
-## 7. Support Matrix 与发布验收
+## 5. 明确不纳入 v1.0 验收
 
-| ID | 验收条件 | 最低证据 | 当前状态 |
-| --- | --- | --- | --- |
-| R-001 | Support Matrix 已经用户审阅冻结并公开 | 版本化文档/ADR | NOT RUN |
-| R-002 | macOS Apple Silicon 宿主验证通过 | 干净机器 evidence | NOT RUN |
-| R-003 | Windows x64 宿主验证通过 | 干净机器 evidence | NOT RUN |
-| R-004 | Linux x64 宿主与 headless CI 通过 | runner evidence | NOT RUN |
-| R-005 | 每个承诺导出目标均实际 export 并在目标平台 smoke run | target evidence | NOT RUN |
-| R-006 | 参考游戏完成初始化到导出的端到端验证 | 完整 trace/evidence | NOT RUN |
-| R-007 | 文档、命令、版本、错误和实际行为一致 | 文档测试/审计 | NOT RUN |
-| R-008 | 无 blocker/high 安全问题，性能无未解释严重回退 | 问题清单与基线 | NOT RUN |
-| R-009 | 最终架构、安全、许可证和发布审计独立只读通过 | 审计报告 | NOT RUN |
-| R-010 | 用户明确批准正式发布 | 可审计批准记录 | NOT RUN |
-
-## 8. 明确不纳入 v1.0 验收
-
-Unity、Godot .NET/C#、移动端/主机/Web 导出、Windows ARM、Linux ARM、macOS Intel 开发宿主和运行验证、Godot 游戏产物的 macOS 签名/公证与公开分发就绪验证，以及未冻结的 Godot 预发布/旧版本，除非用户通过新决策扩大 Support Matrix。扩大范围不能通过修改宣传措辞暗中完成。
+Unity、Godot .NET/C#、移动端/主机/Web 导出、Windows ARM、Linux ARM、macOS Intel 开发宿主和运行验证、Godot 游戏产物的 macOS 签名/公证与公开分发就绪验证，以及未冻结的 Godot 预发布/旧版本，除非用户通过新决策扩大 Support Matrix。

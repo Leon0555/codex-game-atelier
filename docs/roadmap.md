@@ -1,81 +1,99 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0 已审阅通过；Phase 1 进行中，日期与版本不构成发布承诺
-日期：2026-08-24
+状态：Phase 0 已审阅通过；Phase 1 按三里程碑精简方案实施
+更新日期：2026-08-27
 
-## Phase 0：开发基线（已完成）
+## 1. 已完成基线
 
-目标：建立本地仓库骨架、范围、架构、ADR、来源审计、Support Matrix 建议、验收草案、许可证和环境盘点。
+Phase 0 已于 2026-08-24 通过用户审阅，确立了 Godot-only v1.0、Go CLI、MIT License、文件化状态与证据、Plugin + Starter Template 配套分发等边界。
 
-退出条件：
+Phase 1 已完成的生产薄切片包括：
 
-- 所有 Phase 0 文档可审阅且相互一致。
-- v1.0 明确为 Godot-only，Unity 不进入实现或门禁。
-- 参考仓库许可证由原始 LICENSE 重新确认。
-- Support Matrix 是有证据的推荐而非冻结结论。
-- 用户明确回复“Phase 0 审阅通过，进入 Phase 1”。
+- `detect`、`doctor`、`status` 与幂等 `initialize`。
+- 静态及 Godot Headless `validate`、固定零依赖 GDScript `test`。
+- 原子 run evidence、结构化 `logs`、有界 run scanner 与只读 `clean --list`。
+- 可复现的多宿主预构建 Plugin bundle；当前只有 macOS Apple Silicon 完成原生执行验证。
+- 与已安装 Plugin 配套的干净 Starter Template 及可复现 archive/checksum。
 
-审阅结果：2026-08-24 通过。通过只授权进入 Phase 1，不等于产品已实现、Support Matrix 已取得生产证据或允许外部发布。
+这些结果证明了当前垂直骨架，不自动等于 v1.0 发布门禁已经通过。
 
-## Phase 1：契约与垂直骨架（当前）
+## 2. 三里程碑实施路线
 
-建议顺序：
+后续不再按“核心、适配器、参考游戏、分发、发布”串行铺开，而按三个可运行的垂直里程碑推进。每个里程碑都必须产生实际命令、产物和 evidence。
 
-1. 冻结已批准的最小 Support Matrix 目标与首个 ADR 集合；生产级声明仍等待实证。
-2. 用 Spike 验证 CLI 运行时、Plugin 携带/调用方式及零构建安装路径；Rust/Go 对照已完成并于 2026-08-25 冻结 Go。2026-08-26 已完成本地多宿主 bundle、可复现 archive、外部 checksum，以及 Apple Silicon 包内入口、Headless validate 与固定 GDScript test；真实 Codex 安装、Gatekeeper、升级/回滚及 Linux/Windows 原生验证继续进行。
-3. 已定义 JSON Schema 初始基线：命令结果、错误、run intent/evidence/validation report、task/handoff 与 project state；initialize 单文件边界由 ADR 0007 冻结，多文件 run 提交由 ADR 0008 在限定范围接受，ADR 0009 增补 Headless 外部写入声明。
-4. 已建立生产 Go CLI 的四个垂直切片：只读 `detect`/`doctor`/`status`、幂等 `initialize`、带 evidence 的静态 baseline `validate`、明示授权的 Godot Headless 一帧验证；Windows/Linux 原生运行仍未验证。
-5. 已将最小 Codex Plugin/Skill 骨架接到当前 CLI，并通过官方 Plugin/Skill validator；逻辑 Profile、真实安装和原生子代理交接仍继续验证。
-6. 用户已批准门禁/引擎命令默认持久化 evidence；ADR 0008 的 run 自包含目录、最后 `result.json` 提交点、故障注入和 public validate 接线已实现，独立终审为 0 Blocker/High/Medium/Low。
-7. 已用参考项目完成“CLI → Godot 4.7.2 Headless → 中文/空格资源 → 原子 evidence”的端到端薄切片；Codex 工作流入口和完整测试仍继续。
-8. 已建立 ADR 0010 的有界 run scanner 与只读 `clean --list` 生产切片；实际删除、恢复、索引仍留在 Phase 2。
-9. 已建立 ADR 0011 的固定 GDScript `test` 生产薄切片：零额外框架依赖、逐项报告、断言/引擎/超时映射与原子 evidence；第三方框架、过滤和三宿主原生验证仍待后续。
-10. 已建立 ADR 0012 的只读 `logs --run-id` 生产薄切片：同次验证 committed closure，只投影零自由文本结构事件与 integrity metadata；raw 日志保留/脱敏仍待后续独立决策。
-11. 已提出 ADR 0013 并完成预构建 Plugin bundle 本地候选：显式 source allowlist、真实二进制格式/架构检查、CLI/plugin 版本闭合、deterministic archive 与安全解包；ADR 在实际 Codex 安装和 quarantine 验证前保持 Proposed。
-12. ADR 0014 已 Accepted：Starter Template 与已安装 Plugin 配套，不嵌入 Skill/平台 CLI；干净模板已在特殊路径通过 initialize、Headless/test，并生成可复现 archive/checksum candidate。
-13. 进行独立只读架构、安全和可恢复性评审。
+### M1：可运行、可导出（当前）
 
-Phase 1 不应先铺开所有命令、Agents 或 Skills；先证明契约、运行时、分发与证据链能闭环。
+目标：在 macOS Apple Silicon 上完成从模板到可启动 Godot 游戏产物的闭环。
 
-## Phase 2：确定性核心与门禁
+实施顺序：
 
-- 在 Phase 1 已实现的只读 run scanner 基础上实现 schema 迁移、锁内恢复、确认式删除与派生索引；单文件初始化和首个多文件 evidence 提交已经建立。
-- 从已实现的一帧 Headless、固定 GDScript test 与结构化 logs 薄切片扩展到完整场景/资源图、异步/fixture/过滤测试；raw 日志捕获/脱敏/分片需先形成独立隐私决策，扩展 `initialize` 的迁移/clone 语义前另行决策。
-- 实现 `manual`、`standard`、`strict` 及命令内建门禁。
-- 建立稳定退出码、超时、取消、重试与幂等测试。
-- 建立 CI 基础检查；Git hooks 仅提供显式可选安装器和卸载说明。
+1. `doctor` 检查与冻结 Godot 版本匹配的 export templates。
+2. 实现指定 preset/profile 的 Debug/Release `export`，记录超时、退出码、产物 manifest/hash 和分发就绪限制。
+3. 实现 `build --profile debug|release` 薄封装；复用同一 export 执行和 evidence，不制造第二条 Godot 流水线。
+4. 把 Starter Template 扩展为小而完整的参考游戏/玩法垂直切片。
+5. 在中文、空格和特殊路径完成 `initialize → validate → test → build/export → target smoke`。
 
-## Phase 3：Godot 生产适配器
+M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整场景图解析器、第三方测试框架适配、raw 日志系统。
 
-- Headless 启动、场景/资源/GDScript 验证。
-- 输入、信号、资源、UI 和基础玩法工作流。
-- Debug/Release 构建和约定目标导出；macOS 仅验证未签名、未公证的 Apple Silicon 技术导出。
-- 结构化日志、错误分类、超时、异常退出和恢复。
-- 中文、空格、特殊路径与三宿主验证。
+退出条件：Apple Silicon 上 Debug 与 Release 技术导出均有可复现 PASS evidence，产物可启动并正常退出；未验证范围被明确标记。
 
-## Phase 4：参考游戏与端到端证据
+### M2：可协作、可管控
 
-- 建立小而完整的 Godot 垂直切片，不追求内容规模。
-- 从空模板/安装入口验证初始化、开发、测试、构建和导出。
-- 验证干净环境、版本升级、失败恢复和回滚。
-- 建立性能与稳定性基线。
+目标：用最小机制证明 Codex 原生协作与发布前门禁，不建设通用编排或策略平台。
 
-## Phase 5：分发与生命周期
+实施顺序：
 
-- 完成 Codex Plugin 和 Starter Template。
-- 验证最多三个主要步骤的首次使用路径。
-- 产出预构建 CLI、校验和、SBOM/来源证明策略。
-- 验证安装、升级、卸载、回滚和无残留/无隐藏写入。
-- 完成 npm Trusted Publishing 与 package provenance 的发布前演练；不实际发布，除非用户另行批准。
+1. 用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。
+2. 用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；不实现常驻服务。
+3. 以一张命令前置条件表实现 `manual`、`standard`、`strict`：`manual` 是显式命令语义，`standard` 是默认生产门禁，`strict` 聚合发布条件。
+4. 实现只读 `release check`；不实现自动外部发布，暂不增加独立 `release prepare` 流水线。
+5. 提供一个显式安装、可列出、可卸载的轻量 Git hook；CLI 与 CI 门禁不能依赖 hook。
+6. 建立一个最小 CI workflow，先验证 Go/Python、Schema、Plugin/Template 静态完整性和 macOS 可执行路径。
 
-## Phase 6：冻结与发布审计
+M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 
-- 冻结 Support Matrix、命令契约、文档和版本策略。
-- 在干净环境执行完整矩阵并保留 evidence。
-- 完成安全、架构、许可证、性能与分发的独立只读终审。
-- 清零 blocker/high 问题；记录所有 NOT RUN/BLOCKED/SKIPPED。
-- 用户明确批准后，才创建外部 Release、发布 npm 或提交 Marketplace。
+退出条件：三种模式的安全边界、模型抽象、一次可恢复原生协作、hook 可选性及 CI 不可绕过性均有正反例证据。
 
-## 后续版本
+### M3：可安装、可发布验证
 
-Unity 只在 v1.0 稳定后重新立项。必须先做官方 CLI/许可证/平台 Spike 和新 ADR；不得把 v1.0 的 Godot 内部概念直接当作 Unity 契约。`unity eval` 默认关闭并排除在核心发布路径之外。
+目标：集中完成一次真实生命周期和 v1.0 发布审计，避免在每个功能切片重复安装演练。
+
+实施顺序：
+
+1. 冻结 Plugin/Starter Template/CLI 的版本闭合和分发清单。
+2. 在干净用户路径集中演练取得、安装、发现、初始化、升级、卸载和回滚；保留用户项目与凭据。
+3. 验证 checksum、manifest、LICENSE、NOTICE、provenance、无默认遥测和无隐藏外部写入。
+4. 在候选版本阶段才完成 npm Trusted Publishing、2FA 和 package provenance 的只读/预发布设计演练；不实际发布。
+5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
+6. 用户明确批准后，才允许 GitHub Release、npm publish 或 Marketplace 提交。
+
+M3 不做：Godot 游戏产物签名/公证、自动账号登录、长期发布 Token、未经授权的远程写入。
+
+退出条件：冻结范围内所有必选发布门禁为 PASS，Blocker/High 为零，用户明确批准发布。
+
+## 3. 明确延后但不隐藏的项目
+
+以下项目不进入当前 M1/M2 日常开发路径：
+
+- Windows x64 与 Linux x64 原生 runner/机器验证。
+- 完整 schema migration 引擎、派生索引和通用恢复数据库。
+- `clean` 的实际删除能力；当前保持只读 `clean --list`。
+- 第三方 GDScript 测试框架、过滤/异步 fixture 平台。
+- raw 日志捕获、follow/tail、分片和通用脱敏流水线。
+- 多套顶层 Skills 或为每种责任创建独立常驻 Agent。
+- npm 包装实现及完整 SBOM，直到候选版本确有发布需要。
+
+这些延后项如果改变已冻结产品承诺，必须在实施前重新决策；不能因为未排入当前开发循环就被描述成已经支持。
+
+## 4. Windows/Linux 决策检查点
+
+用户已决定当前不建设 Windows/Linux 原生 runner。M2 结束时再确认 v1.0 最终对外范围：
+
+1. 补齐 Windows x64、Linux x64 原生端到端证据，维持三宿主 Tier 1；或
+2. 通过 Support Matrix 决策把 v1.0 生产级承诺限定为 macOS Apple Silicon，并把其他宿主明确降为预览/产物可用性声明。
+
+在此决策前，交叉构建只证明 artifact 可生成，不证明对应宿主受支持。
+
+## 5. 后续版本
+
+Unity、Godot .NET/C#、Web/移动/主机导出和签名/公证均不属于 v1.0。Unity 只有在 v1.0 稳定后才能重新立项；必须先做官方 CLI、许可证和平台 Spike，且 `unity eval` 默认关闭。
