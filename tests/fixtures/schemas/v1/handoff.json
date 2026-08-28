@@ -4,11 +4,13 @@
   "task_id": "task-godot-thin-slice",
   "from_owner": {
     "id": "lead",
-    "kind": "agent"
+    "kind": "agent",
+    "logical_profile": "lead"
   },
   "to_owner": {
     "id": "godot-engineer",
-    "kind": "agent"
+    "kind": "agent",
+    "logical_profile": "implementation"
   },
   "created_at": "2026-08-24T01:05:00Z",
   "summary": "Contract fixtures are ready; engine execution is waiting for an approved Godot installation.",

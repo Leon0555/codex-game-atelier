@@ -37,12 +37,17 @@
           "type": "string",
           "enum": ["agent", "human", "automation"]
         },
+        "logical_profile": { "$ref": "#/$defs/logicalProfile" },
         "display_name": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128
         }
       }
+    },
+    "logicalProfile": {
+      "type": "string",
+      "enum": ["lead", "implementation", "fast-read", "independent-audit"]
     },
     "evidenceRef": {
       "type": "object",

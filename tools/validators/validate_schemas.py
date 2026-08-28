@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = ROOT / "schemas" / "v1"
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "schemas" / "v1"
 STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
+PROFILE_CATALOG = ROOT / "plugin" / "codex-game-atelier" / "skills" / "develop-godot-game" / "references" / "capability-profiles.json"
 
 
 def load_json(path: Path) -> object:
@@ -57,6 +58,11 @@ def main() -> None:
             raise SystemExit(f"fixture has no matching schema: {path}")
         validator.validate(load_json(path))
         fixture_count += 1
+
+    profile_catalog = load_json(PROFILE_CATALOG)
+    validators["capability-profile-catalog"].validate(profile_catalog)
+    if profile_catalog != load_json(FIXTURE_ROOT / "capability-profile-catalog.default.json"):
+        raise SystemExit("distributed capability profile catalog differs from its contract fixture")
 
     persisted_evidence = {
         "initialize-first.json": "command-result",

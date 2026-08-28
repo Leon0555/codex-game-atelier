@@ -6,7 +6,7 @@ The v1 deterministic CLI production implementation language is Go. The Phase 1 p
 
 ## Current status
 
-Phase 1 follows a three-milestone plan. M1 is complete locally on macOS Apple Silicon: the Go CLI now closes a special-path `detect → doctor → initialize → validate → test → Debug/Release export → target smoke` flow, and the deterministic Starter Template contains the playable six-test Atelier Spark vertical slice. M2 collaboration/enforcement and M3 clean installation/release validation remain; there is still no v1.0-ready implementation, published package, remote repository, Windows/Linux native evidence, or signed/notarized game artifact.
+Phase 1 follows a three-milestone plan. M1 is complete locally on macOS Apple Silicon: the Go CLI now closes a special-path `detect → doctor → initialize → validate → test → Debug/Release export → target smoke` flow, and the deterministic Starter Template contains the playable six-test Atelier Spark vertical slice. M2 has completed its first slice: the Plugin now distributes validated logical capability Profiles with inheritance/override semantics and no concrete model IDs. Native collaboration recovery and enforcement remain, followed by M3 clean installation/release validation; there is still no v1.0-ready implementation, published package, remote repository, Windows/Linux native evidence, or signed/notarized game artifact.
 
 Do not treat this repository as ready for game development until the v1.0 acceptance gates are implemented and verified.
 

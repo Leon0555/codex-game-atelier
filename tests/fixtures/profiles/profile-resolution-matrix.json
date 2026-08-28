@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0.0",
+  "cases": [
+    {
+      "id": "explicit-task-binding-wins",
+      "requested_profile": "implementation",
+      "available_sources": ["task-explicit-override", "user-or-team-mapping", "session-inheritance", "host-default"],
+      "resolved_capability": "high",
+      "independent_context": false,
+      "expected_source": "task-explicit-override",
+      "expected_outcome": "RESOLVED"
+    },
+    {
+      "id": "user-mapping-before-session",
+      "requested_profile": "lead",
+      "available_sources": ["user-or-team-mapping", "session-inheritance", "host-default"],
+      "resolved_capability": "high",
+      "independent_context": false,
+      "expected_source": "user-or-team-mapping",
+      "expected_outcome": "RESOLVED"
+    },
+    {
+      "id": "session-inheritance",
+      "requested_profile": "fast-read",
+      "available_sources": ["session-inheritance", "host-default"],
+      "resolved_capability": "standard",
+      "independent_context": false,
+      "expected_source": "session-inheritance",
+      "expected_outcome": "RESOLVED"
+    },
+    {
+      "id": "host-default-with-disclosure",
+      "requested_profile": "lead",
+      "available_sources": ["host-default"],
+      "resolved_capability": "standard",
+      "independent_context": false,
+      "expected_source": "host-default",
+      "expected_outcome": "RESOLVED_WITH_DISCLOSURE"
+    },
+    {
+      "id": "independent-audit-satisfied",
+      "requested_profile": "independent-audit",
+      "available_sources": ["user-or-team-mapping", "session-inheritance"],
+      "resolved_capability": "critical",
+      "independent_context": true,
+      "expected_source": "user-or-team-mapping",
+      "expected_outcome": "RESOLVED"
+    },
+    {
+      "id": "independent-audit-capability-blocked",
+      "requested_profile": "independent-audit",
+      "available_sources": ["session-inheritance"],
+      "resolved_capability": "high",
+      "independent_context": true,
+      "expected_source": "session-inheritance",
+      "expected_outcome": "BLOCKED"
+    },
+    {
+      "id": "independent-audit-context-blocked",
+      "requested_profile": "independent-audit",
+      "available_sources": ["host-default"],
+      "resolved_capability": "critical",
+      "independent_context": false,
+      "expected_source": "host-default",
+      "expected_outcome": "BLOCKED"
+    },
+    {
+      "id": "missing-binding-blocked",
+      "requested_profile": "implementation",
+      "available_sources": [],
+      "resolved_capability": "high",
+      "independent_context": false,
+      "expected_source": null,
+      "expected_outcome": "BLOCKED"
+    },
+    {
+      "id": "unknown-profile-blocked",
+      "requested_profile": "unlisted-profile",
+      "available_sources": ["session-inheritance"],
+      "resolved_capability": "critical",
+      "independent_context": true,
+      "expected_source": "session-inheritance",
+      "expected_outcome": "BLOCKED"
+    }
+  ]
+}

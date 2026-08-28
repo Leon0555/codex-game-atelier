@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import tarfile
@@ -112,6 +113,24 @@ class PluginBundleTests(unittest.TestCase):
             target.write_bytes(b"tampered\n")
             with self.assertRaises(package_plugin.BundleError):
                 package_plugin.verify_bundle(bundle)
+
+    def test_profile_catalog_and_concrete_model_policy_are_enforced(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = self.sources(root / "sources")
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, sources))
+            catalog = bundle / "skills" / "develop-godot-game" / "references" / "capability-profiles.json"
+            value = json.loads(catalog.read_text(encoding="utf-8"))
+            value["binding_resolution"]["cli_selects_models"] = True
+            catalog.write_text(json.dumps(value), encoding="utf-8")
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.validate_profile_catalog(bundle)
+
+        forbidden = "Use " + "gpt" + "-9 for this task."
+        self.assertIsNotNone(package_plugin.FORBIDDEN_CONCRETE_MODEL_ID.search(forbidden))
+        self.assertIsNone(package_plugin.FORBIDDEN_CONCRETE_MODEL_ID.search("Use the independent-audit logical profile."))
 
     def test_symlink_binary_and_existing_output_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

@@ -45,7 +45,7 @@ Plugin 是可安装分发入口，Starter Template 是可复制的项目起点�
 - **QA/Recovery Engineer**：测试矩阵、路径/中断/恢复、证据完整性。
 - **Read-only Auditor**：架构、安全、兼容性和发布终审；默认不能修改被审对象。
 
-角色声明只描述能力与责任，不指定具体模型 ID。能力解析见 ADR 0001。
+角色声明只描述能力与责任，不指定具体模型 ID。分发 Skill 使用 `lead`、`implementation`、`fast-read`、`independent-audit` 四个逻辑 Profile；绑定优先级和阻断语义由随 Skill 分发的能力目录定义，具体绑定留在用户/Codex 主机环境。能力解析见 ADR 0001。
 
 ### 3.2 候选顶层 Skills
 

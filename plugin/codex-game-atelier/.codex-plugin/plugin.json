@@ -12,8 +12,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Game Atelier",
-    "shortDescription": "Validate and test supported Godot projects.",
-    "longDescription": "Phase 1 Godot workflows for project inspection, explicit initialization, recorded validation and tests, committed-run diagnostics, and bounded cleanup previews. Build, export, release, and raw log retention are not implemented yet.",
+    "shortDescription": "Validate, test, and export supported Godot projects.",
+    "longDescription": "Godot workflows for project inspection, explicit initialization, recorded validation and tests, committed-run diagnostics, bounded cleanup previews, and unsigned macOS technical builds and exports. Release and raw log retention are not implemented yet.",
     "developerName": "Leon0555",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],

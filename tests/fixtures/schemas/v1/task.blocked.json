@@ -11,6 +11,7 @@
   "owner": {
     "id": "lead",
     "kind": "agent",
+    "logical_profile": "lead",
     "display_name": "Project Lead"
   },
   "allowed_paths": [

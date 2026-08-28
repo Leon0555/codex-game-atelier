@@ -63,3 +63,11 @@ v1.0 拒绝。它引入网络依赖、维护、遥测/隐私疑虑和隐藏控�
 - 分发物扫描不含具体模型 ID。
 - 至少两个不同用户映射下执行同一 Skill，工作流语义一致。
 - 审计任务在能力不足时可复现地阻断而非静默继续。
+
+## Phase 1 实现记录（2026-08-28）
+
+- Plugin Skill 内分发 `capability-profiles.json`，固定 `lead`、`implementation`、`fast-read`、`independent-audit` 四个逻辑 Profile；文件由公开 Schema、解析矩阵和 Plugin 打包器共同验证。
+- `owner.logical_profile` 以向后兼容的可选字段进入 task/handoff 公共 Schema，只记录逻辑意图。
+- Plugin 不安装用户级或项目级自定义 Agent 配置，也不在 manifest 中虚构 Agent 映射。具体模型和推理设置继续由 Codex 主机的自定义 Agent、用户映射或会话继承承担。
+- `independent-audit` 要求 critical 能力和独立只读上下文，任一无法确认即 `BLOCKED`；其他 Profile 能力不足时允许继承，但必须明确披露。
+- Plugin 打包验证新增具体模型 ID 扫描与 Profile 语义检查；CLI 仍不选择模型。

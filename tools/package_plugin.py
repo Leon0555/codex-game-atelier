@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import platform
+import re
 try:
     import resource
 except ImportError:  # pragma: no cover - native smoke is Darwin-only.
@@ -39,6 +40,17 @@ ALLOWED_SOURCE_FILES = {
     ".codex-plugin/plugin.json",
     "skills/develop-godot-game/SKILL.md",
     "skills/develop-godot-game/agents/openai.yaml",
+    "skills/develop-godot-game/references/capability-profiles.json",
+}
+FORBIDDEN_CONCRETE_MODEL_ID = re.compile(
+    r"\b(?:gpt|claude|gemini|deepseek|llama|mistral|qwen)[-_ ]?\d",
+    re.IGNORECASE,
+)
+PROFILE_REQUIREMENTS = {
+    "lead": ("high", "coordination", "task-authorized", "primary", "inherit-and-disclose"),
+    "implementation": ("high", "implementation", "task-authorized", "supporting", "inherit-and-disclose"),
+    "fast-read": ("standard", "read-only", "read-only", "supporting", "inherit-and-disclose"),
+    "independent-audit": ("critical", "read-only", "read-only", "independent", "block"),
 }
 
 TARGETS = (
@@ -135,6 +147,58 @@ def copy_source_tree(source: Path, destination: Path) -> None:
         target.chmod(0o644)
     if observed_files != ALLOWED_SOURCE_FILES:
         raise BundleError("plugin source allowlist is incomplete")
+
+
+def verify_distributed_model_policy(bundle: Path) -> None:
+    for relative in sorted(ALLOWED_SOURCE_FILES):
+        path = bundle / relative
+        regular_file(path, 1024 * 1024)
+        try:
+            content = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            raise BundleError("plugin text source is not valid UTF-8") from error
+        if FORBIDDEN_CONCRETE_MODEL_ID.search(content):
+            raise BundleError("plugin distribution contains a concrete model identifier")
+
+
+def validate_profile_catalog(bundle: Path) -> None:
+    path = bundle / "skills" / "develop-godot-game" / "references" / "capability-profiles.json"
+    regular_file(path, 64 * 1024)
+    try:
+        catalog = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise BundleError("capability profile catalog is not valid UTF-8 JSON") from error
+    if not isinstance(catalog, dict) or set(catalog) != {"schema_version", "binding_resolution", "profiles"} or catalog.get("schema_version") != "1.0.0":
+        raise BundleError("capability profile catalog root is invalid")
+    expected_binding = {
+        "order": ["task-explicit-override", "user-or-team-mapping", "session-inheritance", "host-default"],
+        "no_binding_outcome": "BLOCKED",
+        "unknown_profile_outcome": "BLOCKED",
+        "user_mapping_distribution": "excluded",
+        "cli_selects_models": False,
+    }
+    if catalog.get("binding_resolution") != expected_binding:
+        raise BundleError("capability profile binding policy is invalid")
+    profiles = catalog.get("profiles")
+    if not isinstance(profiles, list) or len(profiles) != len(PROFILE_REQUIREMENTS):
+        raise BundleError("capability profile set is invalid")
+    observed = {}
+    for profile in profiles:
+        if not isinstance(profile, dict) or set(profile) != {"id", "capability_tier", "work_class", "access_policy", "independence", "unmet_capability_policy", "purpose"}:
+            raise BundleError("capability profile fields are invalid")
+        identifier = profile.get("id")
+        purpose = profile.get("purpose")
+        if not isinstance(identifier, str) or identifier in observed or not isinstance(purpose, str) or not purpose.strip() or len(purpose) > 512:
+            raise BundleError("capability profile identity or purpose is invalid")
+        observed[identifier] = (
+            profile.get("capability_tier"),
+            profile.get("work_class"),
+            profile.get("access_policy"),
+            profile.get("independence"),
+            profile.get("unmet_capability_policy"),
+        )
+    if observed != PROFILE_REQUIREMENTS:
+        raise BundleError("capability profile requirements are invalid")
 
 
 def inspect_binary(path: Path, expected_format: str) -> None:
@@ -289,6 +353,7 @@ def verify_bundle(bundle: Path) -> None:
         "skills",
         "skills/develop-godot-game",
         "skills/develop-godot-game/agents",
+        "skills/develop-godot-game/references",
     } | {f"bin/{target['host']}" for target in TARGETS}
     observed_directories = set()
     for path in bundle.rglob("*"):
@@ -333,6 +398,8 @@ def verify_bundle(bundle: Path) -> None:
         validate_relative_path(relative)
     if any(Path(relative).name == "AGENTS.md" for relative in declared_paths):
         raise BundleError("internal AGENTS.md entered the plugin bundle")
+    verify_distributed_model_policy(bundle)
+    validate_profile_catalog(bundle)
     for target in TARGETS:
         host = target["host"]
         for name in (target["cli_name"], target["runner_name"]):

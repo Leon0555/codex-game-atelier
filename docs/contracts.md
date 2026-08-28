@@ -15,6 +15,7 @@
 - `validation-report.schema.json`：baseline/headless validate payload 的严格检查列表和聚合结果。
 - `test-report.schema.json`：固定 GDScript 测试入口产生的严格逐项报告；CLI 解析后重新编码为 evidence。
 - `export-artifact.schema.json`：macOS 技术导出的 target/profile、Godot 版本、ZIP 摘要和非公开分发就绪声明。
+- `capability-profile-catalog.schema.json`：四个逻辑 Profile、能力等级、权限/独立性语义，以及任务覆盖、用户映射、会话继承、主机默认的绑定优先级；不包含具体模型 ID。
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。
@@ -27,6 +28,7 @@
 - 验收或证据还可使用 `NOT_RUN`，且不得把它当作通过。
 - 任务状态独立使用 `planned`、`ready`、`active`、`review`、`verified`、`done`，以及 `blocked`、`failed`、`cancelled`。
 - `summary` 面向人类；自动化必须读取字段、错误码和 evidence reference，不解析自然语言猜状态。
+- `owner.logical_profile` 是可选的逻辑 Profile 引用，用于 task/handoff 恢复时重建责任和能力意图；它不记录或解析具体模型。旧状态省略该字段仍然有效。
 
 ## CLI 退出码类别
 

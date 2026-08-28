@@ -1,11 +1,17 @@
 ---
 name: develop-godot-game
-description: Inspect, initialize, validate, test, or read verified run diagnostics for a supported Godot/GDScript project through the bundled Codex Game Atelier CLI. Use for Atelier project readiness and recorded Godot workflows; build, export, release, arbitrary scripts, and raw log access are not implemented.
+description: Inspect, initialize, validate, test, build, export, or read verified run diagnostics for a supported Godot/GDScript project through the bundled Codex Game Atelier CLI. Use for Atelier project readiness and recorded Godot workflows; release, arbitrary scripts, and raw log access are not implemented.
 ---
 
 # Develop Godot Game
 
 Use Codex for judgment and the bundled Atelier CLI for deterministic project operations. Structured CLI results are authoritative; do not infer success from prose or file presence.
+
+## Logical capability profiles
+
+Before assigning or delegating work, load `references/capability-profiles.json` and choose the smallest profile that satisfies the task: `lead` for ownership and synthesis, `implementation` for bounded changes, `fast-read` for read-only exploration, or `independent-audit` for a separate high-risk review. These names express capability and responsibility, not concrete models.
+
+Resolve a profile binding in the catalog's declared order. User/team mappings remain outside this Plugin and the CLI never selects a model. If a normal profile inherits a binding below its requested capability, disclose that limitation. If an independent audit lacks critical capability or a genuinely separate read-only context, return `BLOCKED`; never let an implementer approve its own change. Record only the logical profile in task or handoff state.
 
 ## Bundled CLI
 
@@ -23,7 +29,8 @@ In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other r
 - Invoke `initialize` only when the user explicitly asks to initialize Atelier state. A successful first run creates `.gameatelier/project.json` and a persistent advisory-lock file; it does not modify `project.godot`, install Godot, or run the engine. Never use it as repair, migration, force, or overwrite.
 - `validate` records an immutable run even for the default static baseline. Use `--headless` only after the user explicitly authorizes Godot's standard `user://` writes. Do not add arbitrary Godot arguments.
 - `test` runs only `res://tests/atelier_test_runner.gd` and executes trusted project GDScript. Confirm the project is owned or reviewed and obtain explicit authorization for standard `user://` writes before passing `--allow-engine-user-data`. Do not substitute another script, filter, shell command, or eval path.
+- `build --profile debug|release` and `export --profile debug|release --preset "macOS Technical"` share one bounded macOS technical-export pipeline. Both require initialized trusted project content, the fixed preset, export templates reported by `doctor --export`, and explicit `--allow-engine-user-data`. Their unsigned and unnotarized ZIP artifacts are not public-distribution ready even after Universal 2 inspection and Apple Silicon target smoke pass.
 - `logs --run-id <strict-id>` returns a zero-free-text structural projection of one verified committed validate/test run. It does not return source IDs, error text, report summaries, payload paths, or raw stdout/stderr.
 - Treat `BLOCKED`, `FAIL`, nonzero exit codes, missing evidence, and unsafe state exactly as reported. Preserve incomplete/corrupt runs and failure evidence.
 
-Build, export, release, recovery, deletion, raw log capture, arbitrary code execution, Git-hook installation, dependency installation, telemetry, login, and external publication are outside this Skill. Do not fabricate them or replace them with ad hoc shell workflows. If a bundled executable is unavailable, stop the affected operation and report the missing artifact.
+Release, recovery, deletion, raw log capture, arbitrary code execution, Git-hook installation, dependency installation, telemetry, login, signing/notarization, and external publication are outside this Skill. Do not fabricate them or replace them with ad hoc shell workflows. If a bundled executable is unavailable, stop the affected operation and report the missing artifact.

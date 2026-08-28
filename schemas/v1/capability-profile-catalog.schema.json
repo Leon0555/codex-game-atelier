@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "capability-profile-catalog.schema.json",
+  "title": "Codex Game Atelier logical capability profile catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "binding_resolution", "profiles"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "binding_resolution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "no_binding_outcome", "unknown_profile_outcome", "user_mapping_distribution", "cli_selects_models"],
+      "properties": {
+        "order": {
+          "const": ["task-explicit-override", "user-or-team-mapping", "session-inheritance", "host-default"]
+        },
+        "no_binding_outcome": { "const": "BLOCKED" },
+        "unknown_profile_outcome": { "const": "BLOCKED" },
+        "user_mapping_distribution": { "const": "excluded" },
+        "cli_selects_models": { "const": false }
+      }
+    },
+    "profiles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "capability_tier", "work_class", "access_policy", "independence", "unmet_capability_policy", "purpose"],
+        "properties": {
+          "id": { "enum": ["lead", "implementation", "fast-read", "independent-audit"] },
+          "capability_tier": { "enum": ["standard", "high", "critical"] },
+          "work_class": { "enum": ["coordination", "implementation", "read-only"] },
+          "access_policy": { "enum": ["task-authorized", "read-only"] },
+          "independence": { "enum": ["primary", "supporting", "independent"] },
+          "unmet_capability_policy": { "enum": ["inherit-and-disclose", "block"] },
+          "purpose": { "type": "string", "minLength": 1, "maxLength": 512 }
+        }
+      }
+    }
+  }
+}
