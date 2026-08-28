@@ -1,5 +1,7 @@
 # Phase 1 固定 GDScript Test 验证
 
+> 历史记录：本页描述最初 5 项薄切片。当前 Atelier Spark 六项测试、Debug/Release 和特殊路径全链见 [`m1-playable-vertical-slice-2026-08-28.md`](m1-playable-vertical-slice-2026-08-28.md)。
+
 日期：2026-08-25
 范围：公开 `test` 命令、固定 Godot/GDScript 测试入口、结果映射、原子 evidence、scanner 闭包与 macOS Apple Silicon 实机薄切片
 

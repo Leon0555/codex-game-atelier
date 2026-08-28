@@ -1,5 +1,7 @@
 # Phase 1 Starter Template 本地验证记录
 
+> 历史记录：本页描述 2026-08-26 的 8 文件/5 测试薄模板。当前 9 文件/6 测试可玩模板及完整导出链见 [`m1-playable-vertical-slice-2026-08-28.md`](m1-playable-vertical-slice-2026-08-28.md)；旧 evidence 保留、不覆盖。
+
 - 日期：2026-08-26
 - 结论：**PASS（仅限模板项目本体、项目本地复制与 Apple Silicon 当前 CLI 工作流）**
 - 非结论：不是独立分发/安装、Plugin 客户端发现、生命周期、Linux/Windows 原生或 v1 发布通过

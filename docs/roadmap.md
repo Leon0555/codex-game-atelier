@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0 已审阅通过；Phase 1 按三里程碑精简方案实施
-更新日期：2026-08-27
+状态：Phase 0 已审阅通过；M1 已完成，当前进入 M2
+更新日期：2026-08-28
 
 ## 1. 已完成基线
 
@@ -21,7 +21,7 @@ Phase 1 已完成的生产薄切片包括：
 
 后续不再按“核心、适配器、参考游戏、分发、发布”串行铺开，而按三个可运行的垂直里程碑推进。每个里程碑都必须产生实际命令、产物和 evidence。
 
-### M1：可运行、可导出（当前）
+### M1：可运行、可导出（已完成）
 
 目标：在 macOS Apple Silicon 上完成从模板到可启动 Godot 游戏产物的闭环。
 
@@ -30,16 +30,16 @@ Phase 1 已完成的生产薄切片包括：
 1. **已完成**：`doctor` 检查并冻结 Godot 版本匹配的 export templates。
 2. **已完成**：指定 preset/profile 的 Debug/Release `export`，记录超时、退出码、产物 manifest/hash 和分发就绪限制；Universal 2 由实际 Mach-O slices 验证。
 3. **已完成**：`build --profile debug|release` 薄封装；复用同一 export 执行和 evidence，不制造第二条 Godot 流水线。
-4. 把 Starter Template 扩展为小而完整的参考游戏/玩法垂直切片。
-5. **部分完成**：Debug/Release build/export 已自动完成 Apple Silicon target smoke；仍需在中文、空格和特殊项目根路径闭合 `initialize → validate → test → build/export → target smoke`。
+4. **已完成**：Starter Template 与参考项目扩展为 Atelier Spark 小型完整玩法，包含输入、signals、中文资源、UI、胜利与重置循环及六项固定测试。
+5. **已完成**：在中文、空格和 `#` 项目根闭合 `detect → doctor → initialize → validate → test → Debug build → Release export → target smoke → clean --list`。
 
-前三项和 Apple Silicon target smoke 的最终 Debug/Release 实机结果见 [`m1-macos-export-build-2026-08-27.md`](validation/m1-macos-export-build-2026-08-27.md)。M1 尚未退出：玩法扩展与完整特殊项目根路径 E2E 仍未完成。
+前三项的底层导出证据见 [`m1-macos-export-build-2026-08-27.md`](validation/m1-macos-export-build-2026-08-27.md)；最终玩法和特殊路径全链见 [`m1-playable-vertical-slice-2026-08-28.md`](validation/m1-playable-vertical-slice-2026-08-28.md)。M1 本地退出条件已满足，但这不替代 M3 干净用户环境和最终发布审计。
 
 M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整场景图解析器、第三方测试框架适配、raw 日志系统。
 
 退出条件：Apple Silicon 上 Debug 与 Release 技术导出均有可复现 PASS evidence，产物可启动并正常退出；未验证范围被明确标记。
 
-### M2：可协作、可管控
+### M2：可协作、可管控（当前）
 
 目标：用最小机制证明 Codex 原生协作与发布前门禁，不建设通用编排或策略平台。
 

@@ -11,7 +11,7 @@ Starter Template 是普通用户主要入口之一，但不能把源码仓库研
 ## 已实证的候选内容契约
 
 1. 模板是 Godot `4.7.2-stable` standard/GDScript 项目，不含 .NET、Unity 或未来引擎占位实现。
-2. 固定包含可运行 `main.tscn`、基础 UI、signal/input/game-state 示例、中文与空格资源路径，以及 `res://tests/atelier_test_runner.gd`。
+2. 固定包含可运行 `main.tscn`、Atelier Spark 收集/胜利/重置玩法、UI、signal/input/game-state、中文与空格资源路径、`res://tests/atelier_test_runner.gd` 六项测试，以及关闭签名/公证的 `macOS Technical` preset。
 3. 模板不得包含 `.gameatelier/`、`.godot/`、导出物、二进制、SDK、依赖、凭据、遥测、Git hooks、`AGENTS.md`、具体模型 ID 或源码仓库旧产品名。
 4. 模板不携带 `project_id`；每个复制项目由显式 `initialize` 使用 CSPRNG 建立新身份。复制后重复 initialize 必须保持 state bytes 与 mtime 不变。
 5. `.gitignore` 只忽略 Godot 缓存、导出凭据和 build output。在 `.gameatelier` 的版本控制政策冻结前，不得默认把它隐藏；用户必须能看到并审阅新生成的状态/evidence。
@@ -42,7 +42,7 @@ archive 旁的 `.sha256` 和包内 manifest 只能证明同源文件的完整性
 
 脱敏命令、宿主/引擎/工具哈希、initialize 前后状态、Headless/test 结构化结果和模板源哈希已持久化到 [`docs/validation/evidence/phase1-starter-template-2026-08-26/`](../validation/evidence/phase1-starter-template-2026-08-26/)，并由回归测试检查源哈希与结果间的一致性。
 
-方案 A 接受后，已生成不含 Plugin 二进制/Skill 的确定性 `0.2.0` candidate archive，并通过双份逐字节复现、外部 SHA-256、安全解包、配套元数据和源契约重验。证据记录见 [`phase1-starter-template-package-2026-08-26.md`](../validation/phase1-starter-template-package-2026-08-26.md)。
+方案 A 接受后，已生成不含 Plugin 二进制/Skill 的确定性 `0.2.0` candidate archive，并通过双份逐字节复现、外部 SHA-256、安全解包、配套元数据和源契约重验。2026-08-26 的初始薄模板证据保留为历史；当前可玩模板、特殊路径全链和重打包证据见 [`m1-playable-vertical-slice-2026-08-28.md`](../validation/m1-playable-vertical-slice-2026-08-28.md)。
 
 这些证据不等于：Template 已独立分发、Codex 客户端实际从模板发现 Skill、Plugin 已安装、升级/卸载/回滚通过，或 Linux/Windows 原生通过。
 

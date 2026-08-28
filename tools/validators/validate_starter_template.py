@@ -18,6 +18,7 @@ MAX_TEMPLATE_BYTES = 4 * 1024 * 1024
 EXPECTED_FILES = {
     ".gitignore",
     "README.md",
+    "export_presets.cfg",
     "main.tscn",
     "project.godot",
     "scripts/game_state.gd",
@@ -35,7 +36,7 @@ REQUIRED_README_PHRASES = {
     "This three-step count starts after the Codex Game Atelier Plugin is installed",
     "Copy this directory and rename the copy for your game.",
     "Open the copy in Codex with the Codex Game Atelier Plugin",
-    "Ask Codex to run the supported validation and fixed GDScript tests",
+    "Ask Codex to run validation and the six fixed GDScript tests",
     "Godot is an explicit prerequisite and is never installed automatically.",
     "this directory is a candidate template, not a released product.",
 }
@@ -95,9 +96,11 @@ def validate_template(root: Path) -> None:
     required_scene_lines = {
         "[gd_scene load_steps=2 format=3]",
         '[ext_resource path="res://scripts/main.gd" type="Script" id="1_main"]',
-        '[node name="Main" type="Node"]',
+        '[node name="Main" type="Control"]',
         '[node name="Status" type="Label" parent="Interface/Panel/Margin/Content"]',
-        '[node name="PlayButton" type="Button" parent="Interface/Panel/Margin/Content"]',
+        '[node name="Progress" type="ProgressBar" parent="Interface/Panel/Margin/Content"]',
+        '[node name="PlayButton" type="Button" parent="Interface/Panel/Margin/Content/Actions"]',
+        '[node name="ResetButton" type="Button" parent="Interface/Panel/Margin/Content/Actions"]',
     }
     if not required_scene_lines.issubset(scene_lines):
         raise TemplateError("starter scene or basic UI contract is incomplete")
@@ -115,6 +118,35 @@ def validate_template(root: Path) -> None:
     }
     if not required_test_lines.issubset(test_lines):
         raise TemplateError("starter template fixed test protocol structure is incomplete")
+
+    state = content["scripts/game_state.gd"]
+    main = content["scripts/main.gd"]
+    required_game_markers = {
+        "signal score_changed(score: int, goal: int)",
+        "signal game_won(final_score: int)",
+        "const GOAL := 5",
+        "func collect(points: int = 1) -> bool:",
+        "func reset() -> void:",
+    }
+    required_main_markers = {
+        'const STATUS_PAYLOAD = preload("res://中文 资源/status_payload.gd")',
+        'if event.is_action_pressed("ui_accept"):',
+        "game_state.score_changed.connect(_on_score_changed)",
+        "game_state.game_won.connect(_on_game_won)",
+    }
+    if not required_game_markers.issubset({line.strip() for line in state.splitlines()}) or not required_main_markers.issubset({line.strip() for line in main.splitlines()}):
+        raise TemplateError("starter template playable game loop is incomplete")
+
+    export = content["export_presets.cfg"]
+    required_export_markers = {
+        'name="macOS Technical"',
+        'platform="macOS"',
+        'binary_format/architecture="universal"',
+        'codesign/codesign=0',
+        'notarization/notarization=0',
+    }
+    if not required_export_markers.issubset({line.strip() for line in export.splitlines()}):
+        raise TemplateError("starter template macOS technical export preset is incomplete")
 
     readme = content["README.md"]
     if sum(1 for line in readme.splitlines() if re.match(r"^[123]\. ", line)) != 3 or not all(phrase in readme for phrase in REQUIRED_README_PHRASES):

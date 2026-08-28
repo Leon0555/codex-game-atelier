@@ -21,7 +21,7 @@ SPEC = importlib.util.spec_from_file_location("package_starter_template", SCRIPT
 assert SPEC is not None and SPEC.loader is not None
 packager = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(packager)
-EVIDENCE = packager.ROOT / "docs" / "validation" / "evidence" / "phase1-starter-template-package-2026-08-26"
+EVIDENCE = packager.ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
 
 
 class StarterTemplatePackageTests(unittest.TestCase):

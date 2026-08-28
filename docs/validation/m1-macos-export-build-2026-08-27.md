@@ -43,7 +43,7 @@ stdout 各只有一个 command-result JSON，结果均为 `PASS`/0。绝对项�
 
 ## 未覆盖
 
-- 参考游戏当前还是薄切片，尚未完成 M1 约定的小而完整玩法扩展和全链 E2E。
+- 本记录完成后，玩法扩展和特殊项目根全链已在 2026-08-28 通过；后续证据见 [`m1-playable-vertical-slice-2026-08-28.md`](m1-playable-vertical-slice-2026-08-28.md)。
 - Intel slice 只做静态 Universal 2 验证，不做 Intel 实机 smoke。
 - 游戏产物签名、公证和公开分发 readiness 按已批准范围不属于 v1.0。
 - Windows/Linux 原生 runner/机器验证延期，不从 macOS 或交叉构建结果推断支持。

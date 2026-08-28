@@ -1,17 +1,20 @@
-; Codex Game Atelier Phase 1 reference-game thin slice.
-; The project intentionally keeps rendering requirements minimal for headless CI.
+; Codex Game Atelier Phase 1 playable vertical slice.
+; The project keeps rendering requirements minimal for headless CI.
 
 config_version=5
 
 [application]
 
-config/name="Codex Game Atelier Thin Slice"
+config/name="Atelier Spark Reference"
 run/main_scene="res://main.tscn"
 
 [display]
 
-window/size/viewport_width=640
-window/size/viewport_height=360
+window/size/viewport_width=960
+window/size/viewport_height=540
+window/size/window_width_override=960
+window/size/window_height_override=540
+window/stretch/mode="canvas_items"
 
 [rendering]
 

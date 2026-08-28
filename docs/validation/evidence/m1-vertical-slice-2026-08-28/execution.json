@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "m1-playable-starter-special-path-e2e",
+  "host": {"os": "macos", "version": "26.6.2", "kernel": "Darwin 25.6.0", "architecture": "arm64"},
+  "engine": {
+    "version": "4.7.2.stable.official.ed1daf0bf",
+    "edition": "standard",
+    "execution_copy_sha256": "17845653c27d716a01e9337bac895b47f3e686994bb85a6e40d1a7645070f3b9",
+    "execution_copy_signature": "local-ad-hoc",
+    "installed_official_copy_sha256": "c7cccbf8fb143e34e02fd6521e09be2c2b974f0d5db080b19071c9c570718ccf"
+  },
+  "tools": {
+    "cli_sha256": "4b01597d3b8694bd7bea77e6ba4da78087810c6f40dc5305fb50c157cb8ab1a0",
+    "runner_sha256": "2ac8eba42f213e0a4299ab8789c0f6d7eda1356d5a922cf9784da237f196875e"
+  },
+  "path_fixture": "<workspace>/.tools/M1 垂直切片 #20260828",
+  "state_before_initialize": {"gameatelier_exists": false},
+  "state_after_initialize": {"byte_size": 330, "mtime_unix": 1787922005, "sha256": "56f3c6075459b8681032bb4385d7760f252af5f7fbd44bacb0053c85955c3126"},
+  "state_after_repeat_initialize": {"byte_size": 330, "mtime_unix": 1787922005, "sha256": "56f3c6075459b8681032bb4385d7760f252af5f7fbd44bacb0053c85955c3126"},
+  "state": {"byte_size": 330, "sha256": "56f3c6075459b8681032bb4385d7760f252af5f7fbd44bacb0053c85955c3126", "repeat_initialize_byte_identical": true},
+  "runs": {
+    "validate": "atelier-20260828t130252.694404000z-82e100ce228e",
+    "test": "atelier-20260828t130248.479542000z-523363d1d676",
+    "debug_build": "atelier-20260828t130330.285799000z-ad5745ce94b3",
+    "release_export": "atelier-20260828t130409.705786000z-d2410b2fe1e4"
+  },
+  "outcomes": {
+    "detect": "PASS",
+    "doctor_export": "PASS",
+    "initialize_first": "PASS",
+    "initialize_repeat": "PASS",
+    "headless_validate": "PASS",
+    "gdscript_test_6_of_6": "PASS",
+    "debug_build_and_target_smoke": "PASS",
+    "release_export_and_target_smoke": "PASS",
+    "run_closure_scan": "PASS"
+  },
+  "run_closure_counts": {"committed": 4, "incomplete": 0, "orphan": 0, "corrupt": 0},
+  "environment_note": "The original signed executable on the external APFS workspace was killed with exit 137 and spctl reported an internal Code Signing subsystem error. Testing used a project-local APFS copy with ad-hoc signature; no system, Gatekeeper, Keychain, or global configuration was changed."
+}

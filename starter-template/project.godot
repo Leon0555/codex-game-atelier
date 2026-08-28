@@ -1,10 +1,10 @@
-; Codex Game Atelier Godot 4.7.2-stable GDScript starter.
+; Codex Game Atelier Godot 4.7.2-stable GDScript vertical slice.
 
 config_version=5
 
 [application]
 
-config/name="New Codex Game Atelier Project"
+config/name="Atelier Spark"
 run/main_scene="res://main.tscn"
 
 [display]

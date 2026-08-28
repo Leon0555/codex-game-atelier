@@ -6,7 +6,7 @@ The v1 deterministic CLI production implementation language is Go. The Phase 1 p
 
 ## Current status
 
-Phase 1 contract and vertical-skeleton work. Phase 0 was approved on 2026-08-24. The Go CLI now proves a macOS Apple Silicon/APFS run/evidence transaction, static Godot/GDScript baseline validation, a fixed one-frame Godot Headless reference-game path, a five-case fixed GDScript test slice with explicit standard `user://` authorization, a locally verified zero-source-build Plugin archive, and a clean deterministic Starter Template archive paired with that Plugin under accepted ADR 0014. There is still no v1.0-ready implementation, published package, or remote repository; actual Codex installation/lifecycle, Gatekeeper behavior, Linux/Windows native evidence, broader test features, and broader scene/resource validation remain outstanding.
+Phase 1 follows a three-milestone plan. M1 is complete locally on macOS Apple Silicon: the Go CLI now closes a special-path `detect → doctor → initialize → validate → test → Debug/Release export → target smoke` flow, and the deterministic Starter Template contains the playable six-test Atelier Spark vertical slice. M2 collaboration/enforcement and M3 clean installation/release validation remain; there is still no v1.0-ready implementation, published package, remote repository, Windows/Linux native evidence, or signed/notarized game artifact.
 
 Do not treat this repository as ready for game development until the v1.0 acceptance gates are implemented and verified.
 

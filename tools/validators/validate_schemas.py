@@ -15,7 +15,7 @@ from referencing import Registry, Resource
 ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ROOT = ROOT / "schemas" / "v1"
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "schemas" / "v1"
-STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "phase1-starter-template-2026-08-26"
+STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
 
 
 def load_json(path: Path) -> object:
@@ -66,6 +66,10 @@ def main() -> None:
         "validation-report.json": "validation-report",
         "test-result.json": "command-result",
         "test-report.json": "test-report",
+        "build-result.json": "command-result",
+        "build-export-artifact.json": "export-artifact",
+        "export-result.json": "command-result",
+        "release-export-artifact.json": "export-artifact",
     }
     for name, schema_name in persisted_evidence.items():
         validators[schema_name].validate(load_json(STARTER_EVIDENCE_ROOT / name))

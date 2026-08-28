@@ -66,16 +66,16 @@ v1.0 只承诺 Support Matrix 中明确列出的 Godot 版本、宿主平台和�
 
 ## 5. 当前阶段门禁
 
-Phase 0 已于 2026-08-24 通过用户审阅，当前进入 Phase 1：契约与垂直骨架。允许：
+Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导出闭环已于 2026-08-28 完成本地验证，当前进入 M2：可协作、可管控。允许：
 
 - 冻结已批准的 Support Matrix、ADR 与公共 JSON 契约。
-- 进行有界的 Rust、Go 与 Plugin 打包 Spike；实验产物不得直接视为生产实现。
-- 建立和验证最小 CLI、Plugin、Skill、Agent 与 Godot 垂直骨架；生产 Go CLI 已从 `detect`、`doctor`、`status` 开始实现。
+- 实现和验证逻辑能力 Profile、一次有界 Codex 原生协作、`manual`/`standard`/`strict` 门禁、只读 `release check`、显式可选 Git hook 与最小 CI。
+- 维护已完成的 Go CLI、Plugin、Skill、Starter Template、Godot 垂直切片和 M1 evidence；实验产物不得直接视为生产实现。
 - 只读环境检查、官方资料研究和非破坏性验证。
 
 用户已于 2026-08-25 冻结 v1 CLI 的生产实现语言为 Go。Rust 只保留为 Phase 1 对照证据，不得进入生产 CLI、Plugin、Starter Template 或发布包；任何改用其他语言的提议都必须形成新 ADR 并重新获得用户批准。
 
-仍不得未经确认安装 Godot、Rust、Go、SDK 或大型依赖。不得铺开全部命令或大规模产品实现。创建远程仓库、push、发布、登录账号、修改系统配置和破坏性清理仍需单独明确授权。
+仍不得未经确认安装 Godot、Rust、Go、SDK 或大型依赖。不得把 M2 扩张为通用编排/策略平台或常驻服务。创建远程仓库、push、发布、登录账号、修改系统配置和破坏性清理仍需单独明确授权。
 
 ## 6. 工作模式
 

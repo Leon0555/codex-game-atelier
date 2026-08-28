@@ -1,5 +1,7 @@
 # Phase 1 Starter Template 方案 A 打包验证记录
 
+> 历史记录：本页描述 2026-08-26 的初始薄模板 candidate。当前可玩模板重打包与特殊路径 E2E 见 [`m1-playable-vertical-slice-2026-08-28.md`](m1-playable-vertical-slice-2026-08-28.md)；旧 archive 摘要和 evidence 保留、不覆盖。
+
 - 日期：2026-08-26
 - 结论：**PASS（仅限确定性本地 Template archive candidate）**
 - 决策：ADR 0014 Accepted，v1.0 采用 Starter Template 与已安装 Plugin 配套

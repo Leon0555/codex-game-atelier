@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "scope": "m1-playable-starter-template-local-candidate",
+  "decision": {"adr": "0014-starter-template-boundary", "option": "A", "status": "Accepted"},
+  "host": {"os": "macos", "version": "26.6.2", "kernel": "Darwin 25.6.0", "architecture": "arm64"},
+  "pairing": {"plugin": "codex-game-atelier", "verified_plugin_version": "0.2.0", "embedded": false},
+  "archive": {
+    "name": "codex-game-atelier-starter-0.2.0.tar.gz",
+    "byte_size": 6640,
+    "sha256": "30573faf9eb5df215a02b42ba910080340887a0dc569ee44814bfe984982e318",
+    "member_count": 16,
+    "reproducible_copy_equal": true
+  },
+  "manifest": {
+    "name": "TEMPLATE-MANIFEST.json",
+    "byte_size": 2383,
+    "sha256": "141652bd29926e15b676e2d882d716f7fe7fdf440a92344e9d0ba1b19c2da542",
+    "declared_file_count": 11,
+    "declared_expanded_byte_size": 13450
+  },
+  "game_e2e": {
+    "path_fixture": "<workspace>/.tools/M1 垂直切片 #20260828",
+    "headless_checks": 8,
+    "gdscript_tests": 6,
+    "debug_target_smoke": "PASS",
+    "release_target_smoke": "PASS"
+  },
+  "checks": [
+    "fixed-source-allowlist",
+    "complete-playable-loop",
+    "fixed-gdscript-tests",
+    "macos-technical-export-preset",
+    "no-embedded-plugin-skill-or-binary",
+    "plugin-version-pairing",
+    "source-contract-revalidation",
+    "deterministic-tar-gzip-metadata",
+    "external-sha256",
+    "bounded-single-gzip-stream-and-safe-unpack"
+  ]
+}

@@ -18,7 +18,7 @@ SPEC = importlib.util.spec_from_file_location("validate_starter_template", SCRIP
 assert SPEC is not None and SPEC.loader is not None
 validator = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(validator)
-EVIDENCE = validator.ROOT / "docs" / "validation" / "evidence" / "phase1-starter-template-2026-08-26"
+EVIDENCE = validator.ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
 
 
 class StarterTemplateTests(unittest.TestCase):
@@ -70,7 +70,7 @@ class StarterTemplateTests(unittest.TestCase):
                     validator.validate_template(template)
 
     def test_identifiers_and_required_structural_markers_are_enforced(self) -> None:
-        for mutation in ("model-gpt", "model-claude", "old-name", "test-comment", "ignore", "readme"):
+        for mutation in ("model-gpt", "model-claude", "old-name", "test-comment", "game-loop", "export", "ignore", "readme"):
             with self.subTest(mutation=mutation), tempfile.TemporaryDirectory() as temporary:
                 template = self.copy_template(Path(temporary))
                 if mutation == "model-gpt":
@@ -85,6 +85,12 @@ class StarterTemplateTests(unittest.TestCase):
                 elif mutation == "test-comment":
                     runner = template / "tests" / "atelier_test_runner.gd"
                     runner.write_text(runner.read_text(encoding="utf-8").replace("extends SceneTree", "# extends SceneTree", 1), encoding="utf-8")
+                elif mutation == "game-loop":
+                    state = template / "scripts" / "game_state.gd"
+                    state.write_text(state.read_text(encoding="utf-8").replace("signal game_won(final_score: int)", "# missing win signal", 1), encoding="utf-8")
+                elif mutation == "export":
+                    export = template / "export_presets.cfg"
+                    export.write_text(export.read_text(encoding="utf-8").replace('binary_format/architecture="universal"', 'binary_format/architecture="arm64"', 1), encoding="utf-8")
                 elif mutation == "ignore":
                     ignore = template / ".gitignore"
                     ignore.write_text(ignore.read_text(encoding="utf-8").replace(".godot/\n", "", 1), encoding="utf-8")
