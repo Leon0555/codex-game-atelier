@@ -76,6 +76,9 @@ func execPinnedGodot(expectedNonce string) error {
 	if control.Stage == "test" {
 		arguments = []string{executable, "--headless", "--path", ".", "--script", "res://tests/atelier_test_runner.gd", "--no-header"}
 	}
+	if control.Stage == "target-smoke" {
+		arguments = []string{executable, "--headless", "--quit-after", "1", "--no-header"}
+	}
 	if control.Stage == "export-debug" {
 		arguments = []string{executable, "--headless", "--path", ".", "--no-header", "--export-debug", control.Preset, control.Output}
 	}
@@ -93,7 +96,7 @@ func execPinnedGodot(expectedNonce string) error {
 }
 
 func validPinnedRunnerControl(control pinnedRunnerControl) bool {
-	if control.Stage == "version" || control.Stage == "scene" || control.Stage == "test" {
+	if control.Stage == "version" || control.Stage == "scene" || control.Stage == "test" || control.Stage == "target-smoke" {
 		return control.Preset == "" && control.Output == ""
 	}
 	if control.Stage != "export-debug" && control.Stage != "export-release" {

@@ -465,6 +465,8 @@ func fixedActionRunMustRemainIncomplete(result contract.Result, runRoot *os.Root
 		".godot-" + action + "-snapshot.cstemp",
 		exportRuntimeDirectory,
 		godotProjectSnapshotDirectory,
+		godotTargetSmokeRunner,
+		godotTargetSmokeRunner + ".cstemp",
 	} {
 		if _, err := runRoot.Lstat(name); err == nil || !errors.Is(err, os.ErrNotExist) {
 			return true

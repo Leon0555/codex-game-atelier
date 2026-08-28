@@ -1,6 +1,6 @@
 # ADR 0015：macOS 技术导出、Build 薄封装与项目快照
 
-- 状态：Accepted（M1 macOS Apple Silicon 生产薄切片；产物启动 smoke 尚未完成）
+- 状态：Accepted（M1 macOS Apple Silicon 生产薄切片；Debug/Release target smoke 已实证）
 - 日期：2026-08-27
 - 决策范围：`export`/`build` 公共参数、Godot 固定执行链、项目源写入隔离、Universal 2 artifact 与 evidence
 
@@ -33,7 +33,8 @@
 1. 产物必须是 1 byte 至 4 GiB 的常规 ZIP，最多 4,096 个成员、单成员展开不超过 512 MiB、总展开不超过 1 GiB，且成员路径不能穿越。
 2. ZIP 必须恰有一个 `.app/Contents/MacOS/` 主可执行文件。fat Mach-O 必须恰含 `x86_64` 与 `arm64` 两个 slice；fat table、slice 范围、重叠、64-bit thin magic 和 CPU type 必须一致。只看文件名或 preset 不足以声称 Universal 2。
 3. PASS evidence 记录目标、profile、preset、Godot 版本、项目相对 artifact 路径、SHA-256、字节数，以及 `unsigned=true`、`not_notarized=true`、`public_distribution_ready=false`。
-4. 非 PASS 结果不得发布 artifact metadata。run intent 同时声明 run root、artifact root 和获准的标准 `user://` 外部写入；result 最后提交。
+4. PASS 前必须从刚生成的 ZIP 安全解包目标 `.app`，在 Apple Silicon 通过固定 private runner 执行 `--headless --quit-after 1 --no-header`。退出 0、输出未截断、无 `ERROR:`、runner/进程组/解包目录全部清理后，manifest 才记录 `target_smoke={host:macos,arch:arm64,mode:headless-one-frame,exit_code:0}`。
+5. 非 PASS 结果不得发布 artifact metadata。run intent 同时声明 run root、artifact root 和获准的标准 `user://` 外部写入；result 最后提交。
 
 ## 备选方案
 
@@ -57,7 +58,7 @@
 
 - 项目快照能隔离常规相对项目写入，但不是恶意代码沙箱；项目脚本、editor plugin 或引擎仍可能主动访问网络或绝对路径。
 - 逐文件稳定复制不等价于原子文件系统快照；并发新增/删除跨文件集合仍可能形成逻辑混合版本。当前建议从静止、已审阅工作树导出，后续 target smoke/干净环境门禁会继续验证。
-- artifact 已验证 ZIP/Mach-O 结构，尚未证明 `.app` 可在 Apple Silicon 启动并正常退出。
+- Debug build 与 Release export 的 `.app` 已在 Apple Silicon 完成 headless 一帧启动/退出；这不是窗口化长时游戏测试、性能测试或 Intel smoke。
 - Intel slice 只做静态结构验证，不做 Intel 实机 smoke。签名、公证和公开分发 readiness 不属于 v1.0。
 
 ## 迁移与回退

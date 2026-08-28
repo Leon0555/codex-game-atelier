@@ -19,7 +19,7 @@
     "artifact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "media_type", "sha256", "byte_size", "unsigned", "not_notarized", "public_distribution_ready"],
+      "required": ["path", "media_type", "sha256", "byte_size", "unsigned", "not_notarized", "public_distribution_ready", "target_smoke"],
       "properties": {
         "path": {
           "type": "string",
@@ -30,7 +30,18 @@
         "byte_size": { "type": "integer", "minimum": 1, "maximum": 4294967296 },
         "unsigned": { "const": true },
         "not_notarized": { "const": true },
-        "public_distribution_ready": { "const": false }
+        "public_distribution_ready": { "const": false },
+        "target_smoke": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["host", "arch", "mode", "exit_code"],
+          "properties": {
+            "host": { "const": "macos" },
+            "arch": { "const": "arm64" },
+            "mode": { "const": "headless-one-frame" },
+            "exit_code": { "const": 0 }
+          }
+        }
       }
     }
   },

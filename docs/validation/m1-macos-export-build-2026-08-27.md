@@ -9,16 +9,17 @@
 
 | 检查 | 结果 | 证据 |
 | --- | --- | --- |
-| Debug `build` 实机 | PASS | run `atelier-20260827t141415.794492000z-cc0a407b5515`，24,246 ms，artifact 64,327,237 bytes，SHA-256 `08adc4896a7922949942ed679cf461ad7be0e2b2be0f1521f2089a6baeee3d52` |
-| Release `export` 实机 | PASS | run `atelier-20260827t141842.955412000z-d741bc63735a`，24,636 ms，artifact 59,652,867 bytes，SHA-256 `762ec061443e4d9107c1912bed76c7b01c8fecbfdb01ffc0e3446738ce2b8c68` |
+| Debug `build` 实机 | PASS | run `atelier-20260827t142727.123077000z-25080887e532`，34,063 ms，artifact 64,327,238 bytes，SHA-256 `5d69f3ad9856608f9b6525f2aed188c0f2fcc8732d75fabaaa69540b52d1ecb9` |
+| Release `export` 实机 | PASS | run `atelier-20260827t142810.524566000z-2e6b32346bf2`，26,862 ms，artifact 59,652,867 bytes，SHA-256 `fa1c08df862aacc9ae070ada826415e5a0486ea3eceb970bebcefc23ace257ef` |
 | Godot/preset/templates | PASS | 两条命令均固定 `macOS Technical`、`macos-universal2`、匹配 `4.7.2.stable` 的 `macos.zip`/`icudt_godot.dat`；`build` 不接受 preset 参数 |
 | Universal 2 真实性 | PASS | CLI 有界展开 ZIP，要求唯一 app 主可执行文件；fat Mach-O 恰含 `x86_64`/`arm64`，校验 slice 范围、重叠、64-bit magic 与 thin/fat CPU type；单架构负例返回 `EXPORT_ARTIFACT_INVALID`/5 |
+| Apple Silicon target smoke | PASS | 两个最终命令都从刚生成的 ZIP 有界安全解包 `.app`，固定执行 `--headless --quit-after 1 --no-header`；退出 0、输出未截断、无 `ERROR:`，manifest 记录 `macos/arm64/headless-one-frame` |
 | 项目源隔离 | PASS | 最终两次 Godot 都从 run 内有界项目快照运行；运行前后 `git status` 无新增源文件，参考项目只保留原有两个 tracked `.uid`；run 内无 `.godot-project-snapshot` 或 `.godot-export-runtime` 残留 |
 | 写入声明 | PASS | intent 只声明对应 run root、artifact root 与显式获准的 `godot:user-data:standard-os-location`；ZIP 先写快照内部固定路径，再复制到声明 artifact root |
 | Artifact readiness | PASS | manifest 明确 `unsigned=true`、`not_notarized=true`、`public_distribution_ready=false`；本结果不是公开分发就绪声明 |
 | Evidence 闭包 | PASS | 两个最终 run 均含 immutable intent、严格 export-artifact payload、SHA-256 evidence record 和最后提交的 result；`clean --list` 将新 run 判为 committed |
 | Go | PASS | Go 1.27.0：`go test -count=1 ./...`、`go vet ./...`、`go test -race -count=1 ./...` |
-| Schema | PASS | Draft 2020-12：20 schemas、25 fixtures、7 个持久化 Starter Template records、30 个负例断言；含 build/export result、intent、manifest 交叉语义 |
+| Schema | PASS | Draft 2020-12：20 schemas、25 fixtures、7 个持久化 Starter Template records、31 个负例断言；含 build/export result、intent、manifest/target-smoke 交叉语义 |
 | Plugin/Starter 回归 | PASS | Python `unittest` 26 项通过 |
 
 ## 真实命令
@@ -42,7 +43,6 @@ stdout 各只有一个 command-result JSON，结果均为 `PASS`/0。绝对项�
 
 ## 未覆盖
 
-- Apple Silicon 上解包后的 `.app` target 启动、正常退出和进程残留 smoke 尚未执行；因此 V1-03/V1-09 仍不能整体 PASS。
 - 参考游戏当前还是薄切片，尚未完成 M1 约定的小而完整玩法扩展和全链 E2E。
 - Intel slice 只做静态 Universal 2 验证，不做 Intel 实机 smoke。
 - 游戏产物签名、公证和公开分发 readiness 按已批准范围不属于 v1.0。

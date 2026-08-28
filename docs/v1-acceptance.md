@@ -23,13 +23,13 @@
 | --- | --- | --- | --- | --- |
 | V1-01 环境与项目 | M1 | 正确检测 Godot/宿主/项目；`doctor` 覆盖版本、export templates 和限制；初始化幂等且不覆盖用户文件；Headless 可正常退出 | 正反例 JSON、稳定错误码、首次/重复 diff、实际进程 | NOT RUN（macOS detect/doctor/export templates/initialize/Headless 薄切片已有独立 PASS，完整路径矩阵尚未闭合） |
 | V1-02 验证、测试与玩法 | M1 | Godot 实际加载场景/资源并定位损坏；GDScript 通过/失败/超时可映射；参考游戏覆盖输入、信号、资源、UI 和基础玩法 | 有效/无效 fixture、测试报告、参考游戏操作证据 | NOT RUN（固定零依赖 GDScript 入口在 macOS 已 PASS） |
-| V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | NOT RUN（最终 Debug build 与 Release export、Universal 2/manifest/hash 已 PASS；target smoke 尚未执行） |
+| V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | PASS（macOS Apple Silicon；Debug build 与 Release export 均自动完成 Universal 2、manifest/hash 和 headless 一帧 target smoke） |
 | V1-04 路径、日志与恢复 | M1 | 中文/空格/特殊路径可用；结构化日志与稳定退出码可诊断；超时、取消、异常退出和残留进程/锁有明确恢复结果 | 路径矩阵、故障注入、进程/锁检查、结构化日志 | NOT RUN（结构化 run 投影及部分特殊路径已 PASS） |
 | V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | NOT RUN |
 | V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | NOT RUN |
 | V1-07 零构建分发入口 | M3 | 普通用户无需 clone/npm build；已有 Godot 时最多三个主要步骤；Plugin 可安装/加载/调用，Starter Template 可取得/初始化，CLI 为预构建产物 | 干净用户路径及步骤计数、包内容、实际调用 | NOT RUN（Plugin/Template bundle、archive 与 Apple Silicon 入口已有候选证据） |
 | V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；发布物包含 checksum、来源和许可；npm 方案使用 Trusted Publishing/2FA/provenance | 生命周期前后 diff、网络/文件审计、artifact manifest、预发布配置审计 | NOT RUN |
-| V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（Debug/Release 技术产物及双架构静态验证已 PASS；干净环境全流程与 target smoke 未完成） |
+| V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（Debug/Release 技术产物、双架构静态验证与 Apple Silicon target smoke 已 PASS；干净环境全流程未完成） |
 | V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | NOT RUN（Windows/Linux 原生范围在 M2 结束时决策） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | NOT RUN |
 | V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN |

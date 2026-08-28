@@ -25,5 +25,5 @@
 ## 未覆盖
 
 - 本次 doctor 记录没有执行 `export`/`build`；相关实现和 artifact evidence 是后续独立验证。
-- target smoke 尚未执行。
+- 本次 doctor 记录未执行 target smoke；后续最终 Debug/Release 命令已在独立记录中完成。
 - Windows x64、Linux x64 原生模板检查按已批准路线延期。

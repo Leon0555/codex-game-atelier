@@ -4,16 +4,19 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/binary"
+	"errors"
 	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/Leon0555/codex-game-atelier/packages/cli/internal/contract"
 )
 
 func TestExportCommitsVerifiedArtifactAndScannerClosure(t *testing.T) {
 	requireMacOSAppleSilicon(t)
+	stubSuccessfulTargetSmoke(t)
 	project, stateRoot, state := createRunStoreProject(t, "导出 项目 🚀")
 	writeMacOSExportPreset(t, project)
 	archive := createMacOSExportArchive(t)
@@ -43,6 +46,7 @@ func TestExportCommitsVerifiedArtifactAndScannerClosure(t *testing.T) {
 
 func TestBuildUsesTheExportPipelineWithoutAcceptingAPreset(t *testing.T) {
 	requireMacOSAppleSilicon(t)
+	stubSuccessfulTargetSmoke(t)
 	project, stateRoot, state := createRunStoreProject(t, "build-wrapper")
 	writeMacOSExportPreset(t, project)
 	godot := createExportGodot(t, createMacOSExportArchive(t), "")
@@ -136,6 +140,32 @@ func TestExportRejectsSingleArchitectureMachO(t *testing.T) {
 	}
 }
 
+func TestExportRejectsFailedTargetSmoke(t *testing.T) {
+	requireMacOSAppleSilicon(t)
+	project, stateRoot, state := createRunStoreProject(t, "failed-target-smoke")
+	writeMacOSExportPreset(t, project)
+	godot := createExportGodot(t, createMacOSExportArchive(t), "")
+	writeExportTemplateFixture(t, godot, true)
+	original := runExportTargetSmoke
+	runExportTargetSmoke = func(context.Context, time.Duration, *os.Root, *os.File, *godotProjectSnapshot, string) targetSmokeExecution {
+		exitCode := 23
+		return targetSmokeExecution{Process: processResult{ExitCode: &exitCode, Err: errors.New("target exited nonzero")}}
+	}
+	t.Cleanup(func() { runExportTargetSmoke = original })
+
+	code, result, _, _ := execute(t, context.Background(), "export", "--project", project, "--godot", godot, "--allow-engine-user-data", "--timeout-ms", "10000")
+	if code != contract.ExitEngine || result.Outcome != "FAIL" || firstErrorCode(result) != "TARGET_SMOKE_FAILED" {
+		t.Fatalf("failed target smoke was trusted: code=%d result=%+v", code, result)
+	}
+	if _, err := os.Stat(filepath.Join(project, ".gameatelier", "artifacts", result.RunID, "game-release.zip")); !os.IsNotExist(err) {
+		t.Fatalf("failed target smoke published an artifact: %v", err)
+	}
+	scan, err := scanRuns(context.Background(), stateRoot, state)
+	if err != nil || scan.Counts.Committed != 1 || scan.Counts.Corrupt != 0 {
+		t.Fatalf("failed target-smoke evidence did not remain verifiable: scan=%+v err=%v", scan, err)
+	}
+}
+
 func writeMacOSExportPreset(t *testing.T, project string) {
 	t.Helper()
 	content := `[preset.0]
@@ -223,4 +253,14 @@ func requireMacOSAppleSilicon(t *testing.T) {
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
 		t.Skip("the first production export slice is enabled only on macOS Apple Silicon")
 	}
+}
+
+func stubSuccessfulTargetSmoke(t *testing.T) {
+	t.Helper()
+	original := runExportTargetSmoke
+	runExportTargetSmoke = func(context.Context, time.Duration, *os.Root, *os.File, *godotProjectSnapshot, string) targetSmokeExecution {
+		exitCode := 0
+		return targetSmokeExecution{Process: processResult{ExitCode: &exitCode}}
+	}
+	t.Cleanup(func() { runExportTargetSmoke = original })
 }

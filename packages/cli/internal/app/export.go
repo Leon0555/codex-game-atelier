@@ -62,13 +62,14 @@ func (options exportOptions) persistedArguments() map[string]any {
 }
 
 type exportArtifact struct {
-	Path                    string `json:"path"`
-	MediaType               string `json:"media_type"`
-	SHA256                  string `json:"sha256"`
-	ByteSize                int64  `json:"byte_size"`
-	Unsigned                bool   `json:"unsigned"`
-	NotNotarized            bool   `json:"not_notarized"`
-	PublicDistributionReady bool   `json:"public_distribution_ready"`
+	Path                    string             `json:"path"`
+	MediaType               string             `json:"media_type"`
+	SHA256                  string             `json:"sha256"`
+	ByteSize                int64              `json:"byte_size"`
+	Unsigned                bool               `json:"unsigned"`
+	NotNotarized            bool               `json:"not_notarized"`
+	PublicDistributionReady bool               `json:"public_distribution_ready"`
+	TargetSmoke             *exportTargetSmoke `json:"target_smoke,omitempty"`
 }
 
 type exportArtifactManifest struct {
@@ -219,9 +220,24 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 	}
 	internalOutput := godotProjectOutputDirectory + "/game-" + options.profile + ".zip"
 	execution := runGodotExportAction(ctx, time.Duration(options.timeoutMS)*time.Millisecond, sources.runnerSource, sources.engineSource, runRoot, projectSnapshot.directory, options.profile, options.preset, internalOutput, templates)
+	var snapshotArtifact *exportArtifact
+	artifactValidationErr := error(nil)
+	targetSmoke := targetSmokeExecution{}
 	artifactCopyErr := error(nil)
 	if execution.Failure == headlessFailureNone {
-		artifactCopyErr = copyGodotSnapshotArtifact(ctx, projectSnapshot, artifactRoot, options.profile)
+		snapshotArtifact, artifactValidationErr = inspectExportArtifact(ctx, projectSnapshot.root, internalOutput, output)
+		if artifactValidationErr == nil {
+			remaining := time.Until(started.Add(time.Duration(options.timeoutMS) * time.Millisecond))
+			if remaining <= 0 {
+				targetSmoke.Process = processResult{TimedOut: true, Err: context.DeadlineExceeded}
+			} else {
+				targetSmoke = runExportTargetSmoke(ctx, remaining, runRoot, sources.runnerSource, projectSnapshot, internalOutput)
+			}
+			if targetSmoke.Err == nil && classifyHeadlessResult(targetSmoke.Process) == headlessFailureNone && !containsGodotError(targetSmoke.Process.Stderr) {
+				snapshotArtifact.TargetSmoke = &exportTargetSmoke{Host: "macos", Arch: "arm64", Mode: "headless-one-frame", ExitCode: 0}
+				artifactCopyErr = copyGodotSnapshotArtifact(ctx, projectSnapshot, artifactRoot, options.profile)
+			}
+		}
 	}
 	projectSnapshotCleanupErr := projectSnapshot.remove(runRoot)
 	if !pinnedProjectPathMatches(pinnedProjectRoot, projectPath) {
@@ -241,6 +257,18 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 		outcome, exitCode, failure := mapExportExecutionFailure(execution)
 		return finishExportResult(started, result, outcome, exitCode, "Godot export execution did not complete successfully.", execution.Version, nil, failure)
 	}
+	if artifactValidationErr != nil {
+		failure := contract.Error{Code: "EXPORT_ARTIFACT_INVALID", Category: "engine", Message: "Godot exited successfully but the snapshot export artifact was missing, unsafe, or invalid.", Retryable: true}
+		return finishExportResult(started, result, "FAIL", contract.ExitEngine, "Godot export artifact validation did not pass.", execution.Version, nil, failure)
+	}
+	if targetSmoke.Err != nil {
+		failure := contract.Error{Code: "TARGET_SMOKE_PREPARE_FAILED", Category: "state", Message: "The exported app could not be staged or pinned for target smoke.", Retryable: true}
+		return finishExportResult(started, result, "FAIL", contract.ExitState, "Godot target smoke could not start safely.", execution.Version, nil, failure)
+	}
+	if smokeFailure := classifyHeadlessResult(targetSmoke.Process); smokeFailure != headlessFailureNone || containsGodotError(targetSmoke.Process.Stderr) {
+		outcome, exitCode, failure := mapTargetSmokeFailure(targetSmoke.Process, smokeFailure)
+		return finishExportResult(started, result, outcome, exitCode, "Godot exported-app target smoke did not pass.", execution.Version, nil, failure)
+	}
 	if artifactCopyErr != nil {
 		failure := contract.Error{Code: "EXPORT_ARTIFACT_COPY_FAILED", Category: "state", Message: "The snapshot export artifact could not be copied into its declared project-state path.", Retryable: true}
 		return finishExportResult(started, result, "FAIL", contract.ExitState, "Godot export artifact could not be published from the isolated snapshot.", execution.Version, nil, failure)
@@ -250,11 +278,34 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 		failure := contract.Error{Code: "EXPORT_ARTIFACT_INVALID", Category: "engine", Message: "Godot exited successfully but the fixed export artifact was missing, unsafe, or invalid.", Retryable: true}
 		return finishExportResult(started, result, "FAIL", contract.ExitEngine, "Godot export artifact validation did not pass.", execution.Version, nil, failure)
 	}
+	artifact.TargetSmoke = snapshotArtifact.TargetSmoke
 	summary := "Godot macOS technical export passed."
 	if result.Command.Name == "build" {
 		summary = "Godot macOS technical build passed."
 	}
 	return finishExportResult(started, result, "PASS", contract.ExitOK, summary, execution.Version, artifact)
+}
+
+func mapTargetSmokeFailure(process processResult, failure godotHeadlessFailure) (string, int, contract.Error) {
+	details := map[string]any{"stage": "target-smoke"}
+	if process.ExitCode != nil {
+		details["process_exit_code"] = *process.ExitCode
+	}
+	switch failure {
+	case headlessFailureCancelled:
+		return "FAIL", contract.ExitInterrupted, contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "Exported-app target smoke was cancelled.", Retryable: true, Details: details}
+	case headlessFailureTimeout:
+		return "FAIL", contract.ExitInterrupted, contract.Error{Code: "TARGET_SMOKE_TIMEOUT", Category: "timeout", Message: "Exported-app target smoke exceeded the remaining command timeout.", Retryable: true, Details: details}
+	case headlessFailureOutputTruncated:
+		return "FAIL", contract.ExitEngine, contract.Error{Code: "TARGET_SMOKE_OUTPUT_TRUNCATED", Category: "engine", Message: "Exported-app target smoke output exceeded its bounded capture limit.", Retryable: false, Details: details}
+	case headlessFailureEngineErrors:
+		return "FAIL", contract.ExitEngine, contract.Error{Code: "TARGET_SMOKE_REPORTED_ERRORS", Category: "engine", Message: "Exported app emitted one or more ERROR records during target smoke.", Retryable: true, Details: details}
+	default:
+		if containsGodotError(process.Stderr) {
+			return "FAIL", contract.ExitEngine, contract.Error{Code: "TARGET_SMOKE_REPORTED_ERRORS", Category: "engine", Message: "Exported app emitted one or more ERROR records during target smoke.", Retryable: true, Details: details}
+		}
+		return "FAIL", contract.ExitEngine, contract.Error{Code: "TARGET_SMOKE_FAILED", Category: "engine", Message: "Exported app failed its Apple Silicon headless startup and exit smoke.", Retryable: true, Details: details}
+	}
 }
 
 func createExportArtifactRoot(stateRoot *os.Root, runID, profile string) (*os.Root, string, error) {
@@ -616,8 +667,11 @@ func preflightExportRunFinish(result contract.Result, payloads []runPayload) err
 		}
 		artifact := manifest.Artifact
 		expectedPath := ".gameatelier/artifacts/" + result.RunID + "/game-" + profile + ".zip"
-		if artifact.Path != expectedPath || artifact.MediaType != "application/zip" || len(artifact.SHA256) != 64 || artifact.ByteSize < 1 || artifact.ByteSize > maxExportArtifactBytes || !artifact.Unsigned || !artifact.NotNotarized || artifact.PublicDistributionReady {
+		if artifact.Path != expectedPath || artifact.MediaType != "application/zip" || len(artifact.SHA256) != 64 || artifact.ByteSize < 1 || artifact.ByteSize > maxExportArtifactBytes || !artifact.Unsigned || !artifact.NotNotarized || artifact.PublicDistributionReady || artifact.TargetSmoke == nil {
 			return errors.New("passing export artifact metadata is invalid")
+		}
+		if smoke := artifact.TargetSmoke; smoke.Host != "macos" || smoke.Arch != "arm64" || smoke.Mode != "headless-one-frame" || smoke.ExitCode != 0 {
+			return errors.New("passing export target smoke metadata is invalid")
 		}
 		if _, err := hex.DecodeString(artifact.SHA256); err != nil {
 			return errors.New("passing export artifact hash is invalid")

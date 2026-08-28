@@ -13,6 +13,12 @@
     "byte_size": 1048576,
     "unsigned": true,
     "not_notarized": true,
-    "public_distribution_ready": false
+    "public_distribution_ready": false,
+    "target_smoke": {
+      "host": "macos",
+      "arch": "arm64",
+      "mode": "headless-one-frame",
+      "exit_code": 0
+    }
   }
 }

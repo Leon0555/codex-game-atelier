@@ -239,6 +239,9 @@ def main() -> None:
     invalid_failed_artifact = copy.deepcopy(export_manifest)
     invalid_failed_artifact["outcome"] = "FAIL"
     expect_invalid(validators["export-artifact"], invalid_failed_artifact, "failed export containing an artifact")
+    invalid_missing_smoke = copy.deepcopy(export_manifest)
+    invalid_missing_smoke["artifact"].pop("target_smoke")
+    expect_invalid(validators["export-artifact"], invalid_missing_smoke, "passing export without target smoke")
 
     logs_result = load_json(FIXTURE_ROOT / "command-result.logs.json")
     if not isinstance(logs_result, dict):
@@ -299,7 +302,7 @@ def main() -> None:
     print(
         f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
         f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
-        "30 negative assertions, headless, test, export, and logs cross-fixture semantics"
+        "31 negative assertions, headless, test, export, and logs cross-fixture semantics"
     )
 
 
