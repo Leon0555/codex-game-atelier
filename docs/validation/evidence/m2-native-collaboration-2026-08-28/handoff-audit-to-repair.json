@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-m2-audit-to-repair",
+  "task_id": "task-m2-native-collaboration",
+  "from_owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit"
+  },
+  "to_owner": {
+    "id": "implementation-owner",
+    "kind": "agent",
+    "logical_profile": "implementation"
+  },
+  "created_at": "2026-08-28T13:40:19Z",
+  "summary": "Round-one read-only audit failed with one P1 distribution-closure finding and one P2 path-alias finding. Ownership returns to the stopped implementation owner for bounded repair.",
+  "completed_work": [
+    "The auditor independently inspected the exact four-path diff and ran 17 focused Plugin/Profile tests.",
+    "The audit report was persisted with its digest and linked as evidence."
+  ],
+  "remaining_work": [
+    "Package the minimal Schema closure from the repository contract source into the built Plugin and verify it without a source checkout.",
+    "Define conservative ownership canonicalization and conflict examples for directories, symlinks, case, and Unicode.",
+    "Run focused tests, stop writing, and return the change for a fresh independent read-only audit."
+  ],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    }
+  ],
+  "blockers": [
+    {
+      "code": "PLUGIN_RECOVERY_CONTRACT_INCOMPLETE",
+      "category": "validation",
+      "message": "The built Plugin lacks the minimal task, handoff, and evidence Schema closure.",
+      "retryable": true,
+      "remediation": "Package and validate the five required versioned Schemas."
+    },
+    {
+      "code": "OWNER_PATH_ALIAS_UNDEFINED",
+      "category": "policy",
+      "message": "Ownership comparison does not define conservative handling for path aliases and tree overlap.",
+      "retryable": true,
+      "remediation": "Define canonicalization, alias rejection, and negative overlap examples."
+    }
+  ]
+}

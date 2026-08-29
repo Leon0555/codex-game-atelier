@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-m2-native-collaboration",
+  "revision": 4,
+  "title": "Re-audit the repaired native collaboration workflow",
+  "scope": "Independently verify both round-one findings are resolved and the original collaboration acceptance conditions hold.",
+  "acceptance": [
+    "The Plugin bundle carries and bundle-only validates the minimal versioned recovery Schema closure.",
+    "The workflow blocks tree overlap, symbolic-link aliases, case-folding collisions, and Unicode-normalization collisions.",
+    "The implementation owner stopped writing and did not approve its own repair.",
+    "The original bounded delegation, one-owner, read-only audit, and file-recovery rules remain intact."
+  ],
+  "owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit",
+    "display_name": "Independent Read-only Auditor"
+  },
+  "allowed_paths": [
+    "plugin/codex-game-atelier/skills/develop-godot-game/SKILL.md",
+    "plugin/codex-game-atelier/skills/develop-godot-game/references/native-collaboration.md",
+    "tools/package_plugin.py",
+    "tools/validators/test_package_plugin.py"
+  ],
+  "status": "review",
+  "dependencies": [],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    },
+    {
+      "id": "evidence-m2-implementation-repair",
+      "path": ".gameatelier/evidence/evidence-m2-implementation-repair.json"
+    }
+  ],
+  "handoff_ref": ".gameatelier/handoffs/handoff-m2-repair-to-reaudit.json",
+  "updated_at": "2026-08-28T13:48:03Z"
+}

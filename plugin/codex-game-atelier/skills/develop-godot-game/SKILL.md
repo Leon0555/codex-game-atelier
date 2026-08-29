@@ -13,6 +13,10 @@ Before assigning or delegating work, load `references/capability-profiles.json` 
 
 Resolve a profile binding in the catalog's declared order. User/team mappings remain outside this Plugin and the CLI never selects a model. If a normal profile inherits a binding below its requested capability, disclose that limitation. If an independent audit lacks critical capability or a genuinely separate read-only context, return `BLOCKED`; never let an implementer approve its own change. Record only the logical profile in task or handoff state.
 
+## Native collaboration
+
+Before delegating implementation, review, or recovery work, load `references/native-collaboration.md`. Use that workflow only when bounded delegation has a concrete benefit; otherwise keep the task in the current agent. The reference defines the three-delegate limit, per-path write ownership, independent read-only audit, durable handoff, and file-based recovery rules. It does not authorize work beyond the user's request.
+
 ## Bundled CLI
 
 Anchor paths at this installed Skill directory; do not search for a source checkout, Go toolchain, npm package, or same-named executable on `PATH`.

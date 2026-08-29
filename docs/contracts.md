@@ -30,6 +30,8 @@
 - `summary` 面向人类；自动化必须读取字段、错误码和 evidence reference，不解析自然语言猜状态。
 - `owner.logical_profile` 是可选的逻辑 Profile 引用，用于 task/handoff 恢复时重建责任和能力意图；它不记录或解析具体模型。旧状态省略该字段仍然有效。
 
+Plugin bundle 必须带上 `common`、`error`、`task`、`handoff`、`evidence` 的版本化 Schema 闭包，使已安装 Skill 可以在没有源码 checkout 时先验证恢复状态。打包验证只允许闭包内的本地 `$ref`，并拒绝缺失文件、越界引用和无法解析的 JSON Pointer。
+
 ## CLI 退出码类别
 
 | 退出码 | 含义 |

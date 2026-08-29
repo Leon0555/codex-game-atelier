@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-m2-native-collaboration",
+  "revision": 3,
+  "title": "Repair the bounded native collaboration workflow",
+  "scope": "Resolve the two independent-audit findings without adding a task service, model binding, or unbounded path resolver.",
+  "acceptance": [
+    "The Plugin bundle carries the minimal versioned task, handoff, evidence, common, and error Schema closure needed for recovery validation without a source checkout.",
+    "The workflow blocks ancestor/descendant, symbolic-link, case-folding, and Unicode-normalization ownership aliases.",
+    "Bundle tests cover the packaged Schema closure and conservative negative path examples.",
+    "All changes remain inside the listed paths and contain no concrete model identifier."
+  ],
+  "owner": {
+    "id": "implementation-owner",
+    "kind": "agent",
+    "logical_profile": "implementation",
+    "display_name": "Bounded Workflow Implementer"
+  },
+  "allowed_paths": [
+    "plugin/codex-game-atelier/skills/develop-godot-game/references/native-collaboration.md",
+    "tools/package_plugin.py",
+    "tools/validators/test_package_plugin.py"
+  ],
+  "status": "active",
+  "dependencies": [],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    }
+  ],
+  "handoff_ref": ".gameatelier/handoffs/handoff-m2-audit-to-repair.json",
+  "updated_at": "2026-08-28T13:40:19Z"
+}

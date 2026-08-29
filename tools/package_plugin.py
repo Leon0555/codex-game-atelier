@@ -30,6 +30,7 @@ import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 PLUGIN_SOURCE = ROOT / "plugin" / "codex-game-atelier"
+SCHEMA_SOURCE = ROOT / "schemas" / "v1"
 MAX_BINARY_BYTES = 64 * 1024 * 1024
 MAX_BUNDLE_BYTES = 256 * 1024 * 1024
 MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
@@ -41,7 +42,13 @@ ALLOWED_SOURCE_FILES = {
     "skills/develop-godot-game/SKILL.md",
     "skills/develop-godot-game/agents/openai.yaml",
     "skills/develop-godot-game/references/capability-profiles.json",
+    "skills/develop-godot-game/references/native-collaboration.md",
 }
+RECOVERY_SCHEMA_NAMES = ("common", "error", "task", "handoff", "evidence")
+RECOVERY_SCHEMA_FILES = {
+    f"schemas/v1/{name}.schema.json" for name in RECOVERY_SCHEMA_NAMES
+}
+ALLOWED_DISTRIBUTED_TEXT_FILES = ALLOWED_SOURCE_FILES | RECOVERY_SCHEMA_FILES
 FORBIDDEN_CONCRETE_MODEL_ID = re.compile(
     r"\b(?:gpt|claude|gemini|deepseek|llama|mistral|qwen)[-_ ]?\d",
     re.IGNORECASE,
@@ -149,8 +156,18 @@ def copy_source_tree(source: Path, destination: Path) -> None:
         raise BundleError("plugin source allowlist is incomplete")
 
 
+def copy_recovery_schema_closure(destination: Path) -> None:
+    for name in RECOVERY_SCHEMA_NAMES:
+        source = SCHEMA_SOURCE / f"{name}.schema.json"
+        regular_file(source, 1024 * 1024)
+        target = destination / "schemas" / "v1" / source.name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target, follow_symlinks=False)
+        target.chmod(0o644)
+
+
 def verify_distributed_model_policy(bundle: Path) -> None:
-    for relative in sorted(ALLOWED_SOURCE_FILES):
+    for relative in sorted(ALLOWED_DISTRIBUTED_TEXT_FILES):
         path = bundle / relative
         regular_file(path, 1024 * 1024)
         try:
@@ -159,6 +176,63 @@ def verify_distributed_model_policy(bundle: Path) -> None:
             raise BundleError("plugin text source is not valid UTF-8") from error
         if FORBIDDEN_CONCRETE_MODEL_ID.search(content):
             raise BundleError("plugin distribution contains a concrete model identifier")
+
+
+def iter_schema_references(value: object):
+    if isinstance(value, dict):
+        reference = value.get("$ref")
+        if isinstance(reference, str):
+            yield reference
+        for child in value.values():
+            yield from iter_schema_references(child)
+    elif isinstance(value, list):
+        for child in value:
+            yield from iter_schema_references(child)
+
+
+def resolve_schema_fragment(document: object, fragment: str) -> None:
+    if fragment in ("", "#"):
+        return
+    if not fragment.startswith("#/"):
+        raise BundleError("recovery schema contains an unsupported reference fragment")
+    current = document
+    for encoded in fragment[2:].split("/"):
+        if re.search(r"~(?![01])", encoded):
+            raise BundleError("recovery schema contains an invalid JSON pointer")
+        token = encoded.replace("~1", "/").replace("~0", "~")
+        if not isinstance(current, dict) or token not in current:
+            raise BundleError("recovery schema reference does not resolve")
+        current = current[token]
+
+
+def validate_recovery_schema_closure(bundle: Path) -> None:
+    documents: dict[str, object] = {}
+    for name in RECOVERY_SCHEMA_NAMES:
+        filename = f"{name}.schema.json"
+        path = bundle / "schemas" / "v1" / filename
+        regular_file(path, 1024 * 1024)
+        try:
+            document = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise BundleError("recovery schema is not valid UTF-8 JSON") from error
+        if not isinstance(document, dict) or document.get("$schema") != "https://json-schema.org/draft/2020-12/schema" or document.get("$id") != filename:
+            raise BundleError("recovery schema identity is invalid")
+        documents[filename] = document
+
+    external_references = set()
+    for filename, document in documents.items():
+        for reference in iter_schema_references(document):
+            target_name, separator, pointer = reference.partition("#")
+            if target_name:
+                if "/" in target_name or "\\" in target_name or ":" in target_name or target_name not in documents:
+                    raise BundleError("recovery schema reference escapes the packaged closure")
+                external_references.add(target_name)
+                target = documents[target_name]
+            else:
+                target = document
+            resolve_schema_fragment(target, "#" + pointer if separator else "")
+    if external_references != {"common.schema.json", "error.schema.json"}:
+        raise BundleError("recovery schema dependency closure is invalid")
 
 
 def validate_profile_catalog(bundle: Path) -> None:
@@ -354,6 +428,8 @@ def verify_bundle(bundle: Path) -> None:
         "skills/develop-godot-game",
         "skills/develop-godot-game/agents",
         "skills/develop-godot-game/references",
+        "schemas",
+        "schemas/v1",
     } | {f"bin/{target['host']}" for target in TARGETS}
     observed_directories = set()
     for path in bundle.rglob("*"):
@@ -385,7 +461,7 @@ def verify_bundle(bundle: Path) -> None:
         for target in TARGETS
         for name in (target["cli_name"], target["runner_name"])
     }
-    expected_paths = ALLOWED_SOURCE_FILES | {"LICENSE", "NOTICE"} | binary_paths
+    expected_paths = ALLOWED_DISTRIBUTED_TEXT_FILES | {"LICENSE", "NOTICE"} | binary_paths
     if declared_paths != expected_paths:
         raise BundleError("bundle content paths do not match the fixed allowlist")
     for entry in declared:
@@ -400,6 +476,7 @@ def verify_bundle(bundle: Path) -> None:
         raise BundleError("internal AGENTS.md entered the plugin bundle")
     verify_distributed_model_policy(bundle)
     validate_profile_catalog(bundle)
+    validate_recovery_schema_closure(bundle)
     for target in TARGETS:
         host = target["host"]
         for name in (target["cli_name"], target["runner_name"]):
@@ -581,6 +658,7 @@ def build_bundle(args: argparse.Namespace) -> None:
     output.mkdir(mode=0o755)
     try:
         copy_source_tree(PLUGIN_SOURCE, output)
+        copy_recovery_schema_closure(output)
         copy_regular = ((ROOT / "LICENSE", output / "LICENSE"), (ROOT / "NOTICE", output / "NOTICE"))
         for source, destination in copy_regular:
             regular_file(source, 1024 * 1024)

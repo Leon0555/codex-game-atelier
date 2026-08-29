@@ -1,0 +1,38 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-m2-repair-to-reaudit",
+  "task_id": "task-m2-native-collaboration",
+  "from_owner": {
+    "id": "implementation-owner",
+    "kind": "agent",
+    "logical_profile": "implementation"
+  },
+  "to_owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit"
+  },
+  "created_at": "2026-08-28T13:48:03Z",
+  "summary": "Both round-one findings have bounded repairs and passing implementation evidence. The implementation owner has stopped writing; perform a fresh read-only audit.",
+  "completed_work": [
+    "Packaged and bundle-only validated the five-file recovery Schema closure.",
+    "Added installed-path guidance and conservative ownership collision policy with negative tests.",
+    "Ran 18 focused tests, Schema validation, a real bundle build, and Apple Silicon native entry smoke."
+  ],
+  "remaining_work": [
+    "Verify P1 and P2 are actually resolved in the current diff and built-bundle contract.",
+    "Check for regressions in the original collaboration boundaries and fixed Plugin allowlist.",
+    "Report findings without modifying files; explicitly state whether the audit passes."
+  ],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    },
+    {
+      "id": "evidence-m2-implementation-repair",
+      "path": ".gameatelier/evidence/evidence-m2-implementation-repair.json"
+    }
+  ],
+  "blockers": []
+}

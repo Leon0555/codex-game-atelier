@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-m2-to-audit",
+  "task_id": "task-m2-native-collaboration",
+  "from_owner": {
+    "id": "implementation-owner",
+    "kind": "agent",
+    "logical_profile": "implementation"
+  },
+  "to_owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit"
+  },
+  "created_at": "2026-08-28T13:32:53Z",
+  "summary": "The implementation owner completed the four-path change from file-only context and stopped writing. Perform an independent read-only audit of the exact diff and focused tests.",
+  "completed_work": [
+    "Added a distributed native collaboration reference and routed the existing Godot Skill to it.",
+    "Added the reference to the Plugin fixed allowlist and regression checks.",
+    "Ran 14 focused Plugin packaging tests successfully and ran git diff --check."
+  ],
+  "remaining_work": [
+    "Read the task and this handoff, inspect the exact four-path diff, and run relevant read-only validation.",
+    "Report findings by severity with file locations, or explicitly report no findings and remaining coverage limits.",
+    "Do not modify any file and do not approve work outside this task scope."
+  ],
+  "evidence": [],
+  "blockers": []
+}

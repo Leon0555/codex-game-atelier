@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 from pathlib import Path
 
@@ -17,6 +18,7 @@ SCHEMA_ROOT = ROOT / "schemas" / "v1"
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "schemas" / "v1"
 STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
 PROFILE_CATALOG = ROOT / "plugin" / "codex-game-atelier" / "skills" / "develop-godot-game" / "references" / "capability-profiles.json"
+COLLABORATION_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m2-native-collaboration-2026-08-28"
 
 
 def load_json(path: Path) -> object:
@@ -79,6 +81,32 @@ def main() -> None:
     }
     for name, schema_name in persisted_evidence.items():
         validators[schema_name].validate(load_json(STARTER_EVIDENCE_ROOT / name))
+
+    persisted_collaboration = {
+        "task-implementation.json": "task",
+        "handoff-to-implementation.json": "handoff",
+        "task-audit.json": "task",
+        "handoff-to-audit.json": "handoff",
+        "evidence-audit-round-1.json": "evidence",
+        "task-repair.json": "task",
+        "handoff-audit-to-repair.json": "handoff",
+        "evidence-implementation-repair.json": "evidence",
+        "task-reaudit.json": "task",
+        "handoff-repair-to-reaudit.json": "handoff",
+        "evidence-audit-round-2.json": "evidence",
+        "handoff-reaudit-to-lead.json": "handoff",
+        "task-verified.json": "task",
+    }
+    for name, schema_name in persisted_collaboration.items():
+        validators[schema_name].validate(load_json(COLLABORATION_EVIDENCE_ROOT / name))
+    for name in ("evidence-audit-round-1.json", "evidence-implementation-repair.json", "evidence-audit-round-2.json"):
+        record = load_json(COLLABORATION_EVIDENCE_ROOT / name)
+        if not isinstance(record, dict) or not isinstance(record.get("path"), str):
+            raise SystemExit(f"collaboration evidence path is invalid: {name}")
+        payload = ROOT / record["path"]
+        content = payload.read_bytes()
+        if record.get("byte_size") != len(content) or record.get("sha256") != hashlib.sha256(content).hexdigest():
+            raise SystemExit(f"collaboration evidence digest is invalid: {name}")
 
     initialize = load_json(FIXTURE_ROOT / "command-result.initialize.json")
     if not isinstance(initialize, dict):
@@ -312,6 +340,7 @@ def main() -> None:
     print(
         f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
         f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
+        f"{len(persisted_collaboration)} persisted collaboration records, "
         "31 negative assertions, headless, test, export, and logs cross-fixture semantics"
     )
 

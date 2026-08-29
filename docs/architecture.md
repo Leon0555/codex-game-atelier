@@ -47,6 +47,8 @@ Plugin 是可安装分发入口，Starter Template 是可复制的项目起点�
 
 角色声明只描述能力与责任，不指定具体模型 ID。分发 Skill 使用 `lead`、`implementation`、`fast-read`、`independent-audit` 四个逻辑 Profile；绑定优先级和阻断语义由随 Skill 分发的能力目录定义，具体绑定留在用户/Codex 主机环境。能力解析见 ADR 0001。
 
+Plugin 同时分发有界原生协作参考及 `common`、`error`、`task`、`handoff`、`evidence` 五份最小 Schema 闭包。新代理必须先验证文件化状态再恢复工作；写 ownership 对目录重叠、符号链接、同对象、大小写和 Unicode 别名采取保守阻断。该机制是 Codex 原生协作约定，不是后台调度器或 CLI 模型路由。
+
 ### 3.2 候选顶层 Skills
 
 Phase 1 应通过实际任务验证最小集合，当前候选为：

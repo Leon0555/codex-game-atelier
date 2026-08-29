@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-m2-reaudit-to-lead",
+  "task_id": "task-m2-native-collaboration",
+  "from_owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit"
+  },
+  "to_owner": {
+    "id": "lead",
+    "kind": "agent",
+    "logical_profile": "lead"
+  },
+  "created_at": "2026-08-28T13:55:12Z",
+  "summary": "Fresh independent read-only re-audit passed with no findings. Ownership returns to the lead for trace closure and integration.",
+  "completed_work": [
+    "Verified both round-one findings are resolved in the current diff and bundle-only contract.",
+    "Verified the original bounded delegation, ownership, audit, handoff, and recovery boundaries remain intact.",
+    "Persisted a digest-bound PASS audit report."
+  ],
+  "remaining_work": [
+    "Validate every persisted trace snapshot and evidence payload digest.",
+    "Run full repository regression and create the M2.2 integration commit.",
+    "Proceed to the three-mode enforcement slice after trace closure."
+  ],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    },
+    {
+      "id": "evidence-m2-implementation-repair",
+      "path": ".gameatelier/evidence/evidence-m2-implementation-repair.json"
+    },
+    {
+      "id": "evidence-m2-audit-round-2",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-2.json"
+    }
+  ],
+  "blockers": []
+}

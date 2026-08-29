@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-m2-native-collaboration",
+  "revision": 2,
+  "title": "Package the bounded native collaboration workflow",
+  "scope": "Independently review the implementation owner's collaboration-reference packaging change without modifying it.",
+  "acceptance": [
+    "The workflow limits concurrent delegated agents to three and assigns one write owner per path.",
+    "Independent audit is read-only and cannot self-approve implementation work.",
+    "A fresh agent can resume from task, handoff, and evidence files without hidden conversation state.",
+    "The Plugin fixed allowlist packages and validates the reference without adding a daemon or model identifier."
+  ],
+  "owner": {
+    "id": "independent-auditor",
+    "kind": "agent",
+    "logical_profile": "independent-audit",
+    "display_name": "Independent Read-only Auditor"
+  },
+  "allowed_paths": [
+    "plugin/codex-game-atelier/skills/develop-godot-game/SKILL.md",
+    "plugin/codex-game-atelier/skills/develop-godot-game/references/native-collaboration.md",
+    "tools/package_plugin.py",
+    "tools/validators/test_package_plugin.py"
+  ],
+  "status": "review",
+  "dependencies": [],
+  "evidence": [],
+  "handoff_ref": ".gameatelier/handoffs/handoff-m2-to-audit.json",
+  "updated_at": "2026-08-28T13:32:53Z"
+}

@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "id": "task-m2-native-collaboration",
+  "revision": 5,
+  "title": "Verify the bounded native collaboration workflow",
+  "scope": "Close the actual file-recovered implementation, failed audit, bounded repair, and fresh passing re-audit trace.",
+  "acceptance": [
+    "The workflow limits concurrent delegated agents to three and assigns one write owner per path.",
+    "Independent audit is read-only, reports failures without fixing them, and cannot self-approve implementation work.",
+    "Fresh agents recover implementation and audit work from task, handoff, and evidence files without conversation history.",
+    "The built Plugin carries and bundle-only validates the minimal recovery Schema closure without a daemon or concrete model identifier."
+  ],
+  "owner": {
+    "id": "lead",
+    "kind": "agent",
+    "logical_profile": "lead",
+    "display_name": "Project Lead"
+  },
+  "allowed_paths": [
+    "docs/validation/evidence/m2-native-collaboration-2026-08-28",
+    "plugin/codex-game-atelier/skills/develop-godot-game",
+    "tools/package_plugin.py",
+    "tools/validators/test_package_plugin.py",
+    "tools/validators/validate_schemas.py"
+  ],
+  "status": "verified",
+  "dependencies": [],
+  "evidence": [
+    {
+      "id": "evidence-m2-audit-round-1",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-1.json"
+    },
+    {
+      "id": "evidence-m2-implementation-repair",
+      "path": ".gameatelier/evidence/evidence-m2-implementation-repair.json"
+    },
+    {
+      "id": "evidence-m2-audit-round-2",
+      "path": ".gameatelier/evidence/evidence-m2-audit-round-2.json"
+    }
+  ],
+  "handoff_ref": ".gameatelier/handoffs/handoff-m2-reaudit-to-lead.json",
+  "updated_at": "2026-08-28T13:55:12Z"
+}

@@ -46,7 +46,7 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 实施顺序：
 
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
-2. 用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；不实现常驻服务。
+2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
 3. 以一张命令前置条件表实现 `manual`、`standard`、`strict`：`manual` 是显式命令语义，`standard` 是默认生产门禁，`strict` 聚合发布条件。
 4. 实现只读 `release check`；不实现自动外部发布，暂不增加独立 `release prepare` 流水线。
 5. 提供一个显式安装、可列出、可卸载的轻量 Git hook；CLI 与 CI 门禁不能依赖 hook。

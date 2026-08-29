@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "id": "handoff-m2-to-implementation",
+  "task_id": "task-m2-native-collaboration",
+  "from_owner": {
+    "id": "lead",
+    "kind": "agent",
+    "logical_profile": "lead"
+  },
+  "to_owner": {
+    "id": "implementation-owner",
+    "kind": "agent",
+    "logical_profile": "implementation"
+  },
+  "created_at": "2026-08-28T13:28:15Z",
+  "summary": "M2.1 is committed. Resume only the collaboration-reference packaging task from the paired task snapshot and repository state.",
+  "completed_work": [
+    "Committed the logical capability catalog, public Schema, resolution matrix, and Plugin packaging guard as commit 14274bb.",
+    "Defined the exact write-owned paths and acceptance conditions in task-implementation.json."
+  ],
+  "remaining_work": [
+    "Create the native collaboration reference with bounded delegation, ownership, read-only audit, and file-based recovery semantics.",
+    "Route the existing Skill to the reference and extend the fixed Plugin allowlist and regression tests.",
+    "Run focused Plugin packaging tests and report changed paths plus verification evidence."
+  ],
+  "evidence": [],
+  "blockers": []
+}

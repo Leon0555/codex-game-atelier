@@ -25,7 +25,7 @@
 | V1-02 验证、测试与玩法 | M1 | Godot 实际加载场景/资源并定位损坏；GDScript 通过/失败/超时可映射；参考游戏覆盖输入、信号、资源、UI 和基础玩法 | 有效/无效 fixture、测试报告、参考游戏操作证据 | PASS（macOS Apple Silicon；Atelier Spark 六项测试 6/6，既有失败/超时映射回归保留） |
 | V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | PASS（macOS Apple Silicon；Debug build 与 Release export 均自动完成 Universal 2、manifest/hash 和 headless 一帧 target smoke） |
 | V1-04 路径、日志与恢复 | M1 | 中文/空格/特殊路径可用；结构化日志与稳定退出码可诊断；超时、取消、异常退出和残留进程/锁有明确恢复结果 | 路径矩阵、故障注入、进程/锁检查、结构化日志 | PASS（macOS Apple Silicon；中文/空格/`#` 全链、既有故障注入、进程组与 run closure 证据） |
-| V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | PARTIAL（Profile 目录、九项解析矩阵、分发扫描、task/handoff 可选逻辑引用已 PASS；真实中断/恢复协作 trace 未运行） |
+| V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | PASS（Profile 目录、九项解析矩阵、分发扫描、task/handoff 逻辑引用，以及无对话继承的实现 → 审计 FAIL → 修复 → 全新只读审计 PASS trace） |
 | V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | NOT RUN |
 | V1-07 零构建分发入口 | M3 | 普通用户无需 clone/npm build；已有 Godot 时最多三个主要步骤；Plugin 可安装/加载/调用，Starter Template 可取得/初始化，CLI 为预构建产物 | 干净用户路径及步骤计数、包内容、实际调用 | NOT RUN（Plugin/Template bundle、archive 与 Apple Silicon 入口已有候选证据） |
 | V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；发布物包含 checksum、来源和许可；npm 方案使用 Trusted Publishing/2FA/provenance | 生命周期前后 diff、网络/文件审计、artifact manifest、预发布配置审计 | NOT RUN |

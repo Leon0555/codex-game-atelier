@@ -132,6 +132,75 @@ class PluginBundleTests(unittest.TestCase):
         self.assertIsNotNone(package_plugin.FORBIDDEN_CONCRETE_MODEL_ID.search(forbidden))
         self.assertIsNone(package_plugin.FORBIDDEN_CONCRETE_MODEL_ID.search("Use the independent-audit logical profile."))
 
+    def test_native_collaboration_reference_is_packaged_and_policy_checked(self) -> None:
+        relative = "skills/develop-godot-game/references/native-collaboration.md"
+        self.assertIn(relative, package_plugin.ALLOWED_SOURCE_FILES)
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = self.sources(root / "sources")
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, sources))
+            distributed = bundle / relative
+            source = package_plugin.PLUGIN_SOURCE / relative
+            self.assertEqual(distributed.read_bytes(), source.read_bytes())
+            skill = (bundle / "skills/develop-godot-game/SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("load `references/native-collaboration.md`", skill)
+            text = distributed.read_text(encoding="utf-8")
+            self.assertIn("no more than three delegated agents concurrently", text)
+            self.assertIn("exactly one active write owner", text)
+            self.assertIn("genuinely separate read-only context", text)
+            self.assertIn("Task, handoff, and evidence files are the recovery source of truth", text)
+            self.assertIn("Anchor recovery contracts at `../../schemas/v1/` relative to the installed `develop-godot-game` Skill directory", text)
+            self.assertIn("validate the task with `task.schema.json`, the handoff with `handoff.schema.json`, and every evidence record with `evidence.schema.json`", text)
+            blocked_pairs = (
+                ("`game`", "`game/scenes/player.gd`"),
+                ("`Scripts/Player.gd`", "`scripts/player.gd`"),
+                ("`art/café.png`", "`art/café.png`"),
+                ("`linked/player.gd`", "`src/player.gd`"),
+            )
+            for left, right in blocked_pairs:
+                with self.subTest(left=left, right=right):
+                    self.assertIn(f"{left} and {right}", text)
+            self.assertIn("If any component is a symbolic link, return `BLOCKED`", text)
+            self.assertIn("Normalize every segment to Unicode NFC, case-fold it, and normalize the folded value to NFC again", text)
+            self.assertIn("either key is an ancestor of the other", text)
+
+            distributed.write_text(text + "\nUse " + "gpt" + "-9.\n", encoding="utf-8")
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.verify_distributed_model_policy(bundle)
+
+    def test_recovery_schema_closure_is_packaged_and_bundle_only(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = self.sources(root / "sources")
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, sources))
+
+            for relative in package_plugin.RECOVERY_SCHEMA_FILES:
+                source = package_plugin.ROOT / relative
+                distributed = bundle / relative
+                self.assertEqual(distributed.read_bytes(), source.read_bytes())
+
+            with mock.patch.object(package_plugin, "SCHEMA_SOURCE", root / "missing-source-checkout"):
+                package_plugin.verify_bundle(bundle)
+
+            common = bundle / "schemas/v1/common.schema.json"
+            original_common = common.read_bytes()
+            common.unlink()
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.validate_recovery_schema_closure(bundle)
+            common.write_bytes(original_common)
+            common.chmod(0o644)
+
+            task = bundle / "schemas/v1/task.schema.json"
+            task_value = json.loads(task.read_text(encoding="utf-8"))
+            task_value["properties"]["owner"]["$ref"] = "missing.schema.json#/$defs/owner"
+            task.write_text(json.dumps(task_value), encoding="utf-8")
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.validate_recovery_schema_closure(bundle)
+
     def test_symlink_binary_and_existing_output_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
