@@ -56,21 +56,32 @@ type runScanResult struct {
 	Counts     cleanRunCounts
 	Candidates []cleanRunEntry
 	Protected  []cleanRunEntry
+	Verified   []verifiedRun
 }
 
 type verifiedRun struct {
-	Result      contract.Result
-	PayloadKind string
-	Payload     []byte
-	Record      persistedEvidenceRecord
+	Result          contract.Result
+	PayloadKind     string
+	Payload         []byte
+	Record          persistedEvidenceRecord
+	ProjectRevision int64
+	PolicyMode      string
 }
 
 func scanRuns(ctx context.Context, stateRoot *os.Root, state projectState) (runScanResult, error) {
 	return scanRunsWithBudget(ctx, stateRoot, state, newRunScanBudget(maxRunScanTotalBytes, maxRunScanFiles))
 }
 
+func scanRunsVerified(ctx context.Context, stateRoot *os.Root, state projectState) (runScanResult, error) {
+	return scanRunsWithBudgetMode(ctx, stateRoot, state, newRunScanBudget(maxRunScanTotalBytes, maxRunScanFiles), true)
+}
+
 func scanRunsWithBudget(ctx context.Context, stateRoot *os.Root, state projectState, budget *runScanBudget) (runScanResult, error) {
-	result := runScanResult{Candidates: []cleanRunEntry{}, Protected: []cleanRunEntry{}}
+	return scanRunsWithBudgetMode(ctx, stateRoot, state, budget, false)
+}
+
+func scanRunsWithBudgetMode(ctx context.Context, stateRoot *os.Root, state projectState, budget *runScanBudget, retainVerified bool) (runScanResult, error) {
+	result := runScanResult{Candidates: []cleanRunEntry{}, Protected: []cleanRunEntry{}, Verified: []verifiedRun{}}
 	if err := checkRunScanContext(ctx); err != nil {
 		return runScanResult{}, err
 	}
@@ -112,7 +123,12 @@ func scanRunsWithBudget(ctx context.Context, stateRoot *os.Root, state projectSt
 		if err != nil || !exists {
 			return runScanResult{}, errors.New("run store contains an unsafe directory entry")
 		}
-		stateName, reason, classifyErr := classifyRun(ctx, budget, runRoot, state, name, nil)
+		var verified verifiedRun
+		var verifiedTarget *verifiedRun
+		if retainVerified {
+			verifiedTarget = &verified
+		}
+		stateName, reason, classifyErr := classifyRun(ctx, budget, runRoot, state, name, verifiedTarget)
 		closeErr := runRoot.Close()
 		if classifyErr != nil {
 			return runScanResult{}, classifyErr
@@ -129,6 +145,9 @@ func scanRunsWithBudget(ctx context.Context, stateRoot *os.Root, state projectSt
 		switch stateName {
 		case "committed":
 			result.Counts.Committed++
+			if retainVerified {
+				result.Verified = append(result.Verified, verified)
+			}
 		case "incomplete":
 			result.Counts.Incomplete++
 			result.Candidates = append(result.Candidates, item)
@@ -268,6 +287,8 @@ func classifyRun(ctx context.Context, budget *runScanBudget, runRoot *os.Root, s
 		verified.PayloadKind = payloadKind
 		verified.Payload = payloadBytes
 		verified.Record = record
+		verified.ProjectRevision = intent.ProjectRevision
+		verified.PolicyMode = intent.PolicyMode
 	}
 	return "committed", "RESULT_CLOSURE_VERIFIED", nil
 }

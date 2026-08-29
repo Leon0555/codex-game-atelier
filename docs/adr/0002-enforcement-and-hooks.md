@@ -37,7 +37,7 @@ Codex 没有理由依赖某个外部模板的 hook 语义；用户也可能没�
 
 ### CI 发布边界
 
-- Release workflow 直接调用 `release check --strict --format json`（最终命令名待实现验证），不调用本地 hook。
+- Release workflow 直接调用 `release check --mode strict` 并保存其唯一 JSON stdout，不调用本地 hook。
 - 必选：schema/CLI 测试、Godot 冻结矩阵、参考游戏、分发内容、安全/许可/来源扫描和 artifact 验证。
 - 发布 job 使用最小权限、受保护 tag/environment 与独立审批；真正外部发布仍需用户授权。
 
@@ -88,4 +88,8 @@ Codex 没有理由依赖某个外部模板的 hook 语义；用户也可能没�
 - `build` 与 `export` 使用完全相同的门禁图；`manual` 仍必须保留项目状态、宿主、Godot 标准版、GDScript、外部写入授权、固定 preset、artifact 完整性和 target smoke。
 - `standard` 在此基础上加入主场景 Headless 与固定 GDScript tests；`strict` 再加入 run store、source policy 和分发 metadata。
 - `release-check` 只有 strict 集合包含 Plugin、Starter、许可/来源与 required CI 完整发布项；manual/standard 不能被描述为发布就绪。
-- Schema、contract fixture、语义测试和 Plugin 打包器共同阻止降级、非单调模式或缺少 mandatory gate 的分发。本记录只冻结策略契约；CLI 消费、hooks 与 CI 仍按后续切片实现。
+- Schema、contract fixture、语义测试和 Plugin 打包器共同阻止降级、非单调模式或缺少 mandatory gate 的分发。
+- Go CLI 现已消费 artifact workflow：`standard` 在一次 build/export 总 timeout 内依次执行 Headless 与固定 GDScript tests，任一失败都会停止真正导出，并让原命令提交一份结构化失败闭包；`strict` 先执行同一 standard 子集，再对 M3 尚未实现的 run-store/source/distribution 项明确 `BLOCKED`。
+- build/export 可用 `--mode manual|standard|strict` 对单次命令显式覆盖项目 mode；覆盖值进入原命令及嵌套 gate 的 immutable intent，但不改写 `project.json`。这提供可用的三模式入口而不提前引入 project-state replacement/migration 协议。
+- CLI 消费不依赖 Git hook。`hooks list/plan/status/install/uninstall` 现只管理一个显式 `pre-commit` 与 ownership manifest；已有 hook、`core.hooksPath` 或 linked-worktree `.git` 均保守阻断，卸载只删除摘要仍与 manifest 相符的 owned 内容。
+- 最小 CI 现为一个 `macos-15` Apple Silicon job，最小 `contents: read` 权限、外部 action 完整 SHA、Go 1.24.x 最低工具链、Python/Schema/分发测试和本机 CLI pair smoke。它不调用 hook，也不宣称替代 M3 Godot/分发/许可完整发布矩阵；首次 GitHub-hosted 运行在远程仓库获准创建与 push 前保持 `NOT RUN`。

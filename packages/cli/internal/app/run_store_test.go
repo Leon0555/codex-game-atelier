@@ -600,6 +600,27 @@ func TestCommitRunUnverifiedHostWritesNothing(t *testing.T) {
 	}
 }
 
+func TestRunIntentRejectsExportModeThatConflictsWithPolicySnapshot(t *testing.T) {
+	requireInitializePlatform(t)
+	_, stateRoot, state := createRunStoreProject(t, "policy-mode-binding")
+	defer stateRoot.Close()
+	started := time.Now().UTC()
+	result := contract.NewResult(started, contract.Command{Name: "export", Arguments: map[string]any{
+		"project":          ".",
+		"profile":          "release",
+		"preset":           defaultMacOSExportPreset,
+		"target":           "macos-universal2",
+		"timeout_ms":       int64(1000),
+		"engine_user_data": "not-authorized",
+		"godot_source":     "discovery",
+		"mode":             "manual",
+	}})
+	transaction, err := beginRunWithPolicy(stateRoot, state, result, "strict", nil)
+	if transaction != nil || err == nil || !strings.Contains(err.Error(), "immutable policy snapshot") {
+		t.Fatalf("conflicting command/policy modes were accepted: transaction=%v err=%v", transaction, err)
+	}
+}
+
 func TestRunStoreRejectsFilesystemIdentityChangesAtNestedDirectories(t *testing.T) {
 	requireInitializePlatform(t)
 	for _, test := range []struct {

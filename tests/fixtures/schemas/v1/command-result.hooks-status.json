@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260829t130000.000000000z-0123456789ab",
+  "command": {
+    "name": "hooks status",
+    "arguments": { "project": "." }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-08-29T13:00:00Z",
+  "finished_at": "2026-08-29T13:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Optional Git hook state was inspected without modification.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "scope": "git-hooks",
+    "action": "status",
+    "hook": "pre-commit",
+    "path": ".git/hooks/pre-commit",
+    "manifest_path": ".git/hooks/codex-game-atelier.manifest.json",
+    "check": "release-check-manual",
+    "status": "installed",
+    "changed": false
+  }
+}

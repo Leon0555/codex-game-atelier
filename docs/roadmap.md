@@ -47,10 +47,10 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
 2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
-3. **契约已完成、CLI 接入中**：一张随 Plugin 分发的命令前置条件表已冻结 `manual`、`standard`、`strict` 的单调语义；下一切片把该表接入 build/export/release-check，当前不得把策略文件冒充运行时强制已完成。
-4. 实现只读 `release check`；不实现自动外部发布，暂不增加独立 `release prepare` 流水线。
-5. 提供一个显式安装、可列出、可卸载的轻量 Git hook；CLI 与 CI 门禁不能依赖 hook。
-6. 建立一个最小 CI workflow，先验证 Go/Python、Schema、Plugin/Template 静态完整性和 macOS 可执行路径。
+3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
+4. **已完成**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，standard 聚合当前 revision 最新 evidence 并复验 Release ZIP，strict 未实现的 M3 分发项明确阻断；不实现自动外部发布，也不增加独立 `release prepare` 流水线。
+5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
+6. **已完成实现、托管运行 NOT RUN**：建立单一 macOS Apple Silicon CI job，固定只读权限与 action SHA，验证 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性和本机 CLI pair；因尚无远程仓库，首次 GitHub-hosted 结果仍待后续授权 push。
 
 M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 

@@ -19,7 +19,7 @@ Codex 负责判断与编排，CLI 负责确定性执行。若两者共享非结�
 7. 破坏性 schema 变化需要新 ADR、迁移预览、备份和回退。
 8. 项目内状态与 evidence 根目录使用 `.gameatelier/`，生产者标识使用 `gameatelier-cli`。该命名在首个生产实现前确定；更早的状态根命名只存在于未发布草案和 fixture 中，没有已发布状态需要迁移。
 9. 时间戳采用可互操作的 RFC 3339 canonical 子集：大写 `T`/`Z`、小数秒只用 `.`、秒为 `00..59`、时区小时为 `00..23` 且分钟为 `00..59`；不接受闰秒或 Go 解析器的额外宽松形式。
-10. `detect`、`doctor`、`status` 保持零文件写入；`initialize` 只建立项目状态，不写 evidence。`validate`、`test`、`build`、`export` 和 `release check` 等门禁/引擎执行命令默认在 `.gameatelier/` 持久化结构化 run 与 evidence，不能依赖用户额外运行 `validate` 才留下必要证据。
+10. `detect`、`doctor`、`status` 保持零文件写入；`initialize` 只建立项目状态，不写 evidence。`validate`、`test`、`build`、`export` 等门禁/引擎执行命令默认在 `.gameatelier/` 持久化结构化 run 与 evidence，不能依赖用户额外运行 `validate` 才留下必要证据。`release check` 的后续只读聚合例外由 ADR 0016 修订本条。
 11. `manual`、`standard`、`strict` 决定门禁深度与必须满足的检查集合，不决定关键操作是否留 evidence；三种模式的门禁/引擎执行命令都记录最小可审计事实。模式不能作为关闭安全检查、结果记录或失败证据的开关。
 12. evidence 持久化不得产生 `.gameatelier/` 之外的隐藏状态或网络写入。构建/导出产物只能写到命令明确声明且通过 containment 检查的项目相对目标；遥测仍默认关闭。
 

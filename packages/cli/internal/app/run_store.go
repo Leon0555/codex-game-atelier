@@ -112,10 +112,18 @@ func failRunBegin(phase runBeginPhase, err error) (*runTransaction, error) {
 }
 
 func beginRun(stateRoot *os.Root, state projectState, result contract.Result, fault runFault) (*runTransaction, error) {
-	return beginRunWithIdentity(stateRoot, state, result, fault, readRunPersistenceIdentity)
+	return beginRunWithPolicy(stateRoot, state, result, state.Mode, fault)
+}
+
+func beginRunWithPolicy(stateRoot *os.Root, state projectState, result contract.Result, policyMode string, fault runFault) (*runTransaction, error) {
+	return beginRunWithIdentityAndPolicy(stateRoot, state, result, policyMode, fault, readRunPersistenceIdentity)
 }
 
 func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contract.Result, fault runFault, identityReader func(*os.Root) (runPersistenceIdentity, bool)) (*runTransaction, error) {
+	return beginRunWithIdentityAndPolicy(stateRoot, state, result, state.Mode, fault, identityReader)
+}
+
+func beginRunWithIdentityAndPolicy(stateRoot *os.Root, state projectState, result contract.Result, policyMode string, fault runFault, identityReader func(*os.Root) (runPersistenceIdentity, bool)) (*runTransaction, error) {
 	if stateRoot == nil || identityReader == nil {
 		return failRunBegin(runBeginBeforeRoot, errors.New("run persistence is not enabled on this host"))
 	}
@@ -127,7 +135,9 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 	if err != nil || !exists || !reflect.DeepEqual(loadedState, state) {
 		return failRunBegin(runBeginBeforeRoot, errors.New("run state snapshot does not match its pinned state root"))
 	}
-	if err := preflightRunIntent(state, result, Version); err != nil {
+	policyState := state
+	policyState.Mode = policyMode
+	if err := preflightRunIntent(policyState, result, Version); err != nil {
 		return failRunBegin(runBeginBeforeRoot, err)
 	}
 	if err := triggerRunFault(fault, "before-run-directory"); err != nil {
@@ -168,7 +178,7 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 		RunID:             result.RunID,
 		ProjectID:         state.ProjectID,
 		ProjectRevision:   int64(state.Revision),
-		PolicyMode:        state.Mode,
+		PolicyMode:        policyState.Mode,
 		Engine:            state.Engine,
 		Command:           frozenCommand,
 		StartedAt:         result.StartedAt,
@@ -198,7 +208,7 @@ func beginRunWithIdentity(stateRoot *os.Root, state projectState, result contrac
 		return failRunBegin(runBeginIncomplete, err)
 	}
 	return &runTransaction{
-		state:          state,
+		state:          policyState,
 		runID:          result.RunID,
 		command:        frozenCommand,
 		startedAt:      result.StartedAt,

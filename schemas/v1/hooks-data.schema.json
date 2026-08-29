@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "hooks-data.schema.json",
+  "title": "Codex Game Atelier optional Git hook lifecycle data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scope", "action", "hook", "path", "manifest_path", "check", "status", "changed"],
+  "properties": {
+    "scope": { "const": "git-hooks" },
+    "action": { "type": "string", "enum": ["list", "plan", "status", "install", "uninstall"] },
+    "hook": { "const": "pre-commit" },
+    "path": { "const": ".git/hooks/pre-commit" },
+    "manifest_path": { "const": ".git/hooks/codex-game-atelier.manifest.json" },
+    "check": { "const": "release-check-manual" },
+    "status": { "type": "string", "enum": ["absent", "installed", "stale", "conflict"] },
+    "changed": { "type": "boolean" }
+  }
+}

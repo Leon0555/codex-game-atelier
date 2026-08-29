@@ -6,7 +6,7 @@
 
 ## 背景
 
-ADR 0005 已确定 `validate`、`test`、`build`、`export`、`release check` 默认持久化最小可审计 run/evidence，且 manual/standard/strict 不关闭记录。ADR 0007 只证明单个 `project.json` 的 no-replace 发布，不能自动证明 payload、evidence record、result 和外部 artifact 的多文件事务安全。
+ADR 0005 已确定生产执行命令默认持久化最小可审计 run/evidence，且 manual/standard/strict 不关闭记录；ADR 0016 后续明确 `release check` 是只读聚合例外，不进入本提交协议。ADR 0007 只证明单个 `project.json` 的 no-replace 发布，不能自动证明 payload、evidence record、result 和外部 artifact 的多文件事务安全。
 
 本协议需要保证：崩溃或任一文件写入失败时，要么没有正式结果，要么正式结果引用的整个 evidence 闭包完整；绝不能留下可被 status、CI 或 release check 聚合成 `PASS` 的半事务。
 

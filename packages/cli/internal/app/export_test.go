@@ -18,6 +18,7 @@ func TestExportCommitsVerifiedArtifactAndScannerClosure(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	stubSuccessfulTargetSmoke(t)
 	project, stateRoot, state := createRunStoreProject(t, "导出 项目 🚀")
+	setProjectMode(t, project, "manual")
 	writeMacOSExportPreset(t, project)
 	archive := createMacOSExportArchive(t)
 	godot := createExportGodot(t, archive, "printf 'uid://generated\\n' > generated.gd.uid")
@@ -48,6 +49,7 @@ func TestBuildUsesTheExportPipelineWithoutAcceptingAPreset(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	stubSuccessfulTargetSmoke(t)
 	project, stateRoot, state := createRunStoreProject(t, "build-wrapper")
+	setProjectMode(t, project, "manual")
 	writeMacOSExportPreset(t, project)
 	godot := createExportGodot(t, createMacOSExportArchive(t), "")
 	writeExportTemplateFixture(t, godot, true)
@@ -70,6 +72,117 @@ func TestBuildUsesTheExportPipelineWithoutAcceptingAPreset(t *testing.T) {
 	}
 }
 
+func TestStandardExportRunsHeadlessAndFixedTestsBeforeExport(t *testing.T) {
+	requireMacOSAppleSilicon(t)
+	stubSuccessfulTargetSmoke(t)
+	project, stateRoot, state := createRunStoreProject(t, "standard-gates")
+	writeMacOSExportPreset(t, project)
+	writeFixedTestRunner(t, project)
+	exportMarker := filepath.Join(t.TempDir(), "export-started")
+	godot := createPolicyAwareExportGodot(t, createMacOSExportArchive(t), exportMarker, true)
+	writeExportTemplateFixture(t, godot, true)
+
+	code, result, _, stderr := execute(t, context.Background(), "export", "--project", project, "--profile", "release", "--godot", godot, "--allow-engine-user-data", "--timeout-ms", "15000")
+	if code != contract.ExitOK || result.Outcome != "PASS" || stderr != "" {
+		t.Fatalf("standard gated export failed: code=%d result=%+v stderr=%q", code, result, stderr)
+	}
+	if _, err := os.Stat(exportMarker); err != nil {
+		t.Fatalf("export action was not reached after passing gates: %v", err)
+	}
+	scan, err := scanRunsVerified(context.Background(), stateRoot, state)
+	if err != nil || scan.Counts != (cleanRunCounts{Committed: 3}) {
+		t.Fatalf("standard gate run closures were incomplete: scan=%+v err=%v", scan, err)
+	}
+	commands := map[string]int{}
+	for _, run := range scan.Verified {
+		commands[run.Result.Command.Name]++
+	}
+	if commands["validate"] != 1 || commands["test"] != 1 || commands["export"] != 1 {
+		t.Fatalf("standard gates did not record exactly one workflow: %+v", commands)
+	}
+}
+
+func TestArtifactModeOverrideIsRecordedWithoutMutatingProjectMode(t *testing.T) {
+	requireMacOSAppleSilicon(t)
+	stubSuccessfulTargetSmoke(t)
+	project, stateRoot, state := createRunStoreProject(t, "manual-override")
+	writeMacOSExportPreset(t, project)
+	godot := createExportGodot(t, createMacOSExportArchive(t), "")
+	writeExportTemplateFixture(t, godot, true)
+	statePath := filepath.Join(project, ".gameatelier", "project.json")
+	before, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	code, result, _, _ := execute(t, context.Background(), "export", "--project", project, "--profile", "release", "--mode", "manual", "--godot", godot, "--allow-engine-user-data", "--timeout-ms", "10000")
+	after, err := os.ReadFile(statePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if code != contract.ExitOK || result.Outcome != "PASS" || result.Command.Arguments["mode"] != "manual" || string(before) != string(after) {
+		t.Fatalf("manual override was not isolated to one command: code=%d result=%+v state_changed=%t", code, result, string(before) != string(after))
+	}
+	scan, err := scanRunsVerified(context.Background(), stateRoot, state)
+	if err != nil || len(scan.Verified) != 1 || scan.Verified[0].PolicyMode != "manual" {
+		t.Fatalf("manual override was not bound into run intent: scan=%+v err=%v", scan, err)
+	}
+
+	code, invalid, _, _ := execute(t, context.Background(), "build", "--project", project, "--mode", "unsafe")
+	if code != contract.ExitUsage || firstErrorCode(invalid) != "INVALID_ARGUMENT" {
+		t.Fatalf("invalid build/export mode was accepted: code=%d result=%+v", code, invalid)
+	}
+}
+
+func TestStandardExportStopsAfterFailingFixedTests(t *testing.T) {
+	requireMacOSAppleSilicon(t)
+	project, stateRoot, state := createRunStoreProject(t, "standard-gate-failure")
+	writeMacOSExportPreset(t, project)
+	writeFixedTestRunner(t, project)
+	exportMarker := filepath.Join(t.TempDir(), "export-started")
+	godot := createPolicyAwareExportGodot(t, createMacOSExportArchive(t), exportMarker, false)
+	writeExportTemplateFixture(t, godot, true)
+
+	code, result, _, _ := execute(t, context.Background(), "export", "--project", project, "--profile", "release", "--godot", godot, "--allow-engine-user-data", "--timeout-ms", "15000")
+	if code != contract.ExitValidation || result.Outcome != "FAIL" || firstErrorCode(result) != "POLICY_GATE_FAILED" || len(result.Evidence) != 1 {
+		t.Fatalf("failing test gate was not propagated: code=%d result=%+v", code, result)
+	}
+	if _, err := os.Stat(exportMarker); !os.IsNotExist(err) {
+		t.Fatalf("export action started after a failing test gate: %v", err)
+	}
+	scan, err := scanRunsVerified(context.Background(), stateRoot, state)
+	if err != nil || scan.Counts != (cleanRunCounts{Committed: 3}) {
+		t.Fatalf("failed gate workflow did not retain three committed facts: scan=%+v err=%v", scan, err)
+	}
+}
+
+func TestStrictExportRunsStandardGatesThenBlocksDeferredGates(t *testing.T) {
+	requireMacOSAppleSilicon(t)
+	project, stateRoot, state := createRunStoreProject(t, "strict-gates")
+	writeMacOSExportPreset(t, project)
+	writeFixedTestRunner(t, project)
+	exportMarker := filepath.Join(t.TempDir(), "export-started")
+	godot := createPolicyAwareExportGodot(t, createMacOSExportArchive(t), exportMarker, true)
+	writeExportTemplateFixture(t, godot, true)
+
+	code, result, _, _ := execute(t, context.Background(), "export", "--project", project, "--profile", "release", "--mode", "strict", "--godot", godot, "--allow-engine-user-data", "--timeout-ms", "15000")
+	if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "STRICT_GATES_UNAVAILABLE" || len(result.Evidence) != 1 {
+		t.Fatalf("strict deferred gates were not enforced: code=%d result=%+v", code, result)
+	}
+	if _, err := os.Stat(exportMarker); !os.IsNotExist(err) {
+		t.Fatalf("strict export action started before strict gates were available: %v", err)
+	}
+	scan, err := scanRunsVerified(context.Background(), stateRoot, state)
+	if err != nil || scan.Counts != (cleanRunCounts{Committed: 3}) {
+		t.Fatalf("strict gate workflow did not retain three committed facts: scan=%+v err=%v", scan, err)
+	}
+	for _, run := range scan.Verified {
+		if run.PolicyMode != "strict" {
+			t.Fatalf("strict override was not bound to every nested run: %+v", scan.Verified)
+		}
+	}
+}
+
 func TestExportBlocksBeforeGodotWithoutAuthorizationOrSafePreset(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	for _, test := range []struct {
@@ -83,6 +196,7 @@ func TestExportBlocksBeforeGodotWithoutAuthorizationOrSafePreset(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			project, _, _ := createRunStoreProject(t, "blocked-"+test.name)
+			setProjectMode(t, project, "manual")
 			if test.writePreset {
 				writeMacOSExportPreset(t, project)
 			}
@@ -106,6 +220,7 @@ func TestExportBlocksBeforeGodotWithoutAuthorizationOrSafePreset(t *testing.T) {
 func TestExportRejectsInvalidArtifactDespiteZeroEngineExit(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	project, stateRoot, state := createRunStoreProject(t, "invalid-artifact")
+	setProjectMode(t, project, "manual")
 	writeMacOSExportPreset(t, project)
 	plain := filepath.Join(t.TempDir(), "not-a-zip")
 	if err := os.WriteFile(plain, []byte("not a zip"), 0o600); err != nil {
@@ -127,6 +242,7 @@ func TestExportRejectsInvalidArtifactDespiteZeroEngineExit(t *testing.T) {
 func TestExportRejectsSingleArchitectureMachO(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	project, _, _ := createRunStoreProject(t, "single-architecture")
+	setProjectMode(t, project, "manual")
 	writeMacOSExportPreset(t, project)
 	thin := make([]byte, 8)
 	binary.LittleEndian.PutUint32(thin[0:4], 0xfeedfacf)
@@ -143,6 +259,7 @@ func TestExportRejectsSingleArchitectureMachO(t *testing.T) {
 func TestExportRejectsFailedTargetSmoke(t *testing.T) {
 	requireMacOSAppleSilicon(t)
 	project, stateRoot, state := createRunStoreProject(t, "failed-target-smoke")
+	setProjectMode(t, project, "manual")
 	writeMacOSExportPreset(t, project)
 	godot := createExportGodot(t, createMacOSExportArchive(t), "")
 	writeExportTemplateFixture(t, godot, true)
@@ -246,6 +363,39 @@ func createExportGodot(t *testing.T, artifact, extra string) string {
 		extra + "\n" +
 		"cp '" + artifact + "' \"$7\"\n"
 	return createExecutable(t, "fake-godot", script)
+}
+
+func createPolicyAwareExportGodot(t *testing.T, artifact, exportMarker string, testsPass bool) string {
+	t.Helper()
+	outcome := "PASS"
+	testOutcome := "PASS"
+	exitCode := "0"
+	if !testsPass {
+		outcome = "FAIL"
+		testOutcome = "FAIL"
+		exitCode = "1"
+	}
+	report := `{"schema_version":"1.0.0","outcome":"` + outcome + `","tests":[{"id":"policy-gate","outcome":"` + testOutcome + `","summary":"Policy gate test completed."}]}`
+	script := "#!/bin/sh\n" +
+		"if [ \"$1\" = \"--version\" ]; then printf '4.7.2.stable.official.ed1daf0bf\\n'; exit 0; fi\n" +
+		"case \" $* \" in\n" +
+		"  *\" --script \"*) printf '%s\\n' '" + gdscriptTestReportPrefix + report + "'; exit " + exitCode + ";;\n" +
+		"  *\" --quit-after \"*) exit 0;;\n" +
+		"  *\" --export-release \"*|*\" --export-debug \"*) printf started > '" + exportMarker + "'; cp '" + artifact + "' \"$7\"; exit 0;;\n" +
+		"esac\n" +
+		"exit 91\n"
+	return createExecutable(t, "policy-aware-godot", script)
+}
+
+func writeFixedTestRunner(t *testing.T, project string) {
+	t.Helper()
+	directory := filepath.Join(project, "tests")
+	if err := os.MkdirAll(directory, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "atelier_test_runner.gd"), []byte("extends SceneTree\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func requireMacOSAppleSilicon(t *testing.T) {

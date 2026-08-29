@@ -114,17 +114,19 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 - 每条状态含 schema version；迁移必须可预览、备份和回退。
 - 需要进一步决定哪些状态默认提交 Git，哪些仅保留本地/CI artifact。
 
-默认持久化政策已经确定：`clean --list`/`detect`/`doctor`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export`/`release check` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭记录。`validate` 与 `test` 已实证以 `result.json` 最后发布的多文件正式提交点；run scanner 已能验证两类 committed 闭包并预览 incomplete/orphan，实际 recovery/delete、派生索引与其他命令仍待后续薄切片。
+默认持久化政策已经确定：`clean --list`/`detect`/`doctor`/`release check`/`status` 零写入，`initialize` 只写 project state；`validate`/`test`/`build`/`export` 默认写最小可审计 run/evidence，manual/standard/strict 只改变门禁深度而不关闭这些生产命令的记录。`release check` 只聚合已经持久化的事实并重新验证当前 release artifact，不用一条自引用的审计记录改变被审计状态。`validate`、`test` 与 build/export 已实证以 `result.json` 最后发布的多文件正式提交点；run scanner 能验证四类 committed 闭包并预览 incomplete/orphan，实际 recovery/delete 与派生索引仍待后续薄切片。详见 ADR 0016。
 
 ## 6. 门禁模式
 
 | 模式 | 交互定位 | 命令内建最低门禁 | Git hooks | CI 发布检查 |
 | --- | --- | --- | --- | --- |
 | `manual` | 高级用户显式控制 | 始终执行安全、输入、目标和必要前置检查；不会把 `validate` 责任推给用户 | 不安装；可显式选择 | 必选，不可绕过 |
-| `standard` | 默认 | `build`、`export` 自动执行相应 doctor/validate/test 子集并检查证据新鲜度 | 不安装；可显式选择 | 必选 |
-| `strict` | 发布准备/高保障 | 更完整测试、干净状态/环境策略、证据完整性和失败即停 | 不安装；可显式选择 | 必选且使用完整发布矩阵 |
+| `standard` | 默认 | `build`、`export` 自动执行 Headless 与固定 GDScript tests；失败即停止真正导出 | 不安装；可显式选择 | 必选 |
+| `strict` | 发布准备/高保障 | 先执行完整 standard 子集；M3 的 run-store/source/distribution 门禁未实现前明确阻断 | 不安装；可显式选择 | 必选且使用完整发布矩阵 |
 
 门禁是命令语义，不是单独 `validate` 命令的约定。可选 Git hooks 只提供早期反馈；即使未安装或用 `--no-verify` 绕过，CLI 和 CI 仍守住相应边界。
+
+build/export 默认读取 `project.json` 的 mode，也允许 `--mode` 只覆盖当前调用。覆盖值记录进本次原命令与嵌套 gate 的 run intent，不改写 project state；项目级 mode 的持久修改要等 state replacement/migration 协议单独冻结，不能由普通构建暗中完成。
 
 ## 7. Godot 适配器
 
@@ -153,6 +155,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - 所有外部写入、安装、登录和发布都需要显式动作/批准。
 - 日志与证据进行 secret redaction；凭据文件不得进入仓库或一般 evidence。
 - Git hooks 从不自动安装，安装前列出准确路径、行为和卸载方式。
+- 当前可选 hook 只在显式 `hooks install` 时写默认 `.git/hooks/pre-commit` 与 ownership manifest；不合并/覆盖现有 hook，不支持自定义 `core.hooksPath` 或 linked-worktree `.git` 文件。它只运行当前 CLI 的 manual release check，不能替代 build/export 内建门禁或 CI。
 - CLI 只允许已定义的 Godot/文件操作，不提供通用 `eval` 或任意 shell 代理接口。
 
 ## 10. 待 Phase 1 验证
@@ -161,7 +164,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - Go CLI 的本地 Plugin archive 当前约 11 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、quarantine、升级/回滚路径仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- 构建、导出与 release 在三种模式下的精确门禁矩阵。
+- strict 模式尚未完成的 source-tree、分发 metadata 与 required-CI 发布门禁；manual/standard 的 build/export 运行时门禁及三模式只读 `release check` 已完成实证。最小 macOS CI 已持久化并完成本地 contract 验证，但 GitHub-hosted 执行仍 `NOT RUN`。
 
 ## 11. 当前依据
 

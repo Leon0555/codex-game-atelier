@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260829t120000.000000000z-0123456789ab",
+  "command": {
+    "name": "release check",
+    "arguments": {
+      "project": ".",
+      "mode": "standard"
+    }
+  },
+  "outcome": "BLOCKED",
+  "started_at": "2026-08-29T12:00:00Z",
+  "finished_at": "2026-08-29T12:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 4,
+  "summary": "Release readiness checks are incomplete.",
+  "errors": [
+    {
+      "code": "RELEASE_CHECK_INCOMPLETE",
+      "category": "prerequisite",
+      "message": "One or more required release gates are blocked or not implemented.",
+      "retryable": true,
+      "remediation": "Resolve every reported gate and rerun release check."
+    }
+  ],
+  "evidence": [],
+  "data": {
+    "scope": "project-release",
+    "selected_mode": "standard",
+    "project_mode": "standard",
+    "project_revision": 0,
+    "release_ready": false,
+    "checks": [
+      { "id": "project-state", "outcome": "PASS", "summary": "The project state satisfies the v1 contract." },
+      { "id": "support-scope", "outcome": "PASS", "summary": "The project targets Godot 4.7.2-stable standard/GDScript within the v1 scope." },
+      { "id": "run-store-integrity", "outcome": "PASS", "summary": "Every scanned run has a committed and verified closure." },
+      { "id": "latest-headless-validation", "outcome": "BLOCKED", "summary": "No verified PASS evidence exists for this gate at the current project revision." },
+      { "id": "latest-fixed-gdscript-tests", "outcome": "BLOCKED", "summary": "No verified PASS evidence exists for this gate at the current project revision." },
+      { "id": "latest-release-export", "outcome": "BLOCKED", "summary": "No verified PASS evidence exists for this gate at the current project revision." }
+    ],
+    "counts": {
+      "passed": 3,
+      "blocked": 3,
+      "not_run": 0
+    }
+  }
+}

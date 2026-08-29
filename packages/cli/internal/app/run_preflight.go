@@ -24,7 +24,7 @@ const maxPersistedJSONDepth = 8
 const maxPersistedStringBytes = 64 * 1024
 
 var allowedPersistedCommands = map[string]struct{}{
-	"validate": {}, "test": {}, "build": {}, "export": {}, "release check": {},
+	"validate": {}, "test": {}, "build": {}, "export": {},
 }
 
 var allowedErrorCategories = map[string]struct{}{
@@ -72,6 +72,9 @@ func preflightRunIntent(state projectState, result contract.Result, producerVers
 	case "export", "build":
 		if err := validatePersistedExportArguments(result.Command.Arguments); err != nil {
 			return err
+		}
+		if mode, exists := result.Command.Arguments["mode"]; exists && mode != state.Mode {
+			return errors.New("persisted export mode conflicts with its immutable policy snapshot")
 		}
 	default:
 		return errors.New("persisted command arguments are outside bounds")

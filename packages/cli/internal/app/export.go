@@ -28,6 +28,8 @@ const maxExportArchiveEntries = 4096
 const maxExportArchiveEntryBytes uint64 = 512 * 1024 * 1024
 const maxExportArchiveExpandedBytes uint64 = 1024 * 1024 * 1024
 
+var errArtifactWorkflowTimeout = errors.New("artifact workflow total timeout expired")
+
 const machCPUTypeX8664 uint32 = 0x01000007
 const machCPUTypeARM64 uint32 = 0x0100000c
 
@@ -35,6 +37,7 @@ type exportOptions struct {
 	project             string
 	profile             string
 	preset              string
+	mode                string
 	godot               string
 	explicitGodot       bool
 	timeoutMS           int64
@@ -50,7 +53,7 @@ func (options exportOptions) persistedArguments() map[string]any {
 	if options.explicitGodot {
 		source = "explicit"
 	}
-	return map[string]any{
+	arguments := map[string]any{
 		"project":          ".",
 		"profile":          options.profile,
 		"preset":           options.preset,
@@ -59,6 +62,10 @@ func (options exportOptions) persistedArguments() map[string]any {
 		"engine_user_data": policy,
 		"godot_source":     source,
 	}
+	if options.mode != "" {
+		arguments["mode"] = options.mode
+	}
+	return arguments
 }
 
 type exportArtifact struct {
@@ -99,16 +106,17 @@ func runGodotArtifactCommand(ctx context.Context, started time.Time, commandName
 	if acceptsPreset {
 		set.StringVar(&preset, "preset", defaultMacOSExportPreset, "fixed macOS export preset")
 	}
+	mode := set.String("mode", "", "gate mode override: manual, standard, or strict")
 	godot := set.String("godot", "", "Godot executable")
 	timeoutMS := set.Int64("timeout-ms", defaultExportTimeoutMS, "export timeout in milliseconds")
 	allowEngineUserData := set.Bool("allow-engine-user-data", false, "allow Godot's documented standard user-data directory")
 	if err := rejectDuplicateFlags(args); err != nil {
 		return encodeUncommittedResult(parseError(started, commandName, err.Error(), map[string]any{}))
 	}
-	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || (*profile != "debug" && *profile != "release") || preset != defaultMacOSExportPreset || *timeoutMS < 1 || *timeoutMS > maxTimeoutMS {
-		usage := commandName + " accepts --project, --profile debug|release, optional --godot, --timeout-ms, and --allow-engine-user-data"
+	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || (*profile != "debug" && *profile != "release") || preset != defaultMacOSExportPreset || !validOptionalGateMode(*mode) || *timeoutMS < 1 || *timeoutMS > maxTimeoutMS {
+		usage := commandName + " accepts --project, --profile debug|release, optional --mode manual|standard|strict, --godot, --timeout-ms, and --allow-engine-user-data"
 		if acceptsPreset {
-			usage = "export accepts --project, --profile debug|release, the fixed --preset, optional --godot, --timeout-ms, and --allow-engine-user-data"
+			usage = "export accepts --project, --profile debug|release, the fixed --preset, optional --mode manual|standard|strict, --godot, --timeout-ms, and --allow-engine-user-data"
 		}
 		return encodeUncommittedResult(parseError(started, commandName, usage, map[string]any{}))
 	}
@@ -116,8 +124,11 @@ func runGodotArtifactCommand(ctx context.Context, started time.Time, commandName
 	if explicitGodot && *godot == "" {
 		return encodeUncommittedResult(parseError(started, commandName, "--godot requires a non-empty path", map[string]any{}))
 	}
-	options := exportOptions{project: *project, profile: *profile, preset: preset, godot: *godot, explicitGodot: explicitGodot, timeoutMS: *timeoutMS, allowEngineUserData: *allowEngineUserData}
+	options := exportOptions{project: *project, profile: *profile, preset: preset, mode: *mode, godot: *godot, explicitGodot: explicitGodot, timeoutMS: *timeoutMS, allowEngineUserData: *allowEngineUserData}
 	command := contract.Command{Name: commandName, Arguments: options.persistedArguments()}
+	deadline := started.Add(time.Duration(options.timeoutMS) * time.Millisecond)
+	commandContext, cancelCommand := context.WithDeadlineCause(ctx, deadline, errArtifactWorkflowTimeout)
+	defer cancelCommand()
 	projectRoot, err := canonicalProjectRoot(*project)
 	if err != nil {
 		failure := prerequisiteError("GODOT_PROJECT_NOT_FOUND", "The requested project directory does not exist or cannot be resolved.", "Select an initialized Godot project directory, then run export again.")
@@ -144,14 +155,23 @@ func runGodotArtifactCommand(ctx context.Context, started time.Time, commandName
 		failure := contract.Error{Code: "STATE_READ_FAILED", Category: "state", Message: "The project state file could not be read safely.", Retryable: false}
 		return encodeUncommittedResult(finishUncommittedExport(started, command, "FAIL", contract.ExitState, "Godot export could not read project state.", failure))
 	}
+	if options.mode == "" {
+		options.mode = state.Mode
+	}
+	command.Arguments = options.persistedArguments()
 
 	initial := contract.NewResult(started, command)
-	transaction, err := beginRun(stateRoot, state, initial, nil)
+	transaction, err := beginRunWithPolicy(stateRoot, state, initial, options.mode, nil)
 	if err != nil {
 		return encodeRunBeginFailure(started, initial, err)
 	}
 	defer transaction.close()
-	result, payload := executeGodotExport(ctx, started, initial, transaction.runRoot, stateRoot, pinnedProjectRoot, projectRoot, options)
+	gateState := state
+	gateState.Mode = options.mode
+	result, payload, gateWarning, gated := executeArtifactWorkflowGates(commandContext, started, deadline, initial, gateState, pinnedProjectRoot, projectRoot, options)
+	if !gated {
+		result, payload = executeGodotExport(commandContext, started, deadline, initial, transaction.runRoot, stateRoot, pinnedProjectRoot, projectRoot, options)
+	}
 	if fixedActionRunMustRemainIncomplete(result, transaction.runRoot, "export-"+options.profile) {
 		_ = transaction.close()
 		return encodeRunCommitFailure(started, initial)
@@ -161,15 +181,204 @@ func runGodotArtifactCommand(ctx context.Context, started time.Time, commandName
 	if !committed.Committed {
 		return encodeRunCommitFailure(started, initial)
 	}
-	execution := encodedExecution{resultBytes: committed.ResultBytes, exitCode: result.ExitCode}
+	execution := encodedExecution{resultBytes: committed.ResultBytes, exitCode: result.ExitCode, warning: gateWarning}
 	if committed.Err != nil || closeErr != nil {
-		execution.warning = committedRunWarning
+		execution.warning += committedRunWarning
 	}
 	return execution
 }
 
-func executeGodotExport(ctx context.Context, started time.Time, result contract.Result, runRoot, stateRoot, pinnedProjectRoot *os.Root, projectPath string, options exportOptions) (contract.Result, runPayload) {
+func executeArtifactWorkflowGates(ctx context.Context, started, deadline time.Time, result contract.Result, state projectState, pinnedProjectRoot *os.Root, projectPath string, options exportOptions) (contract.Result, runPayload, string, bool) {
+	if state.Mode == "manual" {
+		return contract.Result{}, runPayload{}, "", false
+	}
+	if preflightResult, preflightPayload, blocked := preflightArtifactWorkflowSafety(ctx, started, result, pinnedProjectRoot, projectPath, options); blocked {
+		return preflightResult, preflightPayload, "", true
+	}
+	remaining := remainingGateTimeoutMS(deadline)
+	if remaining < 1 {
+		failure := contract.Error{Code: "POLICY_GATE_TIMEOUT", Category: "timeout", Message: "The command timeout expired before automatic workflow gates completed.", Retryable: true}
+		finished, payload := finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Automatic build/export gates exceeded the command timeout.", "", nil, failure)
+		return finished, payload, "", true
+	}
+	validateArgs := []string{"--project", options.project, "--headless", "--timeout-ms", strconv.FormatInt(remaining, 10)}
+	if options.explicitGodot {
+		validateArgs = append(validateArgs, "--godot", options.godot)
+	}
+	if options.allowEngineUserData {
+		validateArgs = append(validateArgs, "--allow-engine-user-data")
+	}
+	validationExecution := runValidateWithPolicy(ctx, time.Now().UTC(), validateArgs, state.Mode, nil)
+	validation, err := decodePolicyGateExecution(validationExecution)
+	if err != nil || validation.Outcome != "PASS" {
+		if artifactWorkflowTimedOut(ctx) {
+			finished, payload := finishArtifactWorkflowTimeout(started, result, "policy-gates")
+			return finished, payload, validationExecution.warning, true
+		}
+		finished, payload := finishArtifactPolicyGate(started, result, "headless-main-scene", validation, err)
+		return finished, payload, validationExecution.warning, true
+	}
+
+	remaining = remainingGateTimeoutMS(deadline)
+	if remaining < 1 {
+		failure := contract.Error{Code: "POLICY_GATE_TIMEOUT", Category: "timeout", Message: "The command timeout expired before automatic workflow gates completed.", Retryable: true}
+		finished, payload := finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Automatic build/export gates exceeded the command timeout.", "", nil, failure)
+		return finished, payload, validationExecution.warning, true
+	}
+	testArgs := []string{"--project", options.project, "--timeout-ms", strconv.FormatInt(remaining, 10)}
+	if options.explicitGodot {
+		testArgs = append(testArgs, "--godot", options.godot)
+	}
+	if options.allowEngineUserData {
+		testArgs = append(testArgs, "--allow-engine-user-data")
+	}
+	testExecution := runTestWithPolicy(ctx, time.Now().UTC(), testArgs, state.Mode, nil)
+	testResult, err := decodePolicyGateExecution(testExecution)
+	warnings := validationExecution.warning + testExecution.warning
+	if err != nil || testResult.Outcome != "PASS" {
+		if artifactWorkflowTimedOut(ctx) {
+			finished, payload := finishArtifactWorkflowTimeout(started, result, "policy-gates")
+			return finished, payload, warnings, true
+		}
+		finished, payload := finishArtifactPolicyGate(started, result, "fixed-gdscript-tests", testResult, err)
+		return finished, payload, warnings, true
+	}
+	if state.Mode == "strict" {
+		failure := contract.Error{
+			Code:        "STRICT_GATES_UNAVAILABLE",
+			Category:    "policy",
+			Message:     "Strict build/export gates are not complete in the current M2 implementation.",
+			Retryable:   true,
+			Remediation: "Use standard mode for the current production subset, or wait for the M3 source and distribution contracts before strict release work.",
+			Details: map[string]any{
+				"not_run": []string{"run-store-integrity", "source-tree-policy", "distribution-metadata"},
+			},
+		}
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Strict build/export gates are not yet available.", "", nil, failure)
+		return finished, payload, warnings, true
+	}
+	return contract.Result{}, runPayload{}, warnings, false
+}
+
+func preflightArtifactWorkflowSafety(ctx context.Context, started time.Time, result contract.Result, pinnedProjectRoot *os.Root, projectPath string, options exportOptions) (contract.Result, runPayload, bool) {
 	if err := ctx.Err(); err != nil {
+		if artifactWorkflowTimedOut(ctx) {
+			finished, payload := finishArtifactWorkflowTimeout(started, result, "policy-gates")
+			return finished, payload, true
+		}
+		failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "Godot export was cancelled before automatic workflow gates.", Retryable: true}
+		finished, payload := finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Automatic build/export gates were cancelled.", "", nil, failure)
+		return finished, payload, true
+	}
+	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
+		failure := prerequisiteError("EXPORT_HOST_NOT_VERIFIED", "The first production export slice is enabled only on macOS Apple Silicon.", "Use macOS Apple Silicon or wait for native validation of the requested host.")
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "This host is not enabled for production export.", "", nil, failure)
+		return finished, payload, true
+	}
+	if !options.allowEngineUserData {
+		failure := contract.Error{Code: "ENGINE_USER_DATA_NOT_AUTHORIZED", Category: "policy", Message: "Godot export may create its standard user:// directory outside the project.", Retryable: true, Remediation: "Review the documented side effect, then rerun with --allow-engine-user-data."}
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export requires explicit authorization for Godot user data.", "", nil, failure)
+		return finished, payload, true
+	}
+	projectContent, err := readPinnedProjectFile(pinnedProjectRoot)
+	if err != nil {
+		failure := prerequisiteError("GODOT_PROJECT_UNREADABLE", "project.godot must be a bounded regular file inside the pinned project directory.", "Replace symlinks or special files with a regular project.godot at or below 1 MiB.")
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export could not read the project.", "", nil, failure)
+		return finished, payload, true
+	}
+	usesDotNet, err := pinnedProjectUsesDotNet(ctx, pinnedProjectRoot, projectContent)
+	if err != nil || usesDotNet {
+		failure := prerequisiteError("GODOT_DOTNET_UNSUPPORTED", "Godot export supports only the v1.0 standard/GDScript project contract.", "Use a standard Godot GDScript project for v1.0.")
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export only supports standard Godot projects.", "", nil, failure)
+		return finished, payload, true
+	}
+	preset, err := readPinnedExportPresets(pinnedProjectRoot)
+	if err != nil || !validateMacOSExportPreset(preset, options.preset) {
+		failure := prerequisiteError("GODOT_EXPORT_PRESET_INVALID", "The fixed macOS Technical export preset is missing, unsafe, or outside the unsigned Universal 2 contract.", "Add the documented unsigned macOS Technical preset and rerun export.")
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export preset validation did not pass.", "", nil, failure)
+		return finished, payload, true
+	}
+	sources, sourceFailure := openPinnedGodotExecutionSources(pinnedProjectRoot, projectPath, options.godot, options.explicitGodot)
+	if sourceFailure != nil {
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export could not pin its execution sources.", "", nil, *sourceFailure)
+		return finished, payload, true
+	}
+	defer sources.close()
+	requiredTemplates, _ := requiredExportTemplateFiles(runtime.GOOS, runtime.GOARCH)
+	if _, err := locateGodotExportTemplates(sources.enginePath, requiredTemplates); err != nil {
+		failure := prerequisiteError("GODOT_EXPORT_TEMPLATES_MISSING", "Matching Godot 4.7.2-stable macOS export templates were not found as bounded regular files.", "Install the official export templates, then rerun export.")
+		finished, payload := finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export templates are incomplete.", "", nil, failure)
+		return finished, payload, true
+	}
+	return contract.Result{}, runPayload{}, false
+}
+
+func remainingGateTimeoutMS(deadline time.Time) int64 {
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		return 0
+	}
+	milliseconds := (remaining + time.Millisecond - 1) / time.Millisecond
+	if milliseconds > time.Duration(maxTimeoutMS) {
+		return maxTimeoutMS
+	}
+	return int64(milliseconds)
+}
+
+func artifactWorkflowTimedOut(ctx context.Context) bool {
+	return errors.Is(context.Cause(ctx), errArtifactWorkflowTimeout)
+}
+
+func finishArtifactWorkflowTimeout(started time.Time, result contract.Result, stage string) (contract.Result, runPayload) {
+	failure := contract.Error{Code: "GODOT_TIMEOUT", Category: "timeout", Message: "Godot build/export exceeded its total operational timeout.", Retryable: true, Details: map[string]any{"stage": stage}}
+	return finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Godot build/export exceeded its total timeout.", "", nil, failure)
+}
+
+func decodePolicyGateExecution(execution encodedExecution) (contract.Result, error) {
+	if len(execution.resultBytes) == 0 {
+		return contract.Result{}, errors.New("policy gate did not return a command result")
+	}
+	var result contract.Result
+	if err := decodeStrictRunJSON(execution.resultBytes, &result); err != nil || result.ExitCode != execution.exitCode {
+		return contract.Result{}, errors.New("policy gate returned an invalid command result")
+	}
+	return result, nil
+}
+
+func finishArtifactPolicyGate(started time.Time, result contract.Result, gateID string, observed contract.Result, decodeErr error) (contract.Result, runPayload) {
+	if decodeErr != nil {
+		failure := contract.Error{Code: "POLICY_GATE_RESULT_INVALID", Category: "internal", Message: "An automatic workflow gate returned an invalid structured result.", Retryable: false, Details: map[string]any{"gate": gateID}}
+		return finishExportResult(started, result, "FAIL", contract.ExitInternal, "Automatic build/export gate evaluation failed.", "", nil, failure)
+	}
+	outcome := observed.Outcome
+	exitCode := observed.ExitCode
+	if outcome != "BLOCKED" {
+		outcome = "FAIL"
+	}
+	if outcome == "BLOCKED" {
+		exitCode = contract.ExitPrerequisite
+	}
+	code := "POLICY_GATE_FAILED"
+	category := "policy"
+	retryable := outcome == "BLOCKED"
+	if observed.ExitCode == contract.ExitInterrupted {
+		code = "COMMAND_CANCELLED"
+		category = "cancelled"
+		retryable = true
+	}
+	details := map[string]any{"gate": gateID, "upstream_command": observed.Command.Name, "upstream_outcome": observed.Outcome, "upstream_exit_code": observed.ExitCode}
+	if len(observed.Errors) > 0 {
+		details["upstream_error_code"] = observed.Errors[0].Code
+	}
+	failure := contract.Error{Code: code, Category: category, Message: "An automatic build/export workflow gate did not pass.", Retryable: retryable, Remediation: "Inspect the recorded upstream gate result, resolve it, and rerun the original command.", Details: details}
+	return finishExportResult(started, result, outcome, exitCode, "Automatic build/export workflow gates did not pass.", "", nil, failure)
+}
+
+func executeGodotExport(ctx context.Context, started, deadline time.Time, result contract.Result, runRoot, stateRoot, pinnedProjectRoot *os.Root, projectPath string, options exportOptions) (contract.Result, runPayload) {
+	if err := ctx.Err(); err != nil {
+		if artifactWorkflowTimedOut(ctx) {
+			return finishArtifactWorkflowTimeout(started, result, "export-preflight")
+		}
 		failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "Godot export was cancelled before project inspection.", Retryable: true}
 		return finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Godot export was cancelled.", "", nil, failure)
 	}
@@ -215,11 +424,28 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 	defer artifactRoot.Close()
 	projectSnapshot, err := createGodotProjectSnapshot(ctx, runRoot, pinnedProjectRoot)
 	if err != nil {
+		if artifactWorkflowTimedOut(ctx) {
+			return finishArtifactWorkflowTimeout(started, result, "project-snapshot")
+		}
+		if ctx.Err() != nil {
+			failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "Godot export was cancelled while creating the isolated project snapshot.", Retryable: true}
+			return finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Godot export was cancelled.", "", nil, failure)
+		}
 		failure := prerequisiteError("GODOT_PROJECT_SNAPSHOT_UNAVAILABLE", "The project could not be copied into the bounded export snapshot without symlinks, special files, or hidden source writes.", "Keep the project within the documented snapshot bounds and replace project symlinks or special files with regular entries.")
 		return finishExportResult(started, result, "BLOCKED", contract.ExitPrerequisite, "Godot export could not create its isolated project snapshot.", "", nil, failure)
 	}
 	internalOutput := godotProjectOutputDirectory + "/game-" + options.profile + ".zip"
-	execution := runGodotExportAction(ctx, time.Duration(options.timeoutMS)*time.Millisecond, sources.runnerSource, sources.engineSource, runRoot, projectSnapshot.directory, options.profile, options.preset, internalOutput, templates)
+	remaining := time.Until(deadline)
+	if remaining <= 0 {
+		projectSnapshotCleanupErr := projectSnapshot.remove(runRoot)
+		if projectSnapshotCleanupErr != nil {
+			failure := contract.Error{Code: "GODOT_PROJECT_SNAPSHOT_CLEANUP_FAILED", Category: "state", Message: "The transient project snapshot could not be removed safely after the command timeout.", Retryable: true}
+			return finishExportResult(started, result, "FAIL", contract.ExitState, "Godot export could not close its isolated project snapshot.", "", nil, failure)
+		}
+		failure := contract.Error{Code: "GODOT_TIMEOUT", Category: "timeout", Message: "Godot export had no remaining command timeout after workflow gates.", Retryable: true, Details: map[string]any{"stage": "export"}}
+		return finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Godot export exceeded its total timeout.", "", nil, failure)
+	}
+	execution := runGodotExportAction(ctx, remaining, sources.runnerSource, sources.engineSource, runRoot, projectSnapshot.directory, options.profile, options.preset, internalOutput, templates)
 	var snapshotArtifact *exportArtifact
 	artifactValidationErr := error(nil)
 	targetSmoke := targetSmokeExecution{}
@@ -227,7 +453,7 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 	if execution.Failure == headlessFailureNone {
 		snapshotArtifact, artifactValidationErr = inspectExportArtifact(ctx, projectSnapshot.root, internalOutput, output)
 		if artifactValidationErr == nil {
-			remaining := time.Until(started.Add(time.Duration(options.timeoutMS) * time.Millisecond))
+			remaining := time.Until(deadline)
 			if remaining <= 0 {
 				targetSmoke.Process = processResult{TimedOut: true, Err: context.DeadlineExceeded}
 			} else {
@@ -240,6 +466,13 @@ func executeGodotExport(ctx context.Context, started time.Time, result contract.
 		}
 	}
 	projectSnapshotCleanupErr := projectSnapshot.remove(runRoot)
+	if artifactWorkflowTimedOut(ctx) {
+		return finishArtifactWorkflowTimeout(started, result, "artifact-verification")
+	}
+	if ctx.Err() != nil {
+		failure := contract.Error{Code: "COMMAND_CANCELLED", Category: "cancelled", Message: "Godot export was cancelled while verifying its artifact.", Retryable: true}
+		return finishExportResult(started, result, "FAIL", contract.ExitInterrupted, "Godot export was cancelled.", execution.Version, nil, failure)
+	}
 	if !pinnedProjectPathMatches(pinnedProjectRoot, projectPath) {
 		failure := contract.Error{Code: "PROJECT_CHANGED_DURING_EXPORT", Category: "state", Message: "The project path changed while Godot export was running.", Retryable: true}
 		return finishExportResult(started, result, "FAIL", contract.ExitState, "Godot export observations were discarded after the project changed.", execution.Version, nil, failure)
@@ -618,8 +851,11 @@ func mapExportExecutionFailure(execution godotHeadlessExecution) (string, int, c
 }
 
 func validatePersistedExportArguments(arguments map[string]any) error {
-	if len(arguments) != 7 || arguments["project"] != "." || arguments["preset"] != defaultMacOSExportPreset || arguments["target"] != "macos-universal2" {
+	if len(arguments) != 7 && len(arguments) != 8 || arguments["project"] != "." || arguments["preset"] != defaultMacOSExportPreset || arguments["target"] != "macos-universal2" {
 		return errors.New("persisted export arguments violate the fixed macOS contract")
+	}
+	if mode, exists := arguments["mode"]; exists && mode != "manual" && mode != "standard" && mode != "strict" {
+		return errors.New("persisted export mode is invalid")
 	}
 	profile, ok := arguments["profile"].(string)
 	if !ok || profile != "debug" && profile != "release" {

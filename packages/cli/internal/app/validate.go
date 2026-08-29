@@ -62,6 +62,10 @@ func runValidate(ctx context.Context, started time.Time, args []string) encodedE
 }
 
 func runValidateWithFault(ctx context.Context, started time.Time, args []string, fault runFault) encodedExecution {
+	return runValidateWithPolicy(ctx, started, args, "", fault)
+}
+
+func runValidateWithPolicy(ctx context.Context, started time.Time, args []string, policyMode string, fault runFault) encodedExecution {
 	set := newFlagSet("validate")
 	project := set.String("project", ".", "Godot project directory")
 	headless := set.Bool("headless", false, "run the fixed Godot headless scene validation")
@@ -113,7 +117,13 @@ func runValidateWithFault(ctx context.Context, started time.Time, args []string,
 	}
 
 	initial := contract.NewResult(started, command)
-	transaction, err := beginRun(stateRoot, state, initial, fault)
+	if policyMode == "" {
+		policyMode = state.Mode
+	}
+	if !validOptionalGateMode(policyMode) {
+		return encodeUncommittedResult(finishUncommittedValidate(started, command, options.scope(), "FAIL", contract.ExitState, "Project validation received an invalid internal policy mode.", contract.Error{Code: "POLICY_MODE_INVALID", Category: "state", Message: "The internal policy mode is outside the supported contract.", Retryable: false}))
+	}
+	transaction, err := beginRunWithPolicy(stateRoot, state, initial, policyMode, fault)
 	if err != nil {
 		return encodeRunBeginFailure(started, initial, err)
 	}

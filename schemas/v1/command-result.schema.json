@@ -110,7 +110,8 @@
                   "target": { "const": "macos-universal2" },
                   "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 3600000 },
                   "engine_user_data": { "type": "string", "enum": ["not-authorized", "standard-os-location"] },
-                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] }
+                  "godot_source": { "type": "string", "enum": ["explicit", "discovery"] },
+                  "mode": { "type": "string", "enum": ["manual", "standard", "strict"] }
                 }
               }
             }
@@ -137,6 +138,25 @@
             },
             "required": ["artifact_count", "engine_version"]
           }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "command": { "properties": { "name": { "enum": ["hooks list", "hooks plan", "hooks status", "hooks install", "hooks uninstall"] } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project"],
+                "properties": { "project": { "const": "." } }
+              }
+            }
+          },
+          "evidence": { "maxItems": 0 },
+          "data": { "$ref": "hooks-data.schema.json" }
         }
       }
     },
@@ -181,6 +201,38 @@
               "events": { "minItems": 1 }
             }
           }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "release check" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project"],
+                    "properties": { "project": { "const": "." } }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project", "mode"],
+                    "properties": {
+                      "project": { "const": "." },
+                      "mode": { "type": "string", "enum": ["manual", "standard", "strict"] }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "evidence": { "maxItems": 0 },
+          "data": { "$ref": "release-check-data.schema.json" }
         }
       }
     },

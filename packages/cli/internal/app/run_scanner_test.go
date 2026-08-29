@@ -50,12 +50,15 @@ func TestScanRunsClassifiesCommittedIncompleteOrphanAndCorrupt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	scan, err := scanRuns(context.Background(), stateRoot, state)
+	scan, err := scanRunsVerified(context.Background(), stateRoot, state)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if scan.Counts != (cleanRunCounts{Committed: 1, Incomplete: 1, Orphan: 1, Corrupt: 1}) {
 		t.Fatalf("unexpected counts: %+v", scan.Counts)
+	}
+	if len(scan.Verified) != 1 || scan.Verified[0].Result.RunID != committed.RunID || scan.Verified[0].ProjectRevision != 0 || scan.Verified[0].PolicyMode != "standard" {
+		t.Fatalf("committed run metadata was not returned safely: %+v", scan.Verified)
 	}
 	states := map[string]string{}
 	for _, item := range scan.Candidates {
@@ -445,7 +448,7 @@ func assertEmptyFailedCleanData(t *testing.T, result contract.Result) {
 }
 
 func emptyRunScanResult(scan runScanResult) bool {
-	return scan.Counts == (cleanRunCounts{}) && len(scan.Candidates) == 0 && len(scan.Protected) == 0
+	return scan.Counts == (cleanRunCounts{}) && len(scan.Candidates) == 0 && len(scan.Protected) == 0 && len(scan.Verified) == 0
 }
 
 type steppedCancelContext struct {

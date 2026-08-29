@@ -1,7 +1,7 @@
 # M2 三模式门禁策略契约验证
 
 - 日期：2026-08-29
-- 结论：PASS（策略契约子项；CLI/hook/CI 尚未完成）
+- 结论：PASS（策略契约子项；运行时结果另见 M2 runtime 记录）
 
 ## 决策
 
@@ -18,10 +18,10 @@
 - gate policy SHA-256：`93697a37fc30dd49633afaafc933284739322184100e8a30afe717bb128dea83`。
 - bundle manifest SHA-256：`5e65fb31d2a97e654c39c6451ee5258c30730b75e3424c6bc002c9d39121c746`。
 
-## 尚未完成
+## 后续实现状态
 
-- 现有 build/export 还没有执行 policy 新增的 standard/strict workflow gates。
-- 只读 `release check` 命令尚未实现。
-- Git hook 安装/卸载与最小 CI 尚未实现。
+- build/export 已执行 standard Headless/test workflow gates；strict 先执行同一子集，再对 M3 尚未冻结的 run-store/source/distribution 项明确阻断。
+- 只读 `release check` 已实现 manual/standard/strict 聚合、当前 revision latest 选择及 Release ZIP 复验；manual/standard 不返回 strict release-ready。
+- 显式可选 Git hook 生命周期与最小 macOS CI workflow 已实现并通过本地 contract/等价命令；GitHub-hosted 首次运行仍 `NOT RUN`。
 
-因此本文件只证明门禁表可分发且不可静默削弱，不把 V1-06 标记为 PASS。
+本文件原始结论仍只证明门禁表；运行时证据见 [`m2-gate-runtime-2026-08-29.md`](m2-gate-runtime-2026-08-29.md)。由于 strict M3 gates、GitHub-hosted CI 和修复后独立复审尚未完成，V1-06 仍保持 PARTIAL。
