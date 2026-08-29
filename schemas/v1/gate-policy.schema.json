@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gate-policy.schema.json",
+  "title": "Codex Game Atelier command gate policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "default_mode", "mode_order", "commands"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "default_mode": { "const": "standard" },
+    "mode_order": { "const": ["manual", "standard", "strict"] },
+    "commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build", "export", "release-check"],
+      "properties": {
+        "build": { "$ref": "#/$defs/modeGates" },
+        "export": { "$ref": "#/$defs/modeGates" },
+        "release-check": { "$ref": "#/$defs/modeGates" }
+      }
+    }
+  },
+  "$defs": {
+    "gateId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,63}$"
+    },
+    "gateList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/gateId" }
+    },
+    "modeGates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manual", "standard", "strict"],
+      "properties": {
+        "manual": { "$ref": "#/$defs/gateList" },
+        "standard": { "$ref": "#/$defs/gateList" },
+        "strict": { "$ref": "#/$defs/gateList" }
+      }
+    }
+  }
+}

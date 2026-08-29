@@ -16,6 +16,7 @@
 - `test-report.schema.json`：固定 GDScript 测试入口产生的严格逐项报告；CLI 解析后重新编码为 evidence。
 - `export-artifact.schema.json`：macOS 技术导出的 target/profile、Godot 版本、ZIP 摘要和非公开分发就绪声明。
 - `capability-profile-catalog.schema.json`：四个逻辑 Profile、能力等级、权限/独立性语义，以及任务覆盖、用户映射、会话继承、主机默认的绑定优先级；不包含具体模型 ID。
+- `gate-policy.schema.json`：`build`、`export`、`release-check` 在 `manual`、`standard`、`strict` 下的版本化、单调前置条件表。
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。

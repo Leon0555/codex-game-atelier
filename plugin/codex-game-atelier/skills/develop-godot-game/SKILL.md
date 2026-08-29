@@ -21,6 +21,8 @@ Before delegating implementation, review, or recovery work, load `references/nat
 
 Anchor paths at this installed Skill directory; do not search for a source checkout, Go toolchain, npm package, or same-named executable on `PATH`.
 
+Before `build` or `export`, load `references/gate-policy.json` and apply the project mode from `.gameatelier/project.json`. `manual` may omit only its listed workflow expansions; it cannot remove mandatory safety gates. `standard` is the default and `strict` is a monotonic superset. Do not claim `release check` exists until the bundled CLI exposes and verifies that command.
+
 - macOS Apple Silicon: `../../bin/darwin-universal2/codex-game-atelier`
 - Linux x64 artifact inventory only: `../../bin/linux-amd64/codex-game-atelier`
 - Windows x64 artifact inventory only: `..\\..\\bin\\windows-amd64\\codex-game-atelier.exe`

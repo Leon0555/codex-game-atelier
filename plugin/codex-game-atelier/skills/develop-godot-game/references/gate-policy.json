@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "default_mode": "standard",
+  "mode_order": ["manual", "standard", "strict"],
+  "commands": {
+    "build": {
+      "manual": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke"],
+      "standard": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke", "headless-main-scene", "fixed-gdscript-tests"],
+      "strict": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke", "headless-main-scene", "fixed-gdscript-tests", "run-store-integrity", "source-tree-policy", "distribution-metadata"]
+    },
+    "export": {
+      "manual": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke"],
+      "standard": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke", "headless-main-scene", "fixed-gdscript-tests"],
+      "strict": ["project-state", "supported-host", "godot-standard-version", "gdscript-only", "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke", "headless-main-scene", "fixed-gdscript-tests", "run-store-integrity", "source-tree-policy", "distribution-metadata"]
+    },
+    "release-check": {
+      "manual": ["project-state", "support-scope"],
+      "standard": ["project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export"],
+      "strict": ["project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export", "clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance", "required-ci"]
+    }
+  }
+}

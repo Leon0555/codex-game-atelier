@@ -42,6 +42,7 @@ ALLOWED_SOURCE_FILES = {
     "skills/develop-godot-game/SKILL.md",
     "skills/develop-godot-game/agents/openai.yaml",
     "skills/develop-godot-game/references/capability-profiles.json",
+    "skills/develop-godot-game/references/gate-policy.json",
     "skills/develop-godot-game/references/native-collaboration.md",
 }
 RECOVERY_SCHEMA_NAMES = ("common", "error", "task", "handoff", "evidence")
@@ -59,6 +60,11 @@ PROFILE_REQUIREMENTS = {
     "fast-read": ("standard", "read-only", "read-only", "supporting", "inherit-and-disclose"),
     "independent-audit": ("critical", "read-only", "read-only", "independent", "block"),
 }
+MANDATORY_EXPORT_GATES = {
+    "project-state", "supported-host", "godot-standard-version", "gdscript-only",
+    "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke",
+}
+STRICT_RELEASE_GATES = {"plugin-bundle", "starter-package", "license-and-provenance", "required-ci"}
 
 TARGETS = (
     {
@@ -275,6 +281,35 @@ def validate_profile_catalog(bundle: Path) -> None:
         raise BundleError("capability profile requirements are invalid")
 
 
+def validate_gate_policy(bundle: Path) -> None:
+    path = bundle / "skills" / "develop-godot-game" / "references" / "gate-policy.json"
+    regular_file(path, 64 * 1024)
+    try:
+        policy = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise BundleError("gate policy is not valid UTF-8 JSON") from error
+    if not isinstance(policy, dict) or set(policy) != {"schema_version", "default_mode", "mode_order", "commands"}:
+        raise BundleError("gate policy root is invalid")
+    if policy.get("schema_version") != "1.0.0" or policy.get("default_mode") != "standard" or policy.get("mode_order") != ["manual", "standard", "strict"]:
+        raise BundleError("gate policy identity is invalid")
+    commands = policy.get("commands")
+    if not isinstance(commands, dict) or set(commands) != {"build", "export", "release-check"} or commands.get("build") != commands.get("export"):
+        raise BundleError("gate policy command set is invalid")
+    for modes in commands.values():
+        if not isinstance(modes, dict) or set(modes) != {"manual", "standard", "strict"}:
+            raise BundleError("gate policy mode set is invalid")
+        values = []
+        for mode in ("manual", "standard", "strict"):
+            gates = modes.get(mode)
+            if not isinstance(gates, list) or not gates or any(not isinstance(gate, str) or not re.fullmatch(r"[a-z][a-z0-9-]{1,63}", gate) for gate in gates) or len(gates) != len(set(gates)):
+                raise BundleError("gate policy list is invalid")
+            values.append(set(gates))
+        if not values[0] < values[1] or not values[1] < values[2]:
+            raise BundleError("gate policy modes are not strict monotonic supersets")
+    if not MANDATORY_EXPORT_GATES.issubset(set(commands["build"]["manual"])) or not STRICT_RELEASE_GATES.issubset(set(commands["release-check"]["strict"])):
+        raise BundleError("gate policy mandatory gates are incomplete")
+
+
 def inspect_binary(path: Path, expected_format: str) -> None:
     details = regular_file(path, MAX_BINARY_BYTES)
     with path.open("rb") as source:
@@ -476,6 +511,7 @@ def verify_bundle(bundle: Path) -> None:
         raise BundleError("internal AGENTS.md entered the plugin bundle")
     verify_distributed_model_policy(bundle)
     validate_profile_catalog(bundle)
+    validate_gate_policy(bundle)
     validate_recovery_schema_closure(bundle)
     for target in TARGETS:
         host = target["host"]

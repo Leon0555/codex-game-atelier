@@ -201,6 +201,22 @@ class PluginBundleTests(unittest.TestCase):
             with self.assertRaises(package_plugin.BundleError):
                 package_plugin.validate_recovery_schema_closure(bundle)
 
+    def test_gate_policy_is_packaged_and_semantically_enforced(self) -> None:
+        relative = "skills/develop-godot-game/references/gate-policy.json"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = self.sources(root / "sources")
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, sources))
+            distributed = bundle / relative
+            self.assertEqual(distributed.read_bytes(), (package_plugin.PLUGIN_SOURCE / relative).read_bytes())
+            policy = json.loads(distributed.read_text(encoding="utf-8"))
+            policy["commands"]["build"]["manual"].remove("target-smoke")
+            distributed.write_text(json.dumps(policy), encoding="utf-8")
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.validate_gate_policy(bundle)
+
     def test_symlink_binary_and_existing_output_are_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

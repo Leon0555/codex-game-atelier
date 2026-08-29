@@ -18,6 +18,7 @@ SCHEMA_ROOT = ROOT / "schemas" / "v1"
 FIXTURE_ROOT = ROOT / "tests" / "fixtures" / "schemas" / "v1"
 STARTER_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m1-vertical-slice-2026-08-28"
 PROFILE_CATALOG = ROOT / "plugin" / "codex-game-atelier" / "skills" / "develop-godot-game" / "references" / "capability-profiles.json"
+GATE_POLICY = ROOT / "plugin" / "codex-game-atelier" / "skills" / "develop-godot-game" / "references" / "gate-policy.json"
 COLLABORATION_EVIDENCE_ROOT = ROOT / "docs" / "validation" / "evidence" / "m2-native-collaboration-2026-08-28"
 
 
@@ -65,6 +66,10 @@ def main() -> None:
     validators["capability-profile-catalog"].validate(profile_catalog)
     if profile_catalog != load_json(FIXTURE_ROOT / "capability-profile-catalog.default.json"):
         raise SystemExit("distributed capability profile catalog differs from its contract fixture")
+    gate_policy = load_json(GATE_POLICY)
+    validators["gate-policy"].validate(gate_policy)
+    if gate_policy != load_json(FIXTURE_ROOT / "gate-policy.default.json"):
+        raise SystemExit("distributed gate policy differs from its contract fixture")
 
     persisted_evidence = {
         "initialize-first.json": "command-result",

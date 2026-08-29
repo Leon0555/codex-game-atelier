@@ -81,3 +81,11 @@ Codex 没有理由依赖某个外部模板的 hook 语义；用户也可能没�
 - 在未安装 hooks、hooks 失败和 `--no-verify` 情况下，CLI/CI 仍正确阻断。
 - 验证 hooks 安装/冲突/卸载只影响列明路径。
 - 验证普通 build/export/release 无需先手动 validate。
+
+## Phase 1 实现记录（2026-08-29）
+
+- 随 Plugin 分发 `gate-policy.json`，固定 `manual < standard < strict` 的单调门禁集合，默认 `standard`。
+- `build` 与 `export` 使用完全相同的门禁图；`manual` 仍必须保留项目状态、宿主、Godot 标准版、GDScript、外部写入授权、固定 preset、artifact 完整性和 target smoke。
+- `standard` 在此基础上加入主场景 Headless 与固定 GDScript tests；`strict` 再加入 run store、source policy 和分发 metadata。
+- `release-check` 只有 strict 集合包含 Plugin、Starter、许可/来源与 required CI 完整发布项；manual/standard 不能被描述为发布就绪。
+- Schema、contract fixture、语义测试和 Plugin 打包器共同阻止降级、非单调模式或缺少 mandatory gate 的分发。本记录只冻结策略契约；CLI 消费、hooks 与 CI 仍按后续切片实现。
