@@ -54,6 +54,11 @@ FORBIDDEN_CONCRETE_MODEL_ID = re.compile(
     r"\b(?:gpt|claude|gemini|deepseek|llama|mistral|qwen)[-_ ]?\d",
     re.IGNORECASE,
 )
+SEMVER = re.compile(
+    r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)"
+    r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
 PROFILE_REQUIREMENTS = {
     "lead": ("high", "coordination", "task-authorized", "primary", "inherit-and-disclose"),
     "implementation": ("high", "implementation", "task-authorized", "supporting", "inherit-and-disclose"),
@@ -419,6 +424,16 @@ def read_plugin_manifest(bundle: Path) -> dict[str, object]:
     return manifest
 
 
+def override_plugin_version(bundle: Path, version: str) -> None:
+    if SEMVER.fullmatch(version) is None:
+        raise BundleError("Plugin version override is not valid semantic versioning")
+    path = bundle / ".codex-plugin" / "plugin.json"
+    manifest = read_plugin_manifest(bundle)
+    manifest["version"] = version
+    path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    path.chmod(0o644)
+
+
 def write_bundle_manifest(bundle: Path) -> None:
     plugin = read_plugin_manifest(bundle)
     content = {
@@ -694,6 +709,9 @@ def build_bundle(args: argparse.Namespace) -> None:
     output.mkdir(mode=0o755)
     try:
         copy_source_tree(PLUGIN_SOURCE, output)
+        version_override = getattr(args, "version", None)
+        if version_override:
+            override_plugin_version(output, version_override)
         copy_recovery_schema_closure(output)
         copy_regular = ((ROOT / "LICENSE", output / "LICENSE"), (ROOT / "NOTICE", output / "NOTICE"))
         for source, destination in copy_regular:
@@ -728,6 +746,7 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("--linux-runner", type=Path, required=True)
     build.add_argument("--windows-cli", type=Path, required=True)
     build.add_argument("--windows-runner", type=Path, required=True)
+    build.add_argument("--version", help="override the packaged SemVer for a trusted local lifecycle or release build")
     verify = commands.add_parser("verify", help="structurally verify a bundle without executing it")
     verify.add_argument("bundle", type=Path)
     smoke = commands.add_parser("smoke-trusted-bundle", help="execute native entry smoke for a trusted local build only")

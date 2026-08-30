@@ -102,6 +102,23 @@ class PluginBundleTests(unittest.TestCase):
             self.assertEqual(package_plugin.bundle_files(first), package_plugin.bundle_files(second))
             self.assertFalse(any(path.name == "AGENTS.md" for path in first.rglob("*")))
 
+    def test_build_can_override_one_closed_semver_without_changing_source(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            sources = self.sources(root / "sources")
+            arguments = self.arguments(root / "bundle", sources)
+            arguments.version = "0.2.0+codex.lifecycle-a"
+            package_plugin.build_bundle(arguments)
+            packaged = package_plugin.read_plugin_manifest(arguments.output)
+            source = json.loads((package_plugin.PLUGIN_SOURCE / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))
+            self.assertEqual(packaged["version"], "0.2.0+codex.lifecycle-a")
+            self.assertNotEqual(source["version"], packaged["version"])
+
+            invalid = self.arguments(root / "invalid", sources)
+            invalid.version = "not semver"
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.build_bundle(invalid)
+
     def test_tamper_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
