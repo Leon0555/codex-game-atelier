@@ -16,7 +16,6 @@ import (
 const maxPinnedRunnerControlBytes = 1024
 
 var runnerNoncePattern = regexp.MustCompile(`^[a-f0-9]{32}$`)
-var exportOutputPattern = regexp.MustCompile(`^\.atelier-output/game-(?:debug|release)\.zip$`)
 
 func execPinnedGodot(expectedNonce string) error {
 	if !runnerNoncePattern.MatchString(expectedNonce) {

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "distribution-manifest.schema.json",
+  "title": "Codex Game Atelier closed local distribution manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "release",
+    "components",
+    "engine",
+    "policies",
+    "files",
+    "file_count",
+    "expanded_byte_size"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "status", "external_publication_performed"],
+      "properties": {
+        "name": { "const": "codex-game-atelier" },
+        "version": { "$ref": "#/$defs/version" },
+        "status": { "const": "local-candidate" },
+        "external_publication_performed": { "const": false }
+      }
+    },
+    "components": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plugin", "starter_template"],
+      "properties": {
+        "plugin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "archive", "checksum", "cli_version", "private_runner_version"],
+          "properties": {
+            "name": { "const": "codex-game-atelier" },
+            "version": { "$ref": "#/$defs/version" },
+            "archive": { "$ref": "#/$defs/fileName" },
+            "checksum": { "$ref": "#/$defs/fileName" },
+            "cli_version": { "$ref": "#/$defs/version" },
+            "private_runner_version": { "$ref": "#/$defs/version" }
+          }
+        },
+        "starter_template": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "archive", "checksum", "verified_plugin_version", "embedded_plugin"],
+          "properties": {
+            "name": { "const": "codex-game-atelier-starter" },
+            "version": { "$ref": "#/$defs/version" },
+            "archive": { "$ref": "#/$defs/fileName" },
+            "checksum": { "$ref": "#/$defs/fileName" },
+            "verified_plugin_version": { "$ref": "#/$defs/version" },
+            "embedded_plugin": { "const": false }
+          }
+        }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "version", "edition", "language"],
+      "properties": {
+        "kind": { "const": "godot" },
+        "version": { "const": "4.7.2-stable" },
+        "edition": { "const": "standard" },
+        "language": { "const": "gdscript" }
+      }
+    },
+    "policies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "license",
+        "source_build_required",
+        "telemetry_enabled",
+        "hidden_external_writes",
+        "git_hooks_automatically_installed",
+        "game_export_signing_notarization_required",
+        "framework_artifact_signing_notarization_status"
+      ],
+      "properties": {
+        "license": { "const": "MIT" },
+        "source_build_required": { "const": false },
+        "telemetry_enabled": { "const": false },
+        "hidden_external_writes": { "const": false },
+        "git_hooks_automatically_installed": { "const": false },
+        "game_export_signing_notarization_required": { "const": false },
+        "framework_artifact_signing_notarization_status": { "const": "NOT_EVALUATED" }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "byte_size", "sha256", "mode"],
+        "properties": {
+          "path": { "$ref": "#/$defs/fileName" },
+          "byte_size": { "type": "integer", "minimum": 1, "maximum": 167772160 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "mode": { "const": 420 }
+        }
+      }
+    },
+    "file_count": { "const": 6 },
+    "expanded_byte_size": { "type": "integer", "minimum": 6, "maximum": 201326592 }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "fileName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160,
+      "pattern": "^[^/\\\\:\\u0000-\\u001f]+$"
+    }
+  }
+}

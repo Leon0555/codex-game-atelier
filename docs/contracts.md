@@ -18,6 +18,7 @@
 - `capability-profile-catalog.schema.json`：四个逻辑 Profile、能力等级、权限/独立性语义，以及任务覆盖、用户映射、会话继承、主机默认的绑定优先级；不包含具体模型 ID。
 - `gate-policy.schema.json`：`build`、`export`、`release-check` 在 `manual`、`standard`、`strict` 下的版本化、单调前置条件表。
 - `release-check-data.schema.json`：只读发布聚合的所选模式、项目 revision、逐门禁结果、计数和严格发布就绪布尔值。
+- `distribution-manifest.schema.json`：维护端本地 candidate 的 Plugin/CLI/runner/Starter 精确版本闭合、固定文件清单、许可和无隐式安装策略；它不是 CLI command result，也不表示已经外部发布。
 - `task.schema.json`：有界工作项、所有权、允许路径和生命周期。
 - `handoff.schema.json`：可恢复交接，不承载隐藏推理过程。
 - `project-state.schema.json`：项目模式、Godot 选择及任务/run 索引。
@@ -78,3 +79,5 @@ Hooks 命令同样不写 `.gameatelier` evidence；只有显式 `hooks install/u
 ## 版本策略
 
 第一版 schema 版本为 `1.0.0`。任何破坏性变化都需要 ADR、迁移预览、备份与回退；文件中的 `schema_version` 不能随 CLI 版本隐式改变。Phase 1 生产基线仍不等于 v1.0 长期兼容冻结。
+
+维护端 `tools/package_distribution.py` 不属于最终用户 CLI。它只在已验证 Plugin bundle 与 Starter package 之上创建或静态复验一个此前不存在的本地 candidate；不会安装 Plugin、修改 Codex 配置、联网或发布。candidate 的 `local-candidate` 状态、framework artifact `NOT_EVALUATED` 签名/公证状态以及 Windows/Linux 原生 `NOT_RUN` 不得被解释成严格发布通过。

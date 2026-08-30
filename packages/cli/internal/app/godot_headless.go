@@ -8,11 +8,14 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 )
 
 const maxHeadlessOutputBytes = 256 * 1024
+
+var exportOutputPattern = regexp.MustCompile(`^\.atelier-output/game-(?:debug|release)\.zip$`)
 
 type godotHeadlessFailure string
 

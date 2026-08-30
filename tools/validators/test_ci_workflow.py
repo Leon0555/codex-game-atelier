@@ -33,6 +33,8 @@ class CIWorkflowTests(unittest.TestCase):
             "go-version: 1.24.x",
             "go vet ./...",
             "go test -count=1 ./...",
+            "GOOS=linux GOARCH=amd64 go build",
+            "GOOS=windows GOARCH=amd64 go build",
             "validate_schemas.py",
             "unittest discover",
             "./cmd/codex-game-atelier",

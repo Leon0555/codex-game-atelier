@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0 已审阅通过；M1 已完成，当前进入 M2
-更新日期：2026-08-28
+状态：Phase 0 已审阅通过；M1/M2 本地实现已完成，当前进入 M3
+更新日期：2026-08-30
 
 ## 1. 已完成基线
 
@@ -39,7 +39,7 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 
 退出条件：Apple Silicon 上 Debug 与 Release 技术导出均有可复现 PASS evidence，产物可启动并正常退出；未验证范围被明确标记。
 
-### M2：可协作、可管控（当前）
+### M2：可协作、可管控（本地实现已完成）
 
 目标：用最小机制证明 Codex 原生协作与发布前门禁，不建设通用编排或策略平台。
 
@@ -62,7 +62,7 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. 冻结 Plugin/Starter Template/CLI 的版本闭合和分发清单。
+1. **已完成（本地开发候选）**：冻结 Plugin/Starter Template/CLI 的精确版本闭合和分发清单；两次候选逐字节一致。当前 `0.2.0` 不是 v1.0 最终版本冻结，framework artifact Gatekeeper 状态仍 `NOT_EVALUATED`。
 2. 在干净用户路径集中演练取得、安装、发现、初始化、升级、卸载和回滚；保留用户项目与凭据。
 3. 验证 checksum、manifest、LICENSE、NOTICE、provenance、无默认遥测和无隐藏外部写入。
 4. 在候选版本阶段才完成 npm Trusted Publishing、2FA 和 package provenance 的只读/预发布设计演练；不实际发布。

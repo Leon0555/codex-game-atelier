@@ -1,0 +1,52 @@
+{
+  "schema_version": "1.0.0",
+  "release": {
+    "name": "codex-game-atelier",
+    "version": "0.2.0",
+    "status": "local-candidate",
+    "external_publication_performed": false
+  },
+  "components": {
+    "plugin": {
+      "name": "codex-game-atelier",
+      "version": "0.2.0",
+      "archive": "codex-game-atelier-0.2.0.tar.gz",
+      "checksum": "codex-game-atelier-0.2.0.tar.gz.sha256",
+      "cli_version": "0.2.0",
+      "private_runner_version": "0.2.0"
+    },
+    "starter_template": {
+      "name": "codex-game-atelier-starter",
+      "version": "0.2.0",
+      "archive": "codex-game-atelier-starter-0.2.0.tar.gz",
+      "checksum": "codex-game-atelier-starter-0.2.0.tar.gz.sha256",
+      "verified_plugin_version": "0.2.0",
+      "embedded_plugin": false
+    }
+  },
+  "engine": {
+    "kind": "godot",
+    "version": "4.7.2-stable",
+    "edition": "standard",
+    "language": "gdscript"
+  },
+  "policies": {
+    "license": "MIT",
+    "source_build_required": false,
+    "telemetry_enabled": false,
+    "hidden_external_writes": false,
+    "git_hooks_automatically_installed": false,
+    "game_export_signing_notarization_required": false,
+    "framework_artifact_signing_notarization_status": "NOT_EVALUATED"
+  },
+  "files": [
+    { "path": "LICENSE", "byte_size": 1072, "sha256": "0000000000000000000000000000000000000000000000000000000000000000", "mode": 420 },
+    { "path": "NOTICE", "byte_size": 512, "sha256": "1111111111111111111111111111111111111111111111111111111111111111", "mode": 420 },
+    { "path": "codex-game-atelier-0.2.0.tar.gz", "byte_size": 12000000, "sha256": "2222222222222222222222222222222222222222222222222222222222222222", "mode": 420 },
+    { "path": "codex-game-atelier-0.2.0.tar.gz.sha256", "byte_size": 106, "sha256": "3333333333333333333333333333333333333333333333333333333333333333", "mode": 420 },
+    { "path": "codex-game-atelier-starter-0.2.0.tar.gz", "byte_size": 18000, "sha256": "4444444444444444444444444444444444444444444444444444444444444444", "mode": 420 },
+    { "path": "codex-game-atelier-starter-0.2.0.tar.gz.sha256", "byte_size": 114, "sha256": "5555555555555555555555555555555555555555555555555555555555555555", "mode": 420 }
+  ],
+  "file_count": 6,
+  "expanded_byte_size": 12019804
+}

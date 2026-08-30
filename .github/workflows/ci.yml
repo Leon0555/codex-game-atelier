@@ -50,6 +50,16 @@ jobs:
         working-directory: packages/cli
         run: go test -count=1 ./...
 
+      - name: Cross-build artifact-only entry pairs
+        working-directory: packages/cli
+        env:
+          CGO_ENABLED: "0"
+        run: |
+          GOOS=linux GOARCH=amd64 go build -trimpath -o "$RUNNER_TEMP/codex-game-atelier-linux-amd64" ./cmd/codex-game-atelier
+          GOOS=linux GOARCH=amd64 go build -trimpath -o "$RUNNER_TEMP/codex-game-atelier-runner-linux-amd64" ./cmd/codex-game-atelier-runner
+          GOOS=windows GOARCH=amd64 go build -trimpath -o "$RUNNER_TEMP/codex-game-atelier-windows-amd64.exe" ./cmd/codex-game-atelier
+          GOOS=windows GOARCH=amd64 go build -trimpath -o "$RUNNER_TEMP/codex-game-atelier-runner-windows-amd64.exe" ./cmd/codex-game-atelier-runner
+
       - name: Run Schema and distribution tests
         run: |
           python tools/validators/validate_schemas.py

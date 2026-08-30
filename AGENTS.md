@@ -66,10 +66,11 @@ v1.0 只承诺 Support Matrix 中明确列出的 Godot 版本、宿主平台和�
 
 ## 5. 当前阶段门禁
 
-Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导出闭环已于 2026-08-28 完成本地验证，当前进入 M2：可协作、可管控。允许：
+Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导出与 M2 可协作/可管控已完成本地实现，当前进入 M3：可安装、可发布验证。允许：
 
 - 冻结已批准的 Support Matrix、ADR 与公共 JSON 契约。
-- 实现和验证逻辑能力 Profile、一次有界 Codex 原生协作、`manual`/`standard`/`strict` 门禁、只读 `release check`、显式可选 Git hook 与最小 CI。
+- 维护已完成的逻辑能力 Profile、有界 Codex 原生协作、`manual`/`standard`/`strict` 门禁、只读 `release check`、显式可选 Git hook 与最小 CI。
+- 冻结 Plugin/Starter/CLI 分发闭包，并在明确权限边界内验证取得、安装、发现、初始化、升级、卸载、回滚、许可、来源与无隐藏外部写入。
 - 维护已完成的 Go CLI、Plugin、Skill、Starter Template、Godot 垂直切片和 M1 evidence；实验产物不得直接视为生产实现。
 - 只读环境检查、官方资料研究和非破坏性验证。
 
