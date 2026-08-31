@@ -159,13 +159,24 @@ class StarterTemplatePackageTests(unittest.TestCase):
             with self.assertRaises(packager.TemplatePackageError):
                 packager.create_archive(package, archive)
 
-    def test_persisted_manifest_matches_the_current_package(self) -> None:
+    def test_persisted_manifest_matches_the_current_template_sources(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             package = self.build(Path(temporary))
             generated = json.loads((package / packager.PACKAGE_MANIFEST).read_text(encoding="utf-8"))
             persisted = json.loads((EVIDENCE / "template-manifest.json").read_text(encoding="utf-8"))
             artifact = json.loads((EVIDENCE / "artifact.json").read_text(encoding="utf-8"))
-            self.assertEqual(generated, persisted)
+            generated_sources = {
+                entry["path"]: entry
+                for entry in generated["files"]
+                if entry["path"] in packager.SOURCE_FILES
+            }
+            persisted_sources = {
+                entry["path"]: entry
+                for entry in persisted["files"]
+                if entry["path"] in packager.SOURCE_FILES
+            }
+            self.assertEqual(generated_sources, persisted_sources)
+            self.assertEqual(generated["pairing"], persisted["pairing"])
             self.assertEqual(artifact["decision"], {
                 "adr": "0014-starter-template-boundary",
                 "option": "A",

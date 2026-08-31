@@ -22,6 +22,15 @@ SPEC.loader.exec_module(package_distribution)
 
 class DistributionPackageTests(unittest.TestCase):
     VERSION = "0.2.0"
+    BUILD_PROVENANCE = {
+        "source_revision": "a" * 40,
+        "source_clean": True,
+        "go_version": "go1.27.0",
+        "trimpath": True,
+        "cgo_enabled": False,
+        "binary_file_count": 6,
+        "binary_build_record_count": 8,
+    }
 
     def inputs(self, root: Path, starter_version: str | None = None) -> tuple[Path, Path]:
         plugin = root / "plugin"
@@ -29,7 +38,12 @@ class DistributionPackageTests(unittest.TestCase):
         plugin.mkdir()
         starter.mkdir()
         (plugin / "BUNDLE-MANIFEST.json").write_text(
-            json.dumps({"plugin": {"name": "codex-game-atelier", "version": self.VERSION}}),
+            json.dumps(
+                {
+                    "plugin": {"name": "codex-game-atelier", "version": self.VERSION},
+                    "build_provenance": self.BUILD_PROVENANCE,
+                }
+            ),
             encoding="utf-8",
         )
         (starter / "TEMPLATE-MANIFEST.json").write_text(
@@ -89,6 +103,7 @@ class DistributionPackageTests(unittest.TestCase):
                 self.VERSION,
             )
             self.assertFalse(manifest["release"]["external_publication_performed"])
+            self.assertEqual(manifest["build_provenance"], self.BUILD_PROVENANCE)
             self.assertFalse(manifest["policies"]["source_build_required"])
             self.assertFalse(manifest["policies"]["telemetry_enabled"])
 
@@ -101,6 +116,18 @@ class DistributionPackageTests(unittest.TestCase):
 
             (output / "NOTICE").write_bytes((package_distribution.ROOT / "NOTICE").read_bytes())
             (output / "unexpected.txt").write_text("unexpected\n", encoding="utf-8")
+            with self.assertRaises(package_distribution.DistributionError):
+                package_distribution.verify_candidate(output)
+
+    def test_verify_rejects_provenance_that_differs_from_plugin(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="atelier-distribution-") as temporary:
+            output = self.build(Path(temporary))
+            manifest = package_distribution.load_manifest(output)
+            manifest["build_provenance"]["source_revision"] = "b" * 40
+            (output / package_distribution.MANIFEST_NAME).write_text(
+                json.dumps(manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
             with self.assertRaises(package_distribution.DistributionError):
                 package_distribution.verify_candidate(output)
 

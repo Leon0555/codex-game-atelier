@@ -37,6 +37,7 @@ MAX_ARCHIVE_BYTES = 128 * 1024 * 1024
 MAX_ARCHIVE_MEMBERS = 64
 BUNDLE_MANIFEST = "BUNDLE-MANIFEST.json"
 ARCHIVE_ROOT = "codex-game-atelier"
+THIRD_PARTY_NOTICES = "THIRD_PARTY_NOTICES"
 ALLOWED_SOURCE_FILES = {
     ".codex-plugin/plugin.json",
     "skills/develop-godot-game/SKILL.md",
@@ -59,6 +60,13 @@ SEMVER = re.compile(
     r"(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
+SOURCE_REVISION = re.compile(r"^[0-9a-f]{40}$")
+GO_VERSION = re.compile(r"^go[0-9]+\.[0-9]+\.[0-9]+$")
+GO_MODULE = "github.com/Leon0555/codex-game-atelier/packages/cli"
+GO_PACKAGES = {
+    "cli": GO_MODULE + "/cmd/codex-game-atelier",
+    "runner": GO_MODULE + "/cmd/codex-game-atelier-runner",
+}
 PROFILE_REQUIREMENTS = {
     "lead": ("high", "coordination", "task-authorized", "primary", "inherit-and-disclose"),
     "implementation": ("high", "implementation", "task-authorized", "supporting", "inherit-and-disclose"),
@@ -383,6 +391,161 @@ def copy_binary(source: Path, destination: Path, expected_format: str) -> None:
     destination.chmod(0o755)
 
 
+def checked_text_command(arguments: list[str], label: str, cwd: Path = ROOT) -> str:
+    try:
+        result = subprocess.run(
+            arguments,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+            timeout=30,
+        )
+    except (OSError, subprocess.TimeoutExpired) as error:
+        raise BundleError(f"{label} could not run") from error
+    if result.returncode != 0 or len(result.stdout) > 1024 * 1024 or len(result.stderr) > 1024 * 1024:
+        raise BundleError(f"{label} failed or exceeded its output bound")
+    try:
+        return result.stdout.decode("utf-8")
+    except UnicodeError as error:
+        raise BundleError(f"{label} returned non-UTF-8 output") from error
+
+
+def clean_source_revision() -> str:
+    status = checked_text_command(
+        ["/usr/bin/git", "status", "--porcelain=v1", "--untracked-files=normal"],
+        "Git clean-source inspection",
+    )
+    if status:
+        raise BundleError("Plugin bundle requires a clean Git worktree")
+    revision = checked_text_command(["/usr/bin/git", "rev-parse", "HEAD"], "Git source revision").strip()
+    if SOURCE_REVISION.fullmatch(revision) is None:
+        raise BundleError("Git source revision is invalid")
+    return revision
+
+
+def parse_go_build_info(go_tool: Path, binary: Path) -> dict[str, str]:
+    output = checked_text_command([str(go_tool), "version", "-m", str(binary)], "Go build metadata inspection")
+    lines = output.splitlines()
+    if not lines:
+        raise BundleError("Go build metadata is empty")
+    version_match = re.search(r":\s+(go[0-9]+\.[0-9]+\.[0-9]+)\s*$", lines[0])
+    values: dict[str, str] = {}
+    settings: dict[str, str] = {}
+    for line in lines[1:]:
+        fields = line.strip().split("\t", 1)
+        if len(fields) != 2:
+            continue
+        kind, value = fields
+        if kind in {"path", "mod"}:
+            values[kind] = value.split()[0]
+        elif kind == "build" and "=" in value:
+            key, setting = value.split("=", 1)
+            settings[key] = setting
+    if version_match is None or "path" not in values or "mod" not in values:
+        raise BundleError("Go build metadata identity is incomplete")
+    values["go_version"] = version_match.group(1)
+    values.update(settings)
+    return values
+
+
+def validate_go_build_record(
+    record: dict[str, str],
+    *,
+    go_version: str,
+    revision: str,
+    package: str,
+    goos: str,
+    goarch: str,
+) -> None:
+    expected = {
+        "go_version": go_version,
+        "path": package,
+        "mod": GO_MODULE,
+        "-trimpath": "true",
+        "CGO_ENABLED": "0",
+        "GOOS": goos,
+        "GOARCH": goarch,
+        "vcs.revision": revision,
+        "vcs.modified": "false",
+    }
+    if any(record.get(key) != value for key, value in expected.items()):
+        raise BundleError("Go binary provenance does not match the clean build contract")
+
+
+def collect_build_provenance(go_tool: Path, sources: dict[str, tuple[Path, Path]]) -> dict[str, object]:
+    go_tool = go_tool.resolve(strict=False)
+    details = regular_file(go_tool, MAX_BINARY_BYTES)
+    if details.st_mode & 0o111 == 0:
+        raise BundleError("Go tool is not executable")
+    tool_output = checked_text_command([str(go_tool), "version"], "Go tool version").strip()
+    match = re.search(r"\b(go[0-9]+\.[0-9]+\.[0-9]+)\b", tool_output)
+    if match is None or GO_VERSION.fullmatch(match.group(1)) is None:
+        raise BundleError("Go tool version is unsupported")
+    go_version = match.group(1)
+    revision = clean_source_revision()
+    record_count = 0
+    with tempfile.TemporaryDirectory(prefix="atelier-go-buildinfo-") as temporary:
+        temporary_root = Path(temporary)
+        for role_index, role in enumerate(("cli", "runner")):
+            fat = sources["darwin-universal2"][role_index]
+            for lipo_arch, goarch in (("x86_64", "amd64"), ("arm64", "arm64")):
+                thin = temporary_root / f"darwin-{role}-{goarch}"
+                checked_text_command(
+                    ["/usr/bin/lipo", str(fat), "-thin", lipo_arch, "-output", str(thin)],
+                    "Universal 2 slice extraction",
+                )
+                regular_file(thin, MAX_BINARY_BYTES)
+                record = parse_go_build_info(go_tool, thin)
+                validate_go_build_record(
+                    record,
+                    go_version=go_version,
+                    revision=revision,
+                    package=GO_PACKAGES[role],
+                    goos="darwin",
+                    goarch=goarch,
+                )
+                record_count += 1
+        for host, goos in (("linux-amd64", "linux"), ("windows-amd64", "windows")):
+            for role_index, role in enumerate(("cli", "runner")):
+                record = parse_go_build_info(go_tool, sources[host][role_index])
+                validate_go_build_record(
+                    record,
+                    go_version=go_version,
+                    revision=revision,
+                    package=GO_PACKAGES[role],
+                    goos=goos,
+                    goarch="amd64",
+                )
+                record_count += 1
+    if clean_source_revision() != revision or record_count != 8:
+        raise BundleError("source changed during Plugin provenance inspection")
+    return {
+        "source_revision": revision,
+        "source_clean": True,
+        "go_version": go_version,
+        "trimpath": True,
+        "cgo_enabled": False,
+        "binary_file_count": 6,
+        "binary_build_record_count": record_count,
+    }
+
+
+def validate_build_provenance(value: object) -> None:
+    expected_keys = {
+        "source_revision", "source_clean", "go_version", "trimpath", "cgo_enabled",
+        "binary_file_count", "binary_build_record_count",
+    }
+    if not isinstance(value, dict) or set(value) != expected_keys:
+        raise BundleError("Plugin build provenance fields are invalid")
+    if SOURCE_REVISION.fullmatch(value.get("source_revision", "")) is None or GO_VERSION.fullmatch(value.get("go_version", "")) is None:
+        raise BundleError("Plugin build provenance identity is invalid")
+    if value.get("source_clean") is not True or value.get("trimpath") is not True or value.get("cgo_enabled") is not False:
+        raise BundleError("Plugin build provenance policy is invalid")
+    if value.get("binary_file_count") != 6 or value.get("binary_build_record_count") != 8:
+        raise BundleError("Plugin build provenance counts are invalid")
+
+
 def bundle_files(bundle: Path) -> list[dict[str, object]]:
     files: list[dict[str, object]] = []
     for path in sorted(bundle.rglob("*"), key=lambda item: item.as_posix()):
@@ -434,11 +597,13 @@ def override_plugin_version(bundle: Path, version: str) -> None:
     path.chmod(0o644)
 
 
-def write_bundle_manifest(bundle: Path) -> None:
+def write_bundle_manifest(bundle: Path, build_provenance: dict[str, object]) -> None:
+    validate_build_provenance(build_provenance)
     plugin = read_plugin_manifest(bundle)
     content = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "plugin": {"name": plugin["name"], "version": plugin["version"]},
+        "build_provenance": build_provenance,
         "source_build_required": False,
         "telemetry_enabled": False,
         "hosts": list(TARGETS),
@@ -492,10 +657,11 @@ def verify_bundle(bundle: Path) -> None:
         raise BundleError("bundle directory paths do not match the fixed allowlist")
     plugin = read_plugin_manifest(bundle)
     manifest = load_bundle_manifest(bundle)
-    if set(manifest) != {"schema_version", "plugin", "source_build_required", "telemetry_enabled", "hosts", "files", "file_count", "expanded_byte_size"}:
+    if set(manifest) != {"schema_version", "plugin", "build_provenance", "source_build_required", "telemetry_enabled", "hosts", "files", "file_count", "expanded_byte_size"}:
         raise BundleError("bundle manifest fields are invalid")
-    if manifest["schema_version"] != "1.0.0" or manifest["plugin"] != {"name": plugin["name"], "version": plugin["version"]}:
+    if manifest["schema_version"] != "1.1.0" or manifest["plugin"] != {"name": plugin["name"], "version": plugin["version"]}:
         raise BundleError("bundle manifest identity is invalid")
+    validate_build_provenance(manifest["build_provenance"])
     if manifest["source_build_required"] is not False or manifest["telemetry_enabled"] is not False:
         raise BundleError("bundle policy flags are invalid")
     if manifest["hosts"] != list(TARGETS):
@@ -511,9 +677,12 @@ def verify_bundle(bundle: Path) -> None:
         for target in TARGETS
         for name in (target["cli_name"], target["runner_name"])
     }
-    expected_paths = ALLOWED_DISTRIBUTED_TEXT_FILES | {"LICENSE", "NOTICE"} | binary_paths
+    expected_paths = ALLOWED_DISTRIBUTED_TEXT_FILES | {"LICENSE", "NOTICE", THIRD_PARTY_NOTICES} | binary_paths
     if declared_paths != expected_paths:
         raise BundleError("bundle content paths do not match the fixed allowlist")
+    for name in ("LICENSE", "NOTICE", THIRD_PARTY_NOTICES):
+        if (bundle / name).read_bytes() != (ROOT / name).read_bytes():
+            raise BundleError("bundle license or notice differs from the repository source")
     for entry in declared:
         expected_mode = 0o755 if entry["path"] in binary_paths else 0o644
         if entry.get("mode") != expected_mode:
@@ -705,6 +874,12 @@ def build_bundle(args: argparse.Namespace) -> None:
     output = args.output.resolve(strict=False)
     if output.exists() or output.is_symlink():
         raise BundleError("output path already exists; choose a new directory")
+    sources = {
+        "darwin-universal2": (args.darwin_cli, args.darwin_runner),
+        "linux-amd64": (args.linux_cli, args.linux_runner),
+        "windows-amd64": (args.windows_cli, args.windows_runner),
+    }
+    provenance = collect_build_provenance(args.go_tool, sources)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.mkdir(mode=0o755)
     try:
@@ -713,22 +888,30 @@ def build_bundle(args: argparse.Namespace) -> None:
         if version_override:
             override_plugin_version(output, version_override)
         copy_recovery_schema_closure(output)
-        copy_regular = ((ROOT / "LICENSE", output / "LICENSE"), (ROOT / "NOTICE", output / "NOTICE"))
+        copy_regular = (
+            (ROOT / "LICENSE", output / "LICENSE"),
+            (ROOT / "NOTICE", output / "NOTICE"),
+            (ROOT / THIRD_PARTY_NOTICES, output / THIRD_PARTY_NOTICES),
+        )
         for source, destination in copy_regular:
             regular_file(source, 1024 * 1024)
             shutil.copyfile(source, destination, follow_symlinks=False)
             destination.chmod(0o644)
-        sources = {
-            "darwin-universal2": (args.darwin_cli, args.darwin_runner),
-            "linux-amd64": (args.linux_cli, args.linux_runner),
-            "windows-amd64": (args.windows_cli, args.windows_runner),
-        }
         for target in TARGETS:
             host = target["host"]
             cli_source, runner_source = sources[host]
             copy_binary(cli_source, output / "bin" / host / target["cli_name"], target["binary_format"])
             copy_binary(runner_source, output / "bin" / host / target["runner_name"], target["binary_format"])
-        write_bundle_manifest(output)
+        packaged_sources = {
+            target["host"]: (
+                output / "bin" / target["host"] / target["cli_name"],
+                output / "bin" / target["host"] / target["runner_name"],
+            )
+            for target in TARGETS
+        }
+        if collect_build_provenance(args.go_tool, packaged_sources) != provenance:
+            raise BundleError("packaged binary provenance changed during Plugin assembly")
+        write_bundle_manifest(output, provenance)
         verify_bundle(output)
     except Exception:
         shutil.rmtree(output)
@@ -746,6 +929,7 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("--linux-runner", type=Path, required=True)
     build.add_argument("--windows-cli", type=Path, required=True)
     build.add_argument("--windows-runner", type=Path, required=True)
+    build.add_argument("--go-tool", type=Path, required=True, help="exact Go tool used to build every input binary")
     build.add_argument("--version", help="override the packaged SemVer for a trusted local lifecycle or release build")
     verify = commands.add_parser("verify", help="structurally verify a bundle without executing it")
     verify.add_argument("bundle", type=Path)

@@ -30,7 +30,7 @@ class CIWorkflowTests(unittest.TestCase):
         for reference in action_refs:
             self.assertRegex(reference, r"^[a-z0-9-]+/[a-z0-9-]+@[a-f0-9]{40}$")
         for required in (
-            "go-version: 1.24.x",
+            "go-version: 1.24.0",
             "go vet ./...",
             "go test -count=1 ./...",
             "GOOS=linux GOARCH=amd64 go build",

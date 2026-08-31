@@ -24,6 +24,24 @@ SPEC.loader.exec_module(package_plugin)
 
 
 class PluginBundleTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.provenance = {
+            "source_revision": "a" * 40,
+            "source_clean": True,
+            "go_version": "go1.27.0",
+            "trimpath": True,
+            "cgo_enabled": False,
+            "binary_file_count": 6,
+            "binary_build_record_count": 8,
+        }
+        patcher = mock.patch.object(
+            package_plugin,
+            "collect_build_provenance",
+            return_value=self.provenance,
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def sources(self, root: Path) -> dict[str, Path]:
         root.mkdir(parents=True, exist_ok=True)
         result: dict[str, Path] = {}
@@ -86,6 +104,7 @@ class PluginBundleTests(unittest.TestCase):
             linux_runner=sources["linux-runner"],
             windows_cli=sources["windows-cli"],
             windows_runner=sources["windows-runner"],
+            go_tool=Path("/fixture/go"),
         )
 
     def test_build_is_reproducible_and_contains_no_internal_agents(self) -> None:
@@ -101,6 +120,49 @@ class PluginBundleTests(unittest.TestCase):
             package_plugin.verify_bundle(second)
             self.assertEqual(package_plugin.bundle_files(first), package_plugin.bundle_files(second))
             self.assertFalse(any(path.name == "AGENTS.md" for path in first.rglob("*")))
+            self.assertEqual(
+                package_plugin.load_bundle_manifest(first)["build_provenance"],
+                self.provenance,
+            )
+            self.assertEqual(
+                (first / "THIRD_PARTY_NOTICES").read_bytes(),
+                (package_plugin.ROOT / "THIRD_PARTY_NOTICES").read_bytes(),
+            )
+
+    def test_dirty_source_and_mismatched_go_record_are_rejected(self) -> None:
+        with mock.patch.object(package_plugin, "checked_text_command", return_value=" M packages/cli/main.go\n"):
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.clean_source_revision()
+
+        record = {
+            "go_version": "go1.27.0",
+            "path": package_plugin.GO_PACKAGES["cli"],
+            "mod": package_plugin.GO_MODULE,
+            "-trimpath": "true",
+            "CGO_ENABLED": "0",
+            "GOOS": "linux",
+            "GOARCH": "amd64",
+            "vcs.revision": "a" * 40,
+            "vcs.modified": "true",
+        }
+        with self.assertRaises(package_plugin.BundleError):
+            package_plugin.validate_go_build_record(
+                record,
+                go_version="go1.27.0",
+                revision="a" * 40,
+                package=package_plugin.GO_PACKAGES["cli"],
+                goos="linux",
+                goarch="amd64",
+            )
+
+    def test_third_party_notice_tamper_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            package_plugin.build_bundle(self.arguments(bundle, self.sources(root / "sources")))
+            (bundle / "THIRD_PARTY_NOTICES").write_text("tampered\n", encoding="utf-8")
+            with self.assertRaises(package_plugin.BundleError):
+                package_plugin.verify_bundle(bundle)
 
     def test_build_can_override_one_closed_semver_without_changing_source(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

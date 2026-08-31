@@ -9,13 +9,14 @@
     "release",
     "components",
     "engine",
+    "build_provenance",
     "policies",
     "files",
     "file_count",
     "expanded_byte_size"
   ],
   "properties": {
-    "schema_version": { "const": "1.0.0" },
+    "schema_version": { "const": "1.1.0" },
     "release": {
       "type": "object",
       "additionalProperties": false,
@@ -71,6 +72,28 @@
         "language": { "const": "gdscript" }
       }
     },
+    "build_provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_revision",
+        "source_clean",
+        "go_version",
+        "trimpath",
+        "cgo_enabled",
+        "binary_file_count",
+        "binary_build_record_count"
+      ],
+      "properties": {
+        "source_revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+        "source_clean": { "const": true },
+        "go_version": { "type": "string", "pattern": "^go[0-9]+\\.[0-9]+\\.[0-9]+$" },
+        "trimpath": { "const": true },
+        "cgo_enabled": { "const": false },
+        "binary_file_count": { "const": 6 },
+        "binary_build_record_count": { "const": 8 }
+      }
+    },
     "policies": {
       "type": "object",
       "additionalProperties": false,
@@ -95,8 +118,8 @@
     },
     "files": {
       "type": "array",
-      "minItems": 6,
-      "maxItems": 6,
+      "minItems": 7,
+      "maxItems": 7,
       "uniqueItems": true,
       "items": {
         "type": "object",
@@ -110,8 +133,8 @@
         }
       }
     },
-    "file_count": { "const": 6 },
-    "expanded_byte_size": { "type": "integer", "minimum": 6, "maximum": 201326592 }
+    "file_count": { "const": 7 },
+    "expanded_byte_size": { "type": "integer", "minimum": 7, "maximum": 201326592 }
   },
   "$defs": {
     "version": {

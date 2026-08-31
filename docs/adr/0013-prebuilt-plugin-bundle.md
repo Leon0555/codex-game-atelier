@@ -20,6 +20,7 @@ codex-game-atelier/
 ├── BUNDLE-MANIFEST.json
 ├── LICENSE
 ├── NOTICE
+├── THIRD_PARTY_NOTICES
 ├── skills/develop-godot-game/...
 └── bin/
     ├── darwin-universal2/{codex-game-atelier,codex-game-atelier-runner}
@@ -39,7 +40,7 @@ codex-game-atelier/
 
 ### 完整性与压缩包
 
-1. `BUNDLE-MANIFEST.json` 记录固定 schema、Plugin 身份、无源码构建/无遥测标志、宿主声明及每文件相对路径、字节数、SHA-256 和 Unix mode；同时记录文件数和展开总大小。
+1. `BUNDLE-MANIFEST.json` 记录固定 schema、Plugin 身份、无源码构建/无遥测标志、宿主声明及每文件相对路径、字节数、SHA-256 和 Unix mode；同时记录文件数和展开总大小。ADR 0021 进一步要求 clean Git revision、精确 Go 工具链和六文件/八架构 build metadata，并要求包含 Go `THIRD_PARTY_NOTICES`。
 2. manifest 不写构建时间，排序固定。`.tar.gz` 统一 `uid/gid/mtime`，相同输入应生成逐字节相同的 archive。
 3. archive 旁生成外部 `.sha256`。`verify` 与 `verify-archive` 必须永不执行被验证的代码：先核对外部 checksum，再限制成员数、压缩/展开大小、路径、大小写碰撞、类型和 mode，安全解包到临时目录后只重跑静态 bundle 验证。checksum 与 archive 可能来自同一攻击者，不能作为执行授权。
 4. `build`、`verify`、`archive` 与 `verify-archive` 均只做静态处理。CLI/runner 执行闭合只能由名称明确的 `smoke-trusted-bundle` 触发，并且只接受同一可信本地构建流水线产物。它必须以 OS 级文件限制约束输出、限制时间、拒绝父进程退出后遗留的同组 child，并终止整个进程组；不得作为不可信下载的验证器。
@@ -71,7 +72,7 @@ codex-game-atelier/
 - 本地 Python 解包不能等价证明 Codex 客户端真实安装行为或 Finder/浏览器 quarantine 传播。
 - Linux/Windows 只有交叉构建形状证据；原生运行、权限、取消和残留仍为 NOT RUN。
 - Linux/Windows 的 public CLI 版本注入与 sibling 配对尚未在目标宿主闭合，当前只记录 artifact shape；不得从 macOS 版本 smoke 推断。
-- 当前 Phase 1 candidate 来自有未提交修改的研发树，不是发布 artifact。
+- 2026-08-30 的 Phase 1 candidate 来自有未提交修改的研发树，不是发布 artifact；ADR 0021 已将 dirty build 改为打包阻断条件，新候选必须重新构建。
 
 ## 迁移与回退
 

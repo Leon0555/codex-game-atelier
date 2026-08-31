@@ -11,9 +11,9 @@ Plugin bundle 与 Starter Template 已分别具有确定性 archive 和内部 ma
 ## 决策
 
 1. 仓库维护工具 `tools/package_distribution.py` 只接受已通过现有静态验证的 Plugin bundle 与 Starter package，输出一个此前不存在的本地 candidate 目录。它不联网、不登录、不安装、不执行输入二进制、不创建 Git hook，也不发布到 GitHub、npm 或 Marketplace。
-2. candidate 固定包含 Plugin archive/外部 checksum、Starter archive/外部 checksum、仓库原始 `LICENSE`、`NOTICE` 与最后生成的 `DISTRIBUTION-MANIFEST.json`。未知文件、symlink、hardlink、特殊文件、非 `0644` mode、大小或 Unicode case-folding 冲突均被拒绝。
+2. candidate 固定包含 Plugin archive/外部 checksum、Starter archive/外部 checksum、仓库原始 `LICENSE`、`NOTICE`、`THIRD_PARTY_NOTICES` 与最后生成的 `DISTRIBUTION-MANIFEST.json`。未知文件、symlink、hardlink、特殊文件、非 `0644` mode、大小或 Unicode case-folding 冲突均被拒绝。`THIRD_PARTY_NOTICES` 与 clean-build provenance 由 ADR 0021 增补。
 3. Plugin、公共 CLI、private runner、Starter Template 与 Starter 所验证的 Plugin 使用完全相同的 SemVer。当前 `0.2.0` 只表示本地开发候选；最终 v1.0 版本号尚未因本 ADR 自动冻结。
-4. 独立 `verify` 会重跑两个 component archive 的 bounded 静态验证、读取包内 manifest、核对版本闭合、文件 SHA-256/大小/mode、MIT License 与 NOTICE 原文。candidate manifest 本身由本地可信源码或未来可信发布渠道保护，不能自证发布者身份。
+4. 独立 `verify` 会重跑两个 component archive 的 bounded 静态验证、读取包内 manifest、核对版本闭合、文件 SHA-256/大小/mode、MIT License、NOTICE、第三方 notices 与 Plugin clean-build provenance 原文。candidate manifest 本身由本地可信源码或未来可信发布渠道保护，不能自证发布者身份。
 5. manifest 固定记录 `local-candidate` 与 `external_publication_performed=false`。`source_build_required=false`、`telemetry_enabled=false`、`hidden_external_writes=false` 与“不自动安装 Git hooks”是分发策略门禁；后续仍需动态文件/网络审计，不能仅凭字段宣布运行时通过。
 6. Godot 游戏技术导出不要求签名/公证。框架自身 Plugin/CLI 下载物的签名、公证与 Gatekeeper 状态单独记录为 `NOT_EVALUATED`，不得借用游戏导出决定冒充已解决。
 7. Windows/Linux 产物只做交叉编译和格式验证，原生运行仍为 `NOT_RUN`；candidate 的存在不扩大 Support Matrix。

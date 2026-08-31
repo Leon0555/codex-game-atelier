@@ -6,7 +6,7 @@ The v1 deterministic CLI production implementation language is Go. The Phase 1 p
 
 ## Current status
 
-Phase 1 follows a three-milestone plan. M1 is complete locally on macOS Apple Silicon: the Go CLI now closes a special-path `detect → doctor → initialize → validate → test → Debug/Release export → target smoke` flow, and the deterministic Starter Template contains the playable six-test Atelier Spark vertical slice. M2 has locally implemented logical capability Profiles, one real file-recovered native collaboration trace with separate read-only audit and repair, the monotonic gate-policy contract, build/export policy consumption, read-only three-mode `release check`, an explicitly managed optional pre-commit hook, and a minimum macOS Apple Silicon CI workflow. M3 has started with a closed local candidate that binds the Plugin, prebuilt CLI/runner, Starter Template, checksums, MIT license, and NOTICE to one exact development version. Real Codex installation/lifecycle and the first GitHub-hosted run remain `NOT RUN`; no remote repository has been created or pushed. There is still no v1.0-ready implementation, published package, Windows/Linux native evidence, or signed/notarized game artifact.
+Phase 1 follows a three-milestone plan. M1 is complete locally on macOS Apple Silicon: the Go CLI now closes a special-path `detect → doctor → initialize → validate → test → Debug/Release export → target smoke` flow, and the deterministic Starter Template contains the playable six-test Atelier Spark vertical slice. M2 has locally implemented logical capability Profiles, one real file-recovered native collaboration trace with separate read-only audit and repair, the monotonic gate-policy contract, build/export policy consumption, read-only three-mode `release check`, an explicitly managed optional pre-commit hook, and a minimum macOS Apple Silicon CI workflow. M3 has a closed local candidate and has completed one minimal real Codex lifecycle: dedicated marketplace registration, Plugin installation, new-task Skill discovery, bundled CLI invocation, uninstall, and cleanup all passed. The first supply-chain audit found release blockers in dirty-build provenance, Go notices, framework Gatekeeper readiness, and the unresolved Windows/Linux Tier 1 promise; these are being closed before a final candidate. The first GitHub-hosted run remains `NOT RUN`; no remote repository has been created or pushed. There is still no v1.0-ready implementation or published package.
 
 Do not treat this repository as ready for game development until the v1.0 acceptance gates are implemented and verified.
 
@@ -23,4 +23,4 @@ Start with [docs/project-brief.md](docs/project-brief.md), [docs/architecture.md
 
 ## License
 
-MIT. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Project code is MIT. See [LICENSE](LICENSE), [NOTICE](NOTICE), and [THIRD_PARTY_NOTICES](THIRD_PARTY_NOTICES) for prebuilt Go binary notices.

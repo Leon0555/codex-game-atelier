@@ -80,4 +80,4 @@ Hooks 命令同样不写 `.gameatelier` evidence；只有显式 `hooks install/u
 
 第一版 schema 版本为 `1.0.0`。任何破坏性变化都需要 ADR、迁移预览、备份与回退；文件中的 `schema_version` 不能随 CLI 版本隐式改变。Phase 1 生产基线仍不等于 v1.0 长期兼容冻结。
 
-维护端 `tools/package_distribution.py` 不属于最终用户 CLI。它只在已验证 Plugin bundle 与 Starter package 之上创建或静态复验一个此前不存在的本地 candidate；不会安装 Plugin、修改 Codex 配置、联网或发布。candidate 的 `local-candidate` 状态、framework artifact `NOT_EVALUATED` 签名/公证状态以及 Windows/Linux 原生 `NOT_RUN` 不得被解释成严格发布通过。
+维护端 `tools/package_distribution.py` 不属于最终用户 CLI。它只在已验证 Plugin bundle 与 Starter package 之上创建或静态复验一个此前不存在的本地 candidate；不会安装 Plugin、修改 Codex 配置、联网或发布。Plugin 与 distribution manifest 必须记录由打包器从六个二进制文件、八个架构记录实测得到的 clean Git revision、精确 Go 版本、`-trimpath` 与 `CGO_ENABLED=0`；dirty 或来源不一致在创建输出前阻断。包含 Go 二进制的 Plugin/candidate 必须携带仓库 `THIRD_PARTY_NOTICES`，Starter 不嵌入 CLI 因而不复制。candidate 的 `local-candidate` 状态、framework artifact `NOT_EVALUATED` 签名/公证状态以及 Windows/Linux 原生 `NOT_RUN` 不得被解释成严格发布通过。

@@ -1,7 +1,7 @@
 # 来源与借鉴记录
 
 状态：Phase 0 来源审计已通过；Phase 1 持续更新
-审计日期：2026-08-24
+审计日期：2026-08-31
 
 ## 1. 记录原则
 
@@ -78,3 +78,13 @@
 | `plugin/codex-game-atelier/skills/develop-godot-game/` | Codex bundled `skill-creator` initializer | 仅使用目录/frontmatter/UI metadata 骨架；运行说明由本项目原创 | 未创建用户级 Skill 或 Marketplace 条目 |
 
 这些工具属于当前 Codex 开发环境，不是两个参考游戏工作室仓库，也不成为用户运行时依赖。
+
+## 6. Go 工具链与标准库
+
+- 生产 CLI module：`packages/cli`，没有第三方 Go module `require`。
+- 当前维护端构建工具链：Go `1.27.0`；最终候选必须由 manifest 记录精确版本和 clean Git revision。
+- 预构建 public CLI 与 private runner 包含 Go 标准库的二进制部分。
+- 本地 Go 1.27.0 `LICENSE` 为 BSD 风格条款，要求二进制再分发时在文档或其他材料中重现 Go 版权、条件与免责声明。
+- 仓库根 `THIRD_PARTY_NOTICES` 保留完整 Go notice；Plugin 和包含 CLI 二进制的总分发包必须逐字节携带它。源码型 Starter Template 不包含 Go 二进制，因此不复制该文件。
+
+Go notice 是工具链/标准库再分发义务，不表示 Go Authors、Google LLC、OpenAI 或 Godot 对 Codex Game Atelier 的认可。

@@ -23,6 +23,7 @@ from tools import package_plugin, package_starter_template  # noqa: E402
 
 
 MANIFEST_NAME = "DISTRIBUTION-MANIFEST.json"
+THIRD_PARTY_NOTICES = "THIRD_PARTY_NOTICES"
 MAX_FILE_BYTES = 160 * 1024 * 1024
 MAX_CANDIDATE_BYTES = 192 * 1024 * 1024
 SEMVER = re.compile(
@@ -111,7 +112,7 @@ def component_names(version: str) -> dict[str, str]:
     }
 
 
-def load_component_versions(candidate: Path, names: dict[str, str]) -> tuple[str, str]:
+def load_component_versions(candidate: Path, names: dict[str, str]) -> tuple[str, str, dict[str, object]]:
     plugin_archive = candidate / names["plugin"]
     starter_archive = candidate / names["starter"]
     try:
@@ -125,12 +126,17 @@ def load_component_versions(candidate: Path, names: dict[str, str]) -> tuple[str
         "codex-game-atelier-starter/TEMPLATE-MANIFEST.json",
     )
     plugin_identity = plugin.get("plugin")
+    plugin_provenance = plugin.get("build_provenance")
     pairing = starter.get("pairing")
     plugin_version = plugin_identity.get("version") if isinstance(plugin_identity, dict) else None
     starter_version = pairing.get("verified_plugin_version") if isinstance(pairing, dict) else None
-    if not isinstance(plugin_version, str) or not isinstance(starter_version, str):
+    if not isinstance(plugin_version, str) or not isinstance(starter_version, str) or not isinstance(plugin_provenance, dict):
         raise DistributionError("component version metadata is invalid")
-    return plugin_version, starter_version
+    try:
+        package_plugin.validate_build_provenance(plugin_provenance)
+    except package_plugin.BundleError as error:
+        raise DistributionError("component build provenance is invalid") from error
+    return plugin_version, starter_version, plugin_provenance
 
 
 def inventory(candidate: Path) -> list[dict[str, object]]:
@@ -150,11 +156,15 @@ def inventory(candidate: Path) -> list[dict[str, object]]:
     return files
 
 
-def write_manifest(candidate: Path, version: str) -> None:
+def write_manifest(candidate: Path, version: str, build_provenance: dict[str, object]) -> None:
+    try:
+        package_plugin.validate_build_provenance(build_provenance)
+    except package_plugin.BundleError as error:
+        raise DistributionError("distribution build provenance is invalid") from error
     names = component_names(version)
     files = inventory(candidate)
     content = {
-        "schema_version": "1.0.0",
+        "schema_version": "1.1.0",
         "release": {
             "name": "codex-game-atelier",
             "version": version,
@@ -185,6 +195,7 @@ def write_manifest(candidate: Path, version: str) -> None:
             "edition": "standard",
             "language": "gdscript",
         },
+        "build_provenance": build_provenance,
         "policies": {
             "license": "MIT",
             "source_build_required": False,
@@ -224,10 +235,10 @@ def verify_candidate(candidate: Path) -> None:
         raise DistributionError("distribution candidate root mode is invalid")
     manifest = load_manifest(candidate)
     expected_keys = {
-        "schema_version", "release", "components", "engine", "policies",
+        "schema_version", "release", "components", "engine", "build_provenance", "policies",
         "files", "file_count", "expanded_byte_size",
     }
-    if set(manifest) != expected_keys or manifest["schema_version"] != "1.0.0":
+    if set(manifest) != expected_keys or manifest["schema_version"] != "1.1.0":
         raise DistributionError("distribution manifest fields are invalid")
     release = manifest["release"]
     if not isinstance(release, dict):
@@ -242,7 +253,7 @@ def verify_candidate(candidate: Path) -> None:
         raise DistributionError("release identity is invalid")
     names = component_names(version)
     expected_files = {
-        "LICENSE", "NOTICE", names["plugin"], names["plugin"] + ".sha256",
+        "LICENSE", "NOTICE", THIRD_PARTY_NOTICES, names["plugin"], names["plugin"] + ".sha256",
         names["starter"], names["starter"] + ".sha256", MANIFEST_NAME,
     }
     observed = {path.name for path in candidate.iterdir()}
@@ -255,9 +266,15 @@ def verify_candidate(candidate: Path) -> None:
         details = regular_file(candidate / name, MAX_FILE_BYTES)
         if stat.S_IMODE(details.st_mode) != 0o644:
             raise DistributionError("distribution candidate file mode is invalid")
-    plugin_version, starter_version = load_component_versions(candidate, names)
+    plugin_version, starter_version, plugin_provenance = load_component_versions(candidate, names)
     if plugin_version != version or starter_version != version:
         raise DistributionError("Plugin, CLI, runner, and Starter versions are not closed")
+    try:
+        package_plugin.validate_build_provenance(manifest["build_provenance"])
+    except package_plugin.BundleError as error:
+        raise DistributionError("distribution build provenance is invalid") from error
+    if manifest["build_provenance"] != plugin_provenance:
+        raise DistributionError("distribution and Plugin build provenance differ")
     components = manifest["components"]
     expected_components = {
         "plugin": {
@@ -292,7 +309,7 @@ def verify_candidate(candidate: Path) -> None:
     total = sum(item["byte_size"] for item in actual_inventory)
     if manifest["expanded_byte_size"] != total or total > MAX_CANDIDATE_BYTES:
         raise DistributionError("distribution aggregate size is invalid")
-    for name in ("LICENSE", "NOTICE"):
+    for name in ("LICENSE", "NOTICE", THIRD_PARTY_NOTICES):
         if (candidate / name).read_bytes() != (ROOT / name).read_bytes():
             raise DistributionError("distribution license or notice differs from the repository source")
 
@@ -311,9 +328,14 @@ def build_candidate(output: Path, plugin_bundle: Path, starter_package: Path) ->
     except (package_plugin.BundleError, package_starter_template.TemplatePackageError) as error:
         raise DistributionError("input component verification failed") from error
     plugin_identity = plugin_manifest.get("plugin")
+    plugin_provenance = plugin_manifest.get("build_provenance")
     pairing = starter_manifest.get("pairing")
     version = plugin_identity.get("version") if isinstance(plugin_identity, dict) else None
     starter_version = pairing.get("verified_plugin_version") if isinstance(pairing, dict) else None
+    try:
+        package_plugin.validate_build_provenance(plugin_provenance)
+    except package_plugin.BundleError as error:
+        raise DistributionError("input Plugin provenance is not verified-clean") from error
     if not isinstance(version, str) or version != starter_version:
         raise DistributionError("input Plugin and Starter versions do not match")
     names = component_names(version)
@@ -322,10 +344,10 @@ def build_candidate(output: Path, plugin_bundle: Path, starter_package: Path) ->
     try:
         package_plugin.create_archive(plugin_bundle, output / names["plugin"])
         package_starter_template.create_archive(starter_package, output / names["starter"])
-        for name in ("LICENSE", "NOTICE"):
+        for name in ("LICENSE", "NOTICE", THIRD_PARTY_NOTICES):
             shutil.copyfile(ROOT / name, output / name, follow_symlinks=False)
             (output / name).chmod(0o644)
-        write_manifest(output, version)
+        write_manifest(output, version, plugin_provenance)
         verify_candidate(output)
     except Exception:
         shutil.rmtree(output)
