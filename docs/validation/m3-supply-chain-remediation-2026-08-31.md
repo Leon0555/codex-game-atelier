@@ -72,7 +72,7 @@
 
 ## 4. 仍未关闭的发布条件
 
-1. **Framework Gatekeeper**：新 Universal 2 CLI 可在本机 trusted smoke，但 `codesign --verify --strict` 报告未签名，`spctl` 退出 1；产物没有 quarantine xattr，因此也未模拟真实下载。此项不等于 Godot 游戏技术导出签名要求，继续保持独立 `NOT_EVALUATED/FAIL` 证据。
+1. **Framework Gatekeeper**：新 Universal 2 CLI 可在本机 trusted smoke，但 `codesign --verify --strict` 报告未签名，`spctl` 退出 1。后续本地 Spike 已证明 quarantine 可由 archive 传播到解包 Plugin，public/private 入口会阻塞且不能完成无人值守执行；此项不是 `NOT_EVALUATED`，而是当前候选明确 `FAIL`。它不等于 Godot 游戏技术导出签名要求，详见 [`m3-framework-gatekeeper-spike-2026-08-31.md`](m3-framework-gatekeeper-spike-2026-08-31.md)。
 2. **Windows/Linux Tier 1**：只完成 reproducible cross-build 和格式/build-metadata 验证；原生执行仍 `NOT RUN`。现有三宿主 Tier 1 声明与延期决定仍需最终范围决策。
 3. **Required CI / Python 下载哈希**：CI 的最低 Go 从浮动 `1.24.x` 收紧为精确 `1.24.0`；Python validator 虽固定版本，但本机没有可验证的 CI Python 3.13 wheel 集，未在禁止远程读取的本轮伪造 `--require-hashes`。首次 GitHub-hosted run、release workflow、OIDC attestation、SBOM 仍 `NOT RUN`。
 4. **Lifecycle/clean environment**：真实升级、失败升级、回滚和最终干净用户环境复验按用户决定留到最终候选。
@@ -80,4 +80,4 @@
 
 ## 5. 下一顺序
 
-ADR 0022 已把 Plugin/Starter/license provenance 作为显式只读输入接入 strict release gate，并保持 required CI 为 `NOT_RUN`，实证见 [`m3-strict-distribution-gate-2026-08-31.md`](m3-strict-distribution-gate-2026-08-31.md)。后续只剩干净环境、framework Gatekeeper/Support Matrix 决策及远程/生命周期门禁；到需要真实下载/quarantine、升级/回滚、GitHub-hosted CI 或其他远程操作时，先向用户说明作用域并取得授权。
+ADR 0022 已把 Plugin/Starter/license provenance 作为显式只读输入接入 strict release gate，并保持 required CI 为 `NOT_RUN`，实证见 [`m3-strict-distribution-gate-2026-08-31.md`](m3-strict-distribution-gate-2026-08-31.md)。fresh Starter 本地 E2E 也已闭合，但 framework quarantine Spike 已把 Gatekeeper 从未知收敛为当前候选失败。后续只剩干净环境、framework 分发策略、Support Matrix 决策及远程/生命周期门禁；到需要 Developer ID/notarization、真实下载、升级/回滚、GitHub-hosted CI 或其他远程/账号操作时，先向用户说明作用域并取得授权。
