@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
 状态：Phase 0 已审阅通过；M1/M2 本地实现已完成，当前进入 M3
-更新日期：2026-08-30
+更新日期：2026-08-31
 
 ## 1. 已完成基线
 
@@ -63,7 +63,7 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 实施顺序：
 
 1. **已完成（本地开发候选）**：冻结 Plugin/Starter Template/CLI 的精确版本闭合和分发清单；两次候选逐字节一致。当前 `0.2.0` 不是 v1.0 最终版本冻结，framework artifact Gatekeeper 状态仍 `NOT_EVALUATED`。
-2. **进行中（用户级写入待授权）**：已生成并静态验证当前 Codex CLI 可消费的专用本地 marketplace A/B；待集中演练取得、安装、发现、初始化、失败升级、成功升级、卸载和回滚，并证明保留用户项目与凭据。
+2. **进行中（最小真实闭环已 PASS）**：当前 Codex CLI 已从专用本地 marketplace A 完成真实注册、安装、安装态校验、全新任务 Skill 发现、包内 CLI 调用、卸载和 marketplace 清理；其他 Plugin 清单未变。失败升级、成功升级与上一版本回滚按用户收敛范围留到最终候选，详见 [`m3-minimal-plugin-install-2026-08-31.md`](validation/m3-minimal-plugin-install-2026-08-31.md)。
 3. 验证 checksum、manifest、LICENSE、NOTICE、provenance、无默认遥测和无隐藏外部写入。
 4. 在候选版本阶段才完成 npm Trusted Publishing、2FA 和 package provenance 的只读/预发布设计演练；不实际发布。
 5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。

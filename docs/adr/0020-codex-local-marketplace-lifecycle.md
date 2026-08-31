@@ -1,6 +1,6 @@
 # ADR 0020：Codex 本地 Marketplace 生命周期演练
 
-- 状态：Proposed（静态候选已完成，用户级真实演练待授权）
+- 状态：Proposed（最小真实安装闭环已通过；升级、失败升级与回滚待最终候选）
 - 日期：2026-08-30
 - 决策范围：Codex Plugin 的本地安装、升级失败、升级、卸载与回滚验证
 
@@ -8,7 +8,7 @@
 
 本地 Plugin bundle 与分发 candidate 已经通过静态验证，但“目录存在”不能证明当前 Codex 客户端可以发现、安装和加载它。当前本机 Codex CLI 明确提供 `plugin marketplace add/list/remove` 与 `plugin add/list/remove`；非默认 marketplace 必须先显式注册。Plugin Creator 规则同时要求 marketplace entry 固定指向 `./plugins/<plugin-name>`，更新后从新任务拾取 Skill，并用 cachebuster 避免本地开发版本缓存混淆。
 
-真实命令会修改用户级 Codex config/cache，因此在用户明确授权前只生成仓库 `.tools/` 下的候选，不执行 install/remove。
+真实命令会修改用户级 Codex config/cache。用户已于 2026-08-31 授权一次收敛后的最小真实闭环：注册专用 marketplace、安装、在全新任务发现 Skill、调用包内 CLI、卸载并移除 marketplace。升级、失败升级与回滚不在该次授权范围内。
 
 ## 提议决策
 
@@ -17,7 +17,7 @@
 3. 真实演练使用 Codex 自己的 `plugin marketplace` 与 `plugin` 命令，不实现 Atelier 私有用户安装器，也不让普通用户运行 Python/Go 或 clone 源码。
 4. 初始安装候选使用开发版本 `0.2.0`。升级候选只为本地演练使用 `0.2.0+codex.lifecycle-b`，公共 CLI 与 private runner 注入相同版本；它不改变源码 manifest 或 v1.0 对外版本决策。
 5. 真实演练前后只比较允许范围的路径清单、文件 metadata 与摘要，不输出 config、凭据或 token 内容。用户游戏项目和凭据必须逐字节保持；失败升级不得切换已安装 active version。
-6. 演练顺序固定为：初始快照 → 注册 marketplace A → 安装/列出/包内 CLI smoke → 新任务发现 → 无效升级负例 → marketplace B 升级 → 卸载 → marketplace A 回滚 → 最终卸载与移除测试 marketplace → 前后快照对比。
+6. 演练分两层：最小闭环为初始快照 → 注册 marketplace A → 安装/列出/包内 CLI smoke → 新任务发现 → 卸载 → 移除测试 marketplace → 前后快照对比；最终候选再补无效升级负例、marketplace B 升级、卸载和 marketplace A 回滚。不得把最小闭环描述成完整生命周期通过。
 7. 创建新 Codex 测试任务、写用户级 config/cache、安装/卸载 Plugin 均需用户一次明确授权。外部远程、push、登录和发布不在该授权内。
 
 ## 备选方案
@@ -49,7 +49,7 @@
 
 ## 转为 Accepted 的证据
 
-- 当前 Codex CLI 的 add/list/remove JSON 与实际 cache/config diff。
-- 新任务中 Skill 发现及相对路径 CLI/runner 调用。
+- 当前 Codex CLI 的 add/list/remove JSON 与实际 cache/config diff。最小闭环已于 2026-08-31 PASS，见 [`m3-minimal-plugin-install-2026-08-31.md`](../validation/m3-minimal-plugin-install-2026-08-31.md)。
+- 新任务中 Skill 发现及相对路径 CLI/runner 调用。最小闭环已实际证明 Skill 发现和 CLI `--version`；runner 在主任务中证明直接调用固定退出 125。
 - 失败升级不切换、成功升级、卸载保留用户项目/凭据、上一版本回滚。
 - 最终移除测试 Plugin/marketplace 后，非测试用户状态与开始快照一致。
