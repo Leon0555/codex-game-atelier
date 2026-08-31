@@ -48,7 +48,7 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
 2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
 3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
-4. **已完成**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，standard 聚合当前 revision 最新 evidence 并复验 Release ZIP，strict 未实现的 M3 分发项明确阻断；不实现自动外部发布，也不增加独立 `release prepare` 流水线。
+4. **已完成（required CI 保持阶段阻断）**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，standard 聚合当前 revision 最新 evidence 并复验 Release ZIP；strict 可显式读取本地 candidate，在内存中关闭 clean-source、Plugin、Starter、license/provenance 四项，不执行包内代码、不回显绝对路径；required CI 在托管证据可用前继续 `NOT_RUN`。不实现自动外部发布，也不增加独立 `release prepare` 流水线。
 5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
 6. **已完成实现、托管运行 NOT RUN**：建立单一 macOS Apple Silicon CI job，固定只读权限与 action SHA，验证 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性和本机 CLI pair；因尚无远程仓库，首次 GitHub-hosted 结果仍待后续授权 push。
 
@@ -64,7 +64,7 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 1. **已完成（本地开发候选）**：冻结 Plugin/Starter Template/CLI 的精确版本闭合和分发清单；两次候选逐字节一致。当前 `0.2.0` 不是 v1.0 最终版本冻结，framework artifact Gatekeeper 状态仍 `NOT_EVALUATED`。
 2. **进行中（最小真实闭环已 PASS）**：当前 Codex CLI 已从专用本地 marketplace A 完成真实注册、安装、安装态校验、全新任务 Skill 发现、包内 CLI 调用、卸载和 marketplace 清理；其他 Plugin 清单未变。失败升级、成功升级与上一版本回滚按用户收敛范围留到最终候选，详见 [`m3-minimal-plugin-install-2026-08-31.md`](validation/m3-minimal-plugin-install-2026-08-31.md)。
-3. **进行中（两项供应链 High 已本地关闭）**：checksum、manifest、archive 安全、静态秘密/网络/遥测/写入边界 PASS；首次审计发现四项 blocker，其中 dirty-worktree provenance 与 Go third-party notice 已通过 clean commit 双构建候选关闭，详见 [`m3-supply-chain-readonly-audit-2026-08-31.md`](validation/m3-supply-chain-readonly-audit-2026-08-31.md) 与 [`m3-supply-chain-remediation-2026-08-31.md`](validation/m3-supply-chain-remediation-2026-08-31.md)。framework Gatekeeper 与三宿主 Tier 1 证据仍未关闭；最终独立只读终审尚未执行。
+3. **进行中（本地供应链与 strict 分发门禁已闭合）**：checksum、manifest、archive 安全、clean Git/Go provenance、Go notices、静态秘密/网络/遥测/写入边界 PASS；strict CLI 已能直接有界复验 candidate 并将本地四项分发 gate 置为 PASS，required CI 仍 `NOT_RUN`。详见 [`m3-supply-chain-readonly-audit-2026-08-31.md`](validation/m3-supply-chain-readonly-audit-2026-08-31.md) 与 [`m3-supply-chain-remediation-2026-08-31.md`](validation/m3-supply-chain-remediation-2026-08-31.md)。framework Gatekeeper 与三宿主 Tier 1 证据仍未关闭；最终独立只读终审尚未执行。
 4. **设计已冻结、发布配置 NOT RUN**：npm Trusted Publishing、2FA 与 package provenance 方向已记录；当前没有 npm package、remote、release workflow、OIDC attestation 或 SBOM，不实际发布。
 5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
 6. 用户明确批准后，才允许 GitHub Release、npm publish 或 Marketplace 提交。

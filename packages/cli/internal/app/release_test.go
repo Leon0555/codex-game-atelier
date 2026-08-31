@@ -101,6 +101,40 @@ func TestReleaseCheckStandardPassesOnlyWithCurrentVerifiedClosuresAndArtifact(t 
 	}
 }
 
+func TestReleaseCheckStrictConsumesCandidateButKeepsRequiredCIBlocked(t *testing.T) {
+	requireInitializePlatform(t)
+	project, stateRoot, state := createRunStoreProject(t, "release strict candidate")
+	commitReleaseCheckPrerequisites(t, project, stateRoot, state)
+	stateRoot.Close()
+	original := verifyReleaseDistributionCandidate
+	verifyReleaseDistributionCandidate = func(context.Context, string) error { return nil }
+	defer func() { verifyReleaseDistributionCandidate = original }()
+
+	before := snapshotTree(t, filepath.Join(project, ".gameatelier"))
+	code, result, _, stderr := execute(t, context.Background(), "release", "check", "--project", project, "--mode", "strict", "--distribution-candidate", "/private/candidate/path")
+	after := snapshotTree(t, filepath.Join(project, ".gameatelier"))
+	if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || stderr != "" || !reflect.DeepEqual(before, after) {
+		t.Fatalf("strict candidate check did not remain a read-only required-CI block: code=%d result=%+v stderr=%q", code, result, stderr)
+	}
+	if result.Command.Arguments["distribution_candidate"] != "provided" {
+		t.Fatalf("candidate presence was not recorded without disclosing its path: %+v", result.Command.Arguments)
+	}
+	data := resultDataMap(t, result)
+	counts := data["counts"].(map[string]any)
+	if data["release_ready"] != false || counts["passed"] != float64(10) || counts["blocked"] != float64(0) || counts["not_run"] != float64(1) {
+		t.Fatalf("strict local candidate bypassed required CI or lost a PASS gate: %#v", data)
+	}
+	checks := data["checks"].([]any)
+	for _, index := range []int{6, 7, 8, 9} {
+		if checks[index].(map[string]any)["outcome"] != "PASS" {
+			t.Fatalf("local distribution gate %d did not pass: %#v", index, checks)
+		}
+	}
+	if last := checks[len(checks)-1].(map[string]any); last["id"] != "required-ci" || last["outcome"] != "NOT_RUN" {
+		t.Fatalf("required CI gate changed unexpectedly: %#v", last)
+	}
+}
+
 func TestCurrentReleaseEvidenceRequiresCurrentRevisionAndExactCommands(t *testing.T) {
 	runs := []verifiedRun{
 		{ProjectRevision: 4, Result: contract.Result{Outcome: "PASS", FinishedAt: "2026-08-29T01:00:00Z", Command: contract.Command{Name: "validate", Arguments: map[string]any{"headless": true}}}},
@@ -148,6 +182,10 @@ func TestReleaseCheckRejectsInvalidInvocationAndCancellation(t *testing.T) {
 	code, result, _, _ = execute(t, context.Background(), "release", "check", "--mode", "unsafe")
 	if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" {
 		t.Fatalf("invalid release mode was accepted: code=%d result=%+v", code, result)
+	}
+	code, result, _, _ = execute(t, context.Background(), "release", "check", "--mode", "standard", "--distribution-candidate", "candidate")
+	if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" {
+		t.Fatalf("distribution candidate was accepted outside explicit strict mode: code=%d result=%+v", code, result)
 	}
 
 	requireInitializePlatform(t)

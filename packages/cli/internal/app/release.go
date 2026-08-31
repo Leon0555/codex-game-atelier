@@ -42,17 +42,21 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 	set := newFlagSet("release check")
 	project := set.String("project", ".", "project directory")
 	mode := set.String("mode", "", "gate mode override")
+	distributionCandidate := set.String("distribution-candidate", "", "verified local distribution candidate")
 	if err := rejectDuplicateFlags(args); err != nil {
 		return parseError(started, "release check", err.Error(), map[string]any{})
 	}
-	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || !validOptionalGateMode(*mode) {
-		return parseError(started, "release check", "release check accepts --project and --mode manual|standard|strict only", map[string]any{})
+	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || !validOptionalGateMode(*mode) || *distributionCandidate != "" && *mode != "strict" {
+		return parseError(started, "release check", "release check accepts --project, --mode manual|standard|strict, and --distribution-candidate with explicit strict mode only", map[string]any{})
 	}
 
 	selectedMode := *mode
 	commandArguments := map[string]any{"project": "."}
 	if selectedMode != "" {
 		commandArguments["mode"] = selectedMode
+	}
+	if *distributionCandidate != "" {
+		commandArguments["distribution_candidate"] = "provided"
 	}
 	result := contract.NewResult(started, contract.Command{Name: "release check", Arguments: commandArguments})
 	data := emptyReleaseCheckData(selectedMode)
@@ -140,15 +144,50 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 	data.Checks = append(data.Checks, evidenceChecks...)
 
 	if selectedMode == "strict" {
-		data.Checks = append(data.Checks,
-			releaseCheck{ID: "clean-source-policy", Outcome: "NOT_RUN", Summary: "Strict source-tree policy verification is deferred to the M3 release workspace contract."},
-			releaseCheck{ID: "plugin-bundle", Outcome: "NOT_RUN", Summary: "Strict Plugin bundle verification is deferred to the M3 distribution contract."},
-			releaseCheck{ID: "starter-package", Outcome: "NOT_RUN", Summary: "Strict Starter package verification is deferred to the M3 distribution contract."},
-			releaseCheck{ID: "license-and-provenance", Outcome: "NOT_RUN", Summary: "Strict license and provenance verification is deferred to the M3 release audit."},
-			releaseCheck{ID: "required-ci", Outcome: "NOT_RUN", Summary: "Required CI evidence remains unavailable until the minimum workflow completes on its GitHub-hosted runner."},
-		)
+		distributionChecks, verifyErr := strictDistributionChecks(ctx, *distributionCandidate)
+		if verifyErr != nil && ctx.Err() != nil {
+			return releaseCheckCancelled(started, result, data)
+		}
+		data.Checks = append(data.Checks, distributionChecks...)
+		data.Checks = append(data.Checks, releaseCheck{ID: "required-ci", Outcome: "NOT_RUN", Summary: "Required CI evidence remains unavailable until the minimum workflow completes on its GitHub-hosted runner."})
 	}
 	return finishReleaseCheck(started, result, data)
+}
+
+func strictDistributionChecks(ctx context.Context, candidate string) ([]releaseCheck, error) {
+	ids := []string{"clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance"}
+	if candidate == "" {
+		summaries := []string{
+			"No explicit local distribution candidate was provided for strict clean-source verification.",
+			"No explicit local distribution candidate was provided for strict Plugin verification.",
+			"No explicit local distribution candidate was provided for strict Starter verification.",
+			"No explicit local distribution candidate was provided for strict license and provenance verification.",
+		}
+		checks := make([]releaseCheck, len(ids))
+		for index := range ids {
+			checks[index] = releaseCheck{ID: ids[index], Outcome: "NOT_RUN", Summary: summaries[index]}
+		}
+		return checks, nil
+	}
+	err := verifyReleaseDistributionCandidate(ctx, candidate)
+	outcome := "PASS"
+	summaries := []string{
+		"The candidate contains verified clean Git and Go build provenance.",
+		"The bounded Plugin archive, inventory, targets, and build records passed.",
+		"The bounded Starter archive and Plugin version pairing passed.",
+		"Project and Go notices, checksums, and cross-manifest provenance passed.",
+	}
+	if err != nil {
+		outcome = "BLOCKED"
+		for index := range summaries {
+			summaries[index] = "The provided local distribution candidate did not pass the fixed strict verification contract."
+		}
+	}
+	checks := make([]releaseCheck, len(ids))
+	for index := range ids {
+		checks[index] = releaseCheck{ID: ids[index], Outcome: outcome, Summary: summaries[index]}
+	}
+	return checks, err
 }
 
 func emptyReleaseCheckData(mode string) releaseCheckData {

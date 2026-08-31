@@ -160,11 +160,11 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- Plugin 本地 bundle 已能携带/定位各平台 CLI，且与 Starter/许可/checksum 形成同版本本地 candidate；仍需在 Codex 实际安装缓存和新任务中验证相对路径及最小安装步骤。
+- Plugin 本地 bundle 已能携带/定位各平台 CLI，且与 Starter/许可/checksum 形成同版本本地 candidate；最小真实 Codex 安装、新任务发现、包内 CLI 调用与卸载已 PASS，升级/失败升级/回滚仍待最终候选。
 - Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、quarantine、升级/回滚路径仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict 模式尚未完成的 source-tree、分发 metadata 与 required-CI 发布门禁；manual/standard 的 build/export 运行时门禁及三模式只读 `release check` 已完成实证。最小 macOS CI 已持久化并完成本地 contract 验证，但 GitHub-hosted 执行仍 `NOT RUN`。
+- strict `release check` 已能用显式本地 candidate 在内存中验证 clean-source、Plugin、Starter、license/provenance 四项分发门禁；未提供或验证失败会诚实保持 `NOT_RUN/BLOCKED`。required CI 尚未接入，最小 macOS CI 只完成本地 contract 验证，GitHub-hosted 执行仍 `NOT RUN`。
 
 ## 11. 当前依据
 
