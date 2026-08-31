@@ -72,3 +72,7 @@ CLI 不执行包内代码、不调用 Python/shell/npm、不联网、不安装�
 - GitHub-hosted required CI、Python wheel hashes、release attestation/SBOM 仍未运行。
 - Framework Gatekeeper、Windows/Linux 原生证据、成功/失败升级与回滚、最终干净用户环境仍未完成。
 - 没有 remote、tag、Release、npm/Marketplace 发布或用户发布批准。
+
+## 6. Fresh Starter 后续复验
+
+同一候选随后在新解包的中文、空格与 `#` 路径 Starter 上完成 initialize、Headless、6/6 tests、Debug/Release build、直接 Release export 与 Apple Silicon target smoke。standard 聚合为 6 PASS；strict 聚合为 10 PASS、1 `NOT_RUN`，只剩 required hosted CI。完整命令、run ID、产物摘要、受限沙箱负例和只读树摘要见 [`m3-fresh-starter-candidate-e2e-2026-08-31.md`](m3-fresh-starter-candidate-e2e-2026-08-31.md)。
