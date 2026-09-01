@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error.schema.json",
+  "title": "Codex Game Atelier structured error",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["code", "category", "message", "retryable"],
+  "properties": {
+    "code": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{2,63}$"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["usage", "validation", "policy", "prerequisite", "engine", "timeout", "cancelled", "state", "internal"]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "retryable": { "type": "boolean" },
+    "remediation": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 4096
+    },
+    "details": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}
