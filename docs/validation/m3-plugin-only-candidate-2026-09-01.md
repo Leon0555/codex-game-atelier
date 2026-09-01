@@ -61,7 +61,19 @@
 
 总计 7 PASS、3 BLOCKED、2 NOT RUN，`release_ready=false`。本地 candidate 输入只记录为 `provided`；命令零项目写入、零 evidence、零 candidate 修改。
 
-## 5. 重现性与未完成项
+## 5. 隔离 Codex Plugin 生命周期
+
+使用 Codex CLI `0.151.0-alpha.7.2` 和独立 `/private/tmp` `CODEX_HOME`，没有读取或修改真实 `~/.codex`：
+
+1. 从当前 bundle 构建专用本地 marketplace：PASS。
+2. `marketplace add`：PASS；只写隔离 home。
+3. `plugin add codex-game-atelier@codex-game-atelier-local`：PASS；安装版本 `0.3.0-rc.1`。
+4. 安装 cache 再次通过 Plugin verifier，并与输入 bundle `diff -rq` 无输出；包内 CLI `--version` PASS。
+5. `plugin remove` 与 `marketplace remove`：PASS；最终 `plugin list --json` 的 `installed`、`available` 均为空。
+
+这证明当前候选可完成隔离的本地安装/卸载，不证明真实远程 Git marketplace、Gatekeeper 行为、新任务 Skill 发现或用户级升级/回滚。
+
+## 6. 重现性与未完成项
 
 从同一 clean revision 和同一六个二进制独立生成第二份 Plugin bundle 与 distribution candidate；两级 `diff -rq` 均无输出，证明打包结果逐字节一致。
 
