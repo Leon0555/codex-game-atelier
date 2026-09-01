@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -305,7 +306,7 @@ func TestPublishProjectStateNeverOverwritesExistingFinal(t *testing.T) {
 	if publish.err == nil || !publish.targetExists {
 		t.Fatalf("publish did not report existing target: %+v", publish)
 	}
-	after, err := os.ReadFile(filepath.Join(stateRoot.Name(), "project.json"))
+	after, err := readRootTestFile(stateRoot, "project.json")
 	if err != nil || !bytes.Equal(after, original) {
 		t.Fatalf("existing final was overwritten: err=%v content=%q", err, after)
 	}
@@ -369,6 +370,15 @@ func writeRootTestFile(root *os.Root, name string, content []byte) error {
 		return err
 	}
 	return file.Close()
+}
+
+func readRootTestFile(root *os.Root, name string) ([]byte, error) {
+	file, err := root.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return io.ReadAll(file)
 }
 
 func executeInitializeRaw(project string) (int, contract.Result, error) {
