@@ -1,0 +1,17 @@
+Codex Game Atelier
+Copyright (c) 2026 Leon0555
+
+This repository was designed with clean-room-style architectural study of the
+projects listed in docs/provenance.md. No source code, prompts, or substantial
+documentation from those reference projects is included.
+
+Prebuilt Codex Game Atelier CLI and private-runner distributions incorporate
+the Go standard library. Every package containing those binaries must include
+THIRD_PARTY_NOTICES with the Go copyright, license conditions, and disclaimer.
+The source-only Starter Template does not embed the CLI or Go runtime.
+
+If other third-party material is introduced, update this file,
+THIRD_PARTY_NOTICES, and docs/provenance.md before distribution.
+
+“Codex” and “Godot” may be trademarks of their respective owners. Their use in
+this project name and documentation does not imply endorsement.

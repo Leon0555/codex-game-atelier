@@ -1,0 +1,257 @@
+{
+  "build_provenance": {
+    "binary_build_record_count": 8,
+    "binary_file_count": 6,
+    "cgo_enabled": false,
+    "go_version": "go1.27.0",
+    "source_clean": true,
+    "source_revision": "280de4a9939bb437379ad4c743df57b1d9ce9aba",
+    "trimpath": true
+  },
+  "expanded_byte_size": 32273900,
+  "file_count": 32,
+  "files": [
+    {
+      "byte_size": 1388,
+      "mode": 420,
+      "path": ".codex-plugin/plugin.json",
+      "sha256": "433b944235d1bfdbed882d528bcb5e5716e89c373ca9cf05fcd10c9025d97cf9"
+    },
+    {
+      "byte_size": 1065,
+      "mode": 420,
+      "path": "LICENSE",
+      "sha256": "6d4cdff73a3f9005236b70dc884712a7e5b780ae3b5e9e6a7df1f6f93b803f90"
+    },
+    {
+      "byte_size": 849,
+      "mode": 420,
+      "path": "NOTICE",
+      "sha256": "d7f74899713fd562be238355181fd4e1089942b0289e2da57dd2faf9b3464a4b"
+    },
+    {
+      "byte_size": 1640,
+      "mode": 420,
+      "path": "THIRD_PARTY_NOTICES",
+      "sha256": "7055aea9a5203534e38b838951401c19bede9a34c7515b6966a111019178f2e6"
+    },
+    {
+      "byte_size": 9744322,
+      "mode": 493,
+      "path": "bin/darwin-universal2/codex-game-atelier",
+      "sha256": "91a5b61c4b1b321cd31f07d1ab690ab05f7bd2a143a536c734adb1751825d34d"
+    },
+    {
+      "byte_size": 6549106,
+      "mode": 493,
+      "path": "bin/darwin-universal2/codex-game-atelier-runner",
+      "sha256": "4ed41bab527c9c8a5541366980c875162369e7ad91069036c3cb8910d3c8fe4f"
+    },
+    {
+      "byte_size": 4964512,
+      "mode": 493,
+      "path": "bin/linux-amd64/codex-game-atelier",
+      "sha256": "934efb8cec370627c3354f7e9538ea943c0650d9c5b143a6d537815b7c6abc84"
+    },
+    {
+      "byte_size": 3322016,
+      "mode": 493,
+      "path": "bin/linux-amd64/codex-game-atelier-runner",
+      "sha256": "d5d0e52c5fd8547fdfe97d1233651c09f62a761c13c888d0504c7cb123ababa9"
+    },
+    {
+      "byte_size": 2543104,
+      "mode": 493,
+      "path": "bin/windows-amd64/codex-game-atelier-runner.exe",
+      "sha256": "fc7d21273b00ed49e255f79851be0864839bf97e03a1d9cdf39ff31787041958"
+    },
+    {
+      "byte_size": 5104128,
+      "mode": 493,
+      "path": "bin/windows-amd64/codex-game-atelier.exe",
+      "sha256": "a1c287f01b59c7486f47f9563a0f284f14f3721f25fa8454324a3b47dd5ce5b8"
+    },
+    {
+      "byte_size": 2074,
+      "mode": 420,
+      "path": "schemas/v1/common.schema.json",
+      "sha256": "38a5c7d55229b26f2442eab75ff07e56dc688fd4e8ae1044f9cc0f52c9040196"
+    },
+    {
+      "byte_size": 849,
+      "mode": 420,
+      "path": "schemas/v1/error.schema.json",
+      "sha256": "31b76c550364c8dfd3042e481b33f0a1c9c1e07f1ae1ac14106eaa64f2bddf9c"
+    },
+    {
+      "byte_size": 1712,
+      "mode": 420,
+      "path": "schemas/v1/evidence.schema.json",
+      "sha256": "cf4d8a2c97e5f609a23ee675333f2853ae09433487aa8a14f2ef0b1290cbfbff"
+    },
+    {
+      "byte_size": 1314,
+      "mode": 420,
+      "path": "schemas/v1/handoff.schema.json",
+      "sha256": "a6c5b46750c58ec8744dbcb484de731397000226769038e37150d63a5e1ba25f"
+    },
+    {
+      "byte_size": 1878,
+      "mode": 420,
+      "path": "schemas/v1/task.schema.json",
+      "sha256": "2a6e5dff78b275c52747962ca243c5345aabd96be8b356d87a6727689b896c2b"
+    },
+    {
+      "byte_size": 7043,
+      "mode": 420,
+      "path": "skills/develop-godot-game/SKILL.md",
+      "sha256": "b453832569d929130d03b6851fb7c7eedb40d06f2ffea97e73d50acde5ea9448"
+    },
+    {
+      "byte_size": 249,
+      "mode": 420,
+      "path": "skills/develop-godot-game/agents/openai.yaml",
+      "sha256": "fdbeffcb27cfc6c746fcd7a0039509cee013315edcac5963f88fa5c32d390da2"
+    },
+    {
+      "byte_size": 1725,
+      "mode": 420,
+      "path": "skills/develop-godot-game/references/capability-profiles.json",
+      "sha256": "5a37ebe7143d37608c80e389b8dae3c513a8dea3391a367559667338200f6a9e"
+    },
+    {
+      "byte_size": 2183,
+      "mode": 420,
+      "path": "skills/develop-godot-game/references/gate-policy.json",
+      "sha256": "c1f5fdc999d1b496cf731f71780efbb6ca3ea786637d61fc33572a6c646331e9"
+    },
+    {
+      "byte_size": 6734,
+      "mode": 420,
+      "path": "skills/develop-godot-game/references/native-collaboration.md",
+      "sha256": "791ec689170e39a5732c516b2cd238b8838e88e531c39d214d84434746bb13e7"
+    },
+    {
+      "byte_size": 218,
+      "mode": 420,
+      "path": "starter-template/.gitignore",
+      "sha256": "e3369421cc1ebb2a9a0293bd64bdc61c8df96c1a92e24defef8f0b3999a2b0a0"
+    },
+    {
+      "byte_size": 1065,
+      "mode": 420,
+      "path": "starter-template/LICENSE",
+      "sha256": "6d4cdff73a3f9005236b70dc884712a7e5b780ae3b5e9e6a7df1f6f93b803f90"
+    },
+    {
+      "byte_size": 849,
+      "mode": 420,
+      "path": "starter-template/NOTICE",
+      "sha256": "d7f74899713fd562be238355181fd4e1089942b0289e2da57dd2faf9b3464a4b"
+    },
+    {
+      "byte_size": 2399,
+      "mode": 420,
+      "path": "starter-template/README.md",
+      "sha256": "4991ef4a1b369f6996e1e93536e61192508d763dfc22a890ef391223f5d3bbdf"
+    },
+    {
+      "byte_size": 2392,
+      "mode": 420,
+      "path": "starter-template/TEMPLATE-MANIFEST.json",
+      "sha256": "218d63657aee45a4f2876bffb77e14394fa4b33af122be32e5688f6592b025bd"
+    },
+    {
+      "byte_size": 708,
+      "mode": 420,
+      "path": "starter-template/export_presets.cfg",
+      "sha256": "f3130bad1c023e380bd18a34fa9a9d24a1e0c4782350e8ea392f3fd2df7190b9"
+    },
+    {
+      "byte_size": 2536,
+      "mode": 420,
+      "path": "starter-template/main.tscn",
+      "sha256": "0e7f40a519ca900f109f24c205edda07796abce274db9e7277a9aa0b1c05bb14"
+    },
+    {
+      "byte_size": 506,
+      "mode": 420,
+      "path": "starter-template/project.godot",
+      "sha256": "329b5cddd27f22e2acb760acd4367936a239e34f274f0dff368d96b2ceb25b98"
+    },
+    {
+      "byte_size": 446,
+      "mode": 420,
+      "path": "starter-template/scripts/game_state.gd",
+      "sha256": "3976dcd4aed5e83f2d3f77ac6d37e2a046bd7b6362bc8954d9a51907f3e06aba"
+    },
+    {
+      "byte_size": 1685,
+      "mode": 420,
+      "path": "starter-template/scripts/main.gd",
+      "sha256": "9669f3df36f444629429aa18a9f12ea24378b8acf63cdc0ac5e0239e85f0040c"
+    },
+    {
+      "byte_size": 3112,
+      "mode": 420,
+      "path": "starter-template/tests/atelier_test_runner.gd",
+      "sha256": "870b2eda8d8d52e9d988363d434c48f075b38cfffef676059dd336404f341800"
+    },
+    {
+      "byte_size": 93,
+      "mode": 420,
+      "path": "starter-template/中文 资源/status_payload.gd",
+      "sha256": "201d5f332e65c56d84e492b8d85ad802a2324ba967b90ad3c83a2de12ddf7bab"
+    }
+  ],
+  "hosts": [
+    {
+      "architectures": [
+        "x86_64",
+        "arm64"
+      ],
+      "binary_format": "mach-o-universal2",
+      "cli_name": "codex-game-atelier",
+      "host": "darwin-universal2",
+      "intel_smoke": false,
+      "native_validation": "NOT_RECORDED",
+      "runner_name": "codex-game-atelier-runner",
+      "support_statement": "generated Universal 2; runtime validation is limited to Apple Silicon"
+    },
+    {
+      "architectures": [
+        "amd64"
+      ],
+      "binary_format": "elf-amd64",
+      "cli_name": "codex-game-atelier",
+      "host": "linux-amd64",
+      "native_validation": "NOT_RUN",
+      "runner_name": "codex-game-atelier-runner",
+      "support_statement": "cross-build artifact only"
+    },
+    {
+      "architectures": [
+        "amd64"
+      ],
+      "binary_format": "pe-amd64",
+      "cli_name": "codex-game-atelier.exe",
+      "host": "windows-amd64",
+      "native_validation": "NOT_RUN",
+      "runner_name": "codex-game-atelier-runner.exe",
+      "support_statement": "cross-build artifact only"
+    }
+  ],
+  "plugin": {
+    "name": "codex-game-atelier",
+    "version": "0.3.0-rc.2"
+  },
+  "schema_version": "1.2.0",
+  "source_build_required": false,
+  "starter_template": {
+    "distribution": "embedded-in-plugin",
+    "name": "codex-game-atelier-starter",
+    "path": "starter-template",
+    "version": "0.3.0-rc.2"
+  },
+  "telemetry_enabled": false
+}

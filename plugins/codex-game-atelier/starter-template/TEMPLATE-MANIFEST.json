@@ -1,0 +1,90 @@
+{
+  "engine": {
+    "edition": "standard",
+    "kind": "godot",
+    "language": "gdscript",
+    "version": "4.7.2-stable"
+  },
+  "expanded_byte_size": 13617,
+  "file_count": 11,
+  "files": [
+    {
+      "byte_size": 218,
+      "mode": 420,
+      "path": ".gitignore",
+      "sha256": "e3369421cc1ebb2a9a0293bd64bdc61c8df96c1a92e24defef8f0b3999a2b0a0"
+    },
+    {
+      "byte_size": 1065,
+      "mode": 420,
+      "path": "LICENSE",
+      "sha256": "6d4cdff73a3f9005236b70dc884712a7e5b780ae3b5e9e6a7df1f6f93b803f90"
+    },
+    {
+      "byte_size": 849,
+      "mode": 420,
+      "path": "NOTICE",
+      "sha256": "d7f74899713fd562be238355181fd4e1089942b0289e2da57dd2faf9b3464a4b"
+    },
+    {
+      "byte_size": 2399,
+      "mode": 420,
+      "path": "README.md",
+      "sha256": "4991ef4a1b369f6996e1e93536e61192508d763dfc22a890ef391223f5d3bbdf"
+    },
+    {
+      "byte_size": 708,
+      "mode": 420,
+      "path": "export_presets.cfg",
+      "sha256": "f3130bad1c023e380bd18a34fa9a9d24a1e0c4782350e8ea392f3fd2df7190b9"
+    },
+    {
+      "byte_size": 2536,
+      "mode": 420,
+      "path": "main.tscn",
+      "sha256": "0e7f40a519ca900f109f24c205edda07796abce274db9e7277a9aa0b1c05bb14"
+    },
+    {
+      "byte_size": 506,
+      "mode": 420,
+      "path": "project.godot",
+      "sha256": "329b5cddd27f22e2acb760acd4367936a239e34f274f0dff368d96b2ceb25b98"
+    },
+    {
+      "byte_size": 446,
+      "mode": 420,
+      "path": "scripts/game_state.gd",
+      "sha256": "3976dcd4aed5e83f2d3f77ac6d37e2a046bd7b6362bc8954d9a51907f3e06aba"
+    },
+    {
+      "byte_size": 1685,
+      "mode": 420,
+      "path": "scripts/main.gd",
+      "sha256": "9669f3df36f444629429aa18a9f12ea24378b8acf63cdc0ac5e0239e85f0040c"
+    },
+    {
+      "byte_size": 3112,
+      "mode": 420,
+      "path": "tests/atelier_test_runner.gd",
+      "sha256": "870b2eda8d8d52e9d988363d434c48f075b38cfffef676059dd336404f341800"
+    },
+    {
+      "byte_size": 93,
+      "mode": 420,
+      "path": "中文 资源/status_payload.gd",
+      "sha256": "201d5f332e65c56d84e492b8d85ad802a2324ba967b90ad3c83a2de12ddf7bab"
+    }
+  ],
+  "pairing": {
+    "embedded": true,
+    "kind": "codex-plugin",
+    "name": "codex-game-atelier",
+    "verified_plugin_version": "0.3.0-rc.2"
+  },
+  "schema_version": "1.0.0",
+  "telemetry_enabled": false,
+  "template": {
+    "name": "codex-game-atelier-starter",
+    "version": "0.3.0-rc.2"
+  }
+}

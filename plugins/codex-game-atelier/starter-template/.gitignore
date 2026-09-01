@@ -1,0 +1,9 @@
+.DS_Store
+.godot/
+.import/
+build/
+export.cfg
+export_credentials.cfg
+
+# `.gameatelier/` is intentionally visible until the project-state VCS policy
+# is frozen. Review generated state and evidence before committing it.

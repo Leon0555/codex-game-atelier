@@ -1,0 +1,34 @@
+{
+  "name": "codex-game-atelier",
+  "version": "0.3.0-rc.2",
+  "description": "Codex-native workflows backed by a deterministic CLI for supported Godot projects.",
+  "author": {
+    "name": "Leon0555",
+    "email": "Leon0555@users.noreply.github.com",
+    "url": "https://github.com/Leon0555"
+  },
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "game-development",
+    "godot"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Game Atelier",
+    "shortDescription": "Create, validate, test, and export supported Godot projects.",
+    "longDescription": "Godot workflows for verified Starter creation, explicit initialization, project inspection, recorded validation and tests, committed-run diagnostics, bounded cleanup previews, unsigned macOS technical builds and exports, and read-only release readiness checks. External release and raw log retention are not implemented.",
+    "developerName": "Leon0555",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "Create a new Codex Game Atelier Starter project in a directory I choose, then initialize it.",
+      "Inspect this Godot project and report its Atelier readiness.",
+      "Validate this initialized project and show the structured result.",
+      "Run the fixed GDScript tests after confirming required authorization."
+    ]
+  }
+}
