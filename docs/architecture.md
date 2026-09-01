@@ -163,11 +163,11 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- Plugin 本地 bundle 已能携带/定位各平台 CLI；历史双 archive candidate 和最小本地 Codex 安装闭环已 PASS。单 Plugin contract、embedded Starter 校验和 `starter create` 已实现并通过仓库内 macOS 聚焦测试；仍需从干净 revision 生成真实单 Plugin 候选，升级/失败升级/回滚留到最终候选。
+- Plugin 本地 bundle 已能携带/定位各平台 CLI；历史双 archive candidate 和最小本地 Codex 安装闭环已 PASS。`0.3.0-rc.1` 单 Plugin 候选已从 clean `969bef0...` 生成并逐字节重现，实际包内 CLI 的特殊路径 `starter create → initialize → status` 与 strict 四项本地分发门禁 PASS；升级/失败升级/回滚留到最终候选。
 - Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、远程 Plugin 无阻断安装、升级/回滚路径仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在包内复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。下一份真实干净候选尚未生成，远程 Plugin 无阻断安装和 required CI 未接入时必须保持 `NOT RUN/BLOCKED`。
+- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在 `0.3.0-rc.1` 候选中复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。远程 Plugin 无阻断安装和 required CI 未接入时仍必须保持 `NOT RUN/BLOCKED`。
 
 ## 11. 当前依据
 

@@ -62,7 +62,7 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **历史本地候选已完成；单 Plugin contract 与创建入口已实现、真实候选待生成**：`0.2.0` 双 archive 候选的精确版本闭合和逐字节重现性已验证，但不再代表 v1 最终分发形状。`1.2.0` 打包与 strict verifier 已改为一个内含 Starter 与 CLI/runner 的 Plugin archive；`starter create` 已实现固定 inventory/hash/version 校验、macOS no-replace 原子创建和现有目标拒绝，并能继续调用 `initialize`。必须从干净 revision 生成下一候选后才可把实际 artifact 标记 PASS。
+1. **已完成（单 Plugin 本地候选）**：历史 `0.2.0` 双 archive 候选继续只作证据。`0.3.0-rc.1` 已从 clean `969bef0...` 生成 `1.2.0` 单 Plugin candidate；A/B 逐字节一致，可信本机 CLI/runner smoke、特殊路径 `starter create → initialize → status` 和 strict clean-source/Plugin/embedded-Starter/license-provenance 四项均 PASS。详见 [`m3-plugin-only-candidate-2026-09-01.md`](validation/m3-plugin-only-candidate-2026-09-01.md)。
 2. **进行中（最小真实闭环已 PASS）**：当前 Codex CLI 已从专用本地 marketplace A 完成真实注册、安装、安装态校验、全新任务 Skill 发现、包内 CLI 调用、卸载和 marketplace 清理；其他 Plugin 清单未变。失败升级、成功升级与上一版本回滚按用户收敛范围留到最终候选，详见 [`m3-minimal-plugin-install-2026-08-31.md`](validation/m3-minimal-plugin-install-2026-08-31.md)。
 3. **进行中（本地供应链与 E2E 已闭合；远程 Plugin 门禁 NOT RUN）**：历史双 archive candidate 的 checksum、manifest、archive 安全、clean Git/Go provenance、Go notices、静态秘密/网络/遥测/写入边界及 fresh Starter E2E 已 PASS。本地 quarantine 手工解包路径曾被 Gatekeeper 阻断，但 ADR 0023 不再把该非发布路径作为 v1 门禁。下一步是在干净 Apple Silicon 环境从真实远程 Plugin 来源安装，不经过系统设置放行、`xattr` 或隐藏策略修改，实测 Skill、包内 CLI/runner 和 Godot 工作流。若失败，再单独评估 Apple 公证；不预先实施。
 4. **Plugin 发布配置 NOT RUN**：当前没有 remote、release workflow、远程 Plugin 来源或 attestation，不实际发布。npm CLI 包已移出 v1 计划。
