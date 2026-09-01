@@ -32,7 +32,7 @@ Deterministic CLI ---------------------------------+
                 +-- CI and release verification
 ```
 
-Plugin 是 v1.0 唯一用户安装入口。Starter Template 是 Plugin 内含的项目起点，公开 CLI 与私有 runner 也是 Plugin 内部组件；三者共享同一版本和完整性闭包，不分别作为用户下载产品。CI 的获取方式在接入远程仓库前另行冻结，不借此恢复独立 CLI 用户分发。
+Plugin 是 v1.0 唯一用户安装入口。Starter Template 是 Plugin 内含的项目起点，公开 CLI 与私有 runner 也是 Plugin 内部组件；三者共享同一版本和完整性闭包，不分别作为用户下载产品。当前 GitHub-hosted CI 直接验证源码与本机构建，普通用户仍只通过 Plugin 取得工具；该 CI 不恢复独立 CLI 用户分发。
 
 ## 3. Codex 原生编排
 
@@ -150,7 +150,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - macOS 发布门禁：不预先实施 Developer ID 签名或 Apple 公证。门禁改为从真实远程 Plugin 来源在干净 Apple Silicon 环境安装，且无需系统设置放行、`xattr` 清除或其他隐藏策略修改即可调用包内 CLI/runner 并完成真实 Godot 工作流。若该实测失败，公证仅作为需新 ADR 和用户批准的备选方案。
 - v1.0 不发布独立 CLI archive、GitHub Release 二进制 ZIP、npm CLI 包、Homebrew、DMG 或 PKG。历史 `0.2.0` 双 archive 本地候选只保留为证据，不代表未来分发形状。
 - Rust/Go 语言对照已完成并由用户于 2026-08-25 冻结 Go。Phase 1 只把 macOS Apple Silicon 作为当前原生验证宿主；Windows/Linux 仅保留交叉构建 artifact 形状，原生 runner 已按用户决定延期，不能因此扩大支持声明。
-- 远程 Plugin 发布使用受保护 tag、最小权限和可审计 provenance；不用长期发布 Token。具体远程来源与 CI 获取方式在首次远程演练前冻结。
+- 首个受验证远程来源是 `https://github.com/Leon0555/codex-game-atelier` 的固定 Marketplace ref；当前 hosted CI 已 PASS。正式 Plugin 发布仍必须使用受保护 tag、最小权限和可审计 provenance，不用长期发布 Token。
 
 ## 9. 安全与隐私
 
@@ -163,11 +163,11 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- Plugin 本地 bundle 已能携带/定位各平台 CLI；历史双 archive candidate 和最小本地 Codex 安装闭环已 PASS。`0.3.0-rc.1` 单 Plugin 候选已从 clean `969bef0...` 生成并逐字节重现，实际包内 CLI 的特殊路径 `starter create → initialize → status` 与 strict 四项本地分发门禁 PASS；升级/失败升级/回滚留到最终候选。
-- Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、远程 Plugin 无阻断安装、升级/回滚路径仍待验证。
+- `0.3.0-rc.1` 单 Plugin 候选已从 clean `969bef0...` 生成并逐字节重现；远程 Git-backed 安装的 cache 又与该候选逐文件一致，包内 CLI/runner、特殊路径 Starter、Headless validate 和固定 GDScript 6/6 已 PASS。真实用户级升级、失败升级不替换 active version、回滚、卸载与精确状态恢复也已 PASS。
+- Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过本地与远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围；远程安装态的新任务 Skill 发现与全新用户/机器复验仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在 `0.3.0-rc.1` 候选中复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。远程 Plugin 无阻断安装和 required CI 未接入时仍必须保持 `NOT RUN/BLOCKED`。
+- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在 `0.3.0-rc.1` 候选中复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。远程 Plugin 与 hosted CI 事实已 PASS，但尚未作为受信任机器可读输入接入 strict，因此命令继续保持 `NOT RUN/BLOCKED`。
 
 ## 11. 当前依据
 

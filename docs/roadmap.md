@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
 状态：Phase 0 已审阅通过；M1/M2 本地实现已完成，当前进入 M3
-更新日期：2026-08-31
+更新日期：2026-09-01
 
 ## 1. 已完成基线
 
@@ -50,7 +50,7 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
 4. **已完成（required CI 保持阶段阻断）**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，standard 聚合当前 revision 最新 evidence 并复验 Release ZIP；strict 可显式读取本地 candidate，在内存中关闭 clean-source、Plugin、Starter、license/provenance 四项，不执行包内代码、不回显绝对路径；required CI 在托管证据可用前继续 `NOT_RUN`。不实现自动外部发布，也不增加独立 `release prepare` 流水线。
 5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
-6. **已完成实现、托管运行 NOT RUN**：建立单一 macOS Apple Silicon CI job，固定只读权限与 action SHA，验证 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性和本机 CLI pair；因尚无远程仓库，首次 GitHub-hosted 结果仍待后续授权 push。
+6. **已完成托管运行**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。首次 run 暴露并修复 Go 1.24 `os.Root.Name()` 测试假失败；修复后 run `33515728377` 全部 PASS。branch protection required check 尚未配置。
 
 M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 
@@ -63,11 +63,11 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 实施顺序：
 
 1. **已完成（单 Plugin 本地候选）**：历史 `0.2.0` 双 archive 候选继续只作证据。`0.3.0-rc.1` 已从 clean `969bef0...` 生成 `1.2.0` 单 Plugin candidate；A/B 逐字节一致，可信本机 CLI/runner smoke、特殊路径 `starter create → initialize → status` 和 strict clean-source/Plugin/embedded-Starter/license-provenance 四项均 PASS。详见 [`m3-plugin-only-candidate-2026-09-01.md`](validation/m3-plugin-only-candidate-2026-09-01.md)。
-2. **进行中（本地真实闭环与当前候选隔离闭环已 PASS）**：既有 `0.2.0` 已从专用本地 marketplace A 完成真实用户级注册、安装、安装态校验、全新任务 Skill 发现、包内 CLI 调用、卸载和 marketplace 清理；`0.3.0-rc.1` 又在独立临时 `CODEX_HOME` 完成 marketplace add、Plugin install、cache 逐字节核对、CLI 调用、卸载与清理，真实 `~/.codex` 未触碰。失败升级、成功升级与上一版本回滚留到用户授权的最终候选阶段，详见 [`m3-minimal-plugin-install-2026-08-31.md`](validation/m3-minimal-plugin-install-2026-08-31.md) 与 [`m3-plugin-only-candidate-2026-09-01.md`](validation/m3-plugin-only-candidate-2026-09-01.md)。
-3. **进行中（本地供应链与 E2E 已闭合；远程 Plugin 门禁 NOT RUN）**：历史双 archive candidate 的 checksum、manifest、archive 安全、clean Git/Go provenance、Go notices、静态秘密/网络/遥测/写入边界及 fresh Starter E2E 已 PASS。本地 quarantine 手工解包路径曾被 Gatekeeper 阻断，但 ADR 0023 不再把该非发布路径作为 v1 门禁。下一步是在干净 Apple Silicon 环境从真实远程 Plugin 来源安装，不经过系统设置放行、`xattr` 或隐藏策略修改，实测 Skill、包内 CLI/runner 和 Godot 工作流。若失败，再单独评估 Apple 公证；不预先实施。
-4. **Plugin 发布配置 NOT RUN**：当前没有 remote、release workflow、远程 Plugin 来源或 attestation，不实际发布。npm CLI 包已移出 v1 计划。
+2. **已完成真实远程生命周期**：`0.3.0-rc.1` 从 GitHub Marketplace ref 安装到隔离 `CODEX_HOME`，cache 与本地审计候选逐文件一致，包内 CLI/runner 与特殊路径 Starter/Headless/6-test 工作流 PASS。真实 `~/.codex` 又完成 `rc.0 → rc.1`、无效候选不替换 active `rc.1`、`rc.1 → rc.0`、卸载和精确状态恢复。详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
+3. **进行中（远程无阻断安装与 Godot E2E 已 PASS）**：Git-backed 远程 Plugin 没有 quarantine，不需系统设置放行、`xattr` 或隐藏策略修改；因此 Apple 公证继续不是 v1 门禁。仍待从远程安装态新建 Codex 任务并由主机自动发现 Skill，以及全新用户/机器的独立复验。
+4. **Plugin 发布配置进行中**：公开 remote、`main` 与固定 Marketplace 测试分支已建立，hosted CI 已 PASS；但正式 release workflow、受保护 tag、branch protection required check 和 attestation 仍 NOT RUN。npm CLI 包已移出 v1 计划。
 5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
-6. 用户明确批准后，才允许创建/推送远程仓库或提交远程 Plugin 来源；v1 不执行 npm publish 或独立二进制 GitHub Release。
+6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
 

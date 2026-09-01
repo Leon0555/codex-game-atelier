@@ -80,3 +80,9 @@
 2. strict release gate 从“Plugin + Starter 两个 archive”迁移为“一个 Plugin archive 内同时验证 Plugin、CLI/runner、Starter、license 与 provenance”。
 3. 历史双包候选、测试和验证记录保留，不重写为新决策下的 PASS。
 4. 若 Plugin-only 远程验证失败，先记录可复现 blocker，再由新 ADR 选择 Apple 公证、不同 Plugin 运行形态或其他明确回退；不得静默恢复 standalone 用户下载。
+
+## 实施证据补记
+
+2026-09-01，`0.3.0-rc.1` 已从公开 Git-backed Codex Marketplace 安装到新的隔离 `CODEX_HOME`。安装缓存无 quarantine，未修改 `xattr`、系统设置或隐藏安全策略；public CLI、private runner 固定拒绝契约、特殊路径 embedded Starter、Godot Headless 与 GDScript 6/6 均 PASS。同日真实用户级 `rc.0 → rc.1`、失败升级不替换 active `rc.1`、`rc.1 → rc.0`、卸载和起点状态恢复也已 PASS。因此当前证据不触发 Apple 公证备选方案。详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](../validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
+
+仍未完成的是远程安装态的新任务 Skill 发现、全新用户/机器独立复验、受保护发布 tag/attestation 和最终独立审计；这些缺口不得由本次 PASS 推定。

@@ -1,6 +1,6 @@
 # ADR 0020：Codex 本地 Marketplace 生命周期演练
 
-- 状态：Proposed（最小真实安装闭环已通过；升级、失败升级与回滚待最终候选）
+- 状态：Accepted（最小本地闭环与远程候选完整生命周期已通过）
 - 日期：2026-08-30
 - 决策范围：Codex Plugin 的本地安装、升级失败、升级、卸载与回滚验证
 
@@ -53,3 +53,9 @@
 - 新任务中 Skill 发现及相对路径 CLI/runner 调用。最小闭环已实际证明 Skill 发现和 CLI `--version`；runner 在主任务中证明直接调用固定退出 125。
 - 失败升级不切换、成功升级、卸载保留用户项目/凭据、上一版本回滚。
 - 最终移除测试 Plugin/marketplace 后，非测试用户状态与开始快照一致。
+
+## Accepted 证据补记
+
+2026-09-01，用户另行批准了远程与真实用户级完整演练。Git-backed `0.3.0-rc.0` 安装、`0.3.0-rc.1` 升级、不可解析 manifest 失败候选不替换 active `rc.1`、回滚 `rc.0`、卸载和完整恢复全部 PASS。演练后非测试 Plugin/Marketplace ID 清单与起点一致，`config.toml` SHA-256 也字节级一致；不需用快照覆盖用户文件。详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](../validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
+
+当前 Codex CLI 对“同一 Marketplace 改 Git ref”的实测契约是 `marketplace remove → marketplace add(new ref) → plugin add`，而不是就地修改 ref。另外，客户端会把缺少 `version` 的 manifest 宽松安装为 `local`；Atelier 不得因此删除自己的 bundle/version/provenance 完整性验证。

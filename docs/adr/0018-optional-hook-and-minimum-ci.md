@@ -16,7 +16,7 @@ ADR 0002 要求 hook 只提供早期反馈，不能自动安装、覆盖用户�
 4. install 只在两个目标均不存在时原子发布；已有 hook、部分/损坏状态、有效 `core.hooksPath` 或 linked-worktree `.git` 文件一律阻断，不自动组合或覆盖。
 5. manifest 记录 schema、owner、hook、CLI version、固定 check 与 hook SHA-256。uninstall 只删除仍含 ownership marker 且字节摘要匹配 manifest 的 hook；旧 CLI 路径形成 `stale` 状态，但仍可验证所有权并安全卸载。
 6. M2 CI 只有一个 `macos-15` Apple Silicon job：`contents: read`，外部 action 使用完整 commit SHA，验证 Go 1.24.x 最低版本、Go format/vet/test、Python Schema/Plugin/Starter 测试，以及本机 CLI/private runner 构建与固定退出 smoke。
-7. CI 不调用 hook，不安装 Godot，不执行外部发布。远程仓库尚未创建，因此 workflow 的本地结构/等价命令可以 PASS，GitHub-hosted 执行必须保持 `NOT RUN`。
+7. CI 不调用 hook，不安装 Godot，不执行外部发布。远程仓库未创建时，workflow 的本地结构/等价命令可以 PASS，GitHub-hosted 执行必须保持 `NOT RUN`；远程建立后必须以真实 run 替换该阶段状态。
 
 ## 备选方案
 
@@ -51,3 +51,7 @@ ADR 0002 要求 hook 只提供早期反馈，不能自动安装、覆盖用户�
 - install/reinstall/uninstall 正例；既有 hook、篡改、stale、custom hooksPath 和取消负例。
 - 实际执行含空格、中文和单引号路径下生成的 hook，确认参数边界不被 shell 展开。
 - Schema fixture、CI YAML 解析、只读权限、单 job、固定 runner/action SHA 与本地等价测试。
+
+## 实施证据补记
+
+2026-09-01，公开远程仓库建立后，GitHub-hosted `macos-15` Apple Silicon run `33515728377` 在修复首次 Go 1.24 测试假失败后全部 PASS。运行证据见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](../validation/m3-remote-plugin-lifecycle-2026-09-01.md)。该结果证明 hosted workflow 可运行；在 branch protection 明确将它设为 required check 之前，不宣称远程合并不可绕过。

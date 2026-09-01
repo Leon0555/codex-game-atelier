@@ -92,4 +92,4 @@ Codex 没有理由依赖某个外部模板的 hook 语义；用户也可能没�
 - Go CLI 现已消费 artifact workflow：`standard` 在一次 build/export 总 timeout 内依次执行 Headless 与固定 GDScript tests，任一失败都会停止真正导出，并让原命令提交一份结构化失败闭包；`strict` 先执行同一 standard 子集，再对 M3 尚未实现的 run-store/source/distribution 项明确 `BLOCKED`。
 - build/export 可用 `--mode manual|standard|strict` 对单次命令显式覆盖项目 mode；覆盖值进入原命令及嵌套 gate 的 immutable intent，但不改写 `project.json`。这提供可用的三模式入口而不提前引入 project-state replacement/migration 协议。
 - CLI 消费不依赖 Git hook。`hooks list/plan/status/install/uninstall` 现只管理一个显式 `pre-commit` 与 ownership manifest；已有 hook、`core.hooksPath` 或 linked-worktree `.git` 均保守阻断，卸载只删除摘要仍与 manifest 相符的 owned 内容。
-- 最小 CI 现为一个 `macos-15` Apple Silicon job，最小 `contents: read` 权限、外部 action 完整 SHA、Go 1.24.x 最低工具链、Python/Schema/分发测试和本机 CLI pair smoke。它不调用 hook，也不宣称替代 M3 Godot/分发/许可完整发布矩阵；首次 GitHub-hosted 运行在远程仓库获准创建与 push 前保持 `NOT RUN`。
+- 最小 CI 现为一个 `macos-15` Apple Silicon job，最小 `contents: read` 权限、外部 action 完整 SHA、Go 1.24.0 最低工具链、Python/Schema/分发测试和本机 CLI pair smoke。它不调用 hook，也不宣称替代 M3 Godot/分发/许可完整发布矩阵。2026-09-01 的 GitHub-hosted run `33515728377` 已全部 PASS；branch protection required check 与 strict 证据聚合仍未完成。

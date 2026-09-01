@@ -26,9 +26,9 @@
 | V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | PASS（macOS Apple Silicon；Debug build 与 Release export 均自动完成 Universal 2、manifest/hash 和 headless 一帧 target smoke） |
 | V1-04 路径、日志与恢复 | M1 | 中文/空格/特殊路径可用；结构化日志与稳定退出码可诊断；超时、取消、异常退出和残留进程/锁有明确恢复结果 | 路径矩阵、故障注入、进程/锁检查、结构化日志 | PASS（macOS Apple Silicon；中文/空格/`#` 全链、既有故障注入、进程组与 run closure 证据） |
 | V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | PASS（Profile 目录、九项解析矩阵、分发扫描、task/handoff 逻辑引用，以及无对话继承的实现 → 审计 FAIL → 修复 → 全新只读审计 PASS trace） |
-| V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | PARTIAL（策略、CLI 消费、只读 release check、显式 hook 生命周期与最小 macOS CI contract 已在本地 PASS；strict 的本地 clean-source/Plugin/Starter/license candidate 输入已 PASS，required CI 与首次 GitHub-hosted 运行仍 NOT RUN） |
-| V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | PARTIAL（历史本地 marketplace 安装、新任务 Skill 发现和 fresh Starter E2E 已 PASS；`0.3.0-rc.1` 单 Plugin candidate A/B 重现、包内 CLI/runner smoke 及实际特殊路径 `starter create → initialize → status` PASS；真实远程无阻断安装仍 NOT RUN） |
-| V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PARTIAL（`0.3.0-rc.1` 单 Plugin archive 安全、checksum、clean Git/Go provenance、Go notices、A/B 本地重现性、静态秘密/网络/遥测/写入边界、既有真实本地安装/卸载，以及当前候选隔离 `CODEX_HOME` 安装/cache 核对/卸载 PASS；远程 Plugin 无阻断安装、升级/回滚、动态 trace、required CI 与 remote provenance 仍 NOT RUN） |
+| V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | PARTIAL（策略、CLI 消费、只读 release check、显式 hook 生命周期与strict 本地 candidate 输入已 PASS；GitHub-hosted `macos-15` Apple Silicon run `33515728377` 也已在 Go 1.24 最低工具链下全部 PASS。branch protection required check 及 strict 机器可读聚合仍 NOT RUN） |
+| V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | PARTIAL（Git-backed 远程 `0.3.0-rc.1` 已安装到新的隔离 `CODEX_HOME`，cache 与审计候选逐文件一致，public CLI、private runner 拒绝契约、特殊路径 Starter 创建/初始化、Headless 与 GDScript 6/6 已 PASS；历史本地安装的新任务 Skill 发现也 PASS。仍需从远程安装态新建任务复验主机 Skill 发现） |
+| V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PARTIAL（远程无 quarantine 安装、包内 Godot E2E、真实用户级 `rc.0 → rc.1`、无效候选返回 1 且 active `rc.1` 不变、`rc.1 → rc.0`、卸载、非测试 Plugin/Marketplace 不变及 `config.toml` 字节级恢复已 PASS；当前 Codex 会把缺少 version 的 manifest 宽松安装为 `local`，因此 Atelier 包验证不能依赖客户端。受保护 tag/attestation、全新用户/机器复验和 strict remote evidence 接入仍 NOT RUN） |
 | V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（当前用户/机器上的 fresh packaged Starter 特殊路径全流程、Debug/Release 技术产物、双架构静态验证与 Apple Silicon target smoke 已 PASS；全新用户或机器环境仍未完成） |
 | V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（ADR 0025 已将 v1 生产承诺冻结为 macOS Apple Silicon；Windows/Linux 明确为 artifact-only、v1 不支持且不进入发布门禁；现有声明与原生证据范围一致） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | NOT RUN |
@@ -58,8 +58,8 @@
 ## 4. 当前延期项的验收语义
 
 - Windows x64 与 Linux x64 原生 runner 不属于 v1 门禁；交叉构建只保留 artifact/provenance 证据，不能被描述为 preview 或原生支持。未来升级支持必须新立 ADR 并完成原生矩阵。
-- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。任何远程仓库创建、push、远程 Plugin 提交或账号操作仍需要单独用户授权。
-- Plugin 最小真实安装/发现/卸载闭环已于 2026-08-31 PASS；升级、失败升级与回滚仍只在最终候选集中演练，不能由本次结果推定通过。
+- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。当前公开源码仓库和远程 Marketplace 测试分支已经用户授权建立；正式 Plugin 发布、Release、受保护 tag 或其他账号写入仍需要单独用户批准。
+- 远程 Plugin 安装、升级、失败升级、回滚、卸载和用户级状态恢复已于 2026-09-01 PASS；详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
 - Apple 公证不属于默认发布门禁。真实远程 Plugin 在干净 Apple Silicon 环境无阻断安装才是门禁；若失败，必须另立决策后才能把公证作为备选解决方案。
 - `clean` 实际删除、通用 schema migration、派生索引、raw 日志平台和第三方测试框架不是当前发布门禁，除非实现过程中出现没有它们就无法满足上述门禁的真实用例。
 
