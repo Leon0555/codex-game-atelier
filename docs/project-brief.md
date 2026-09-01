@@ -16,7 +16,7 @@ v1.0 包含：
 - 确定性 CLI、稳定结构化输出、退出码与文件化状态/证据。
 - Godot 生产级适配器。
 - 覆盖输入、信号、资源、UI 与基础玩法的参考游戏或垂直切片。
-- Starter Template 与 Codex Plugin 两种主要分发入口。
+- Codex Plugin 作为 v1.0 唯一用户分发入口；Starter Template 随 Plugin 提供，不要求第二次下载。
 - 测试、Debug/Release 构建、导出、异常恢复和发布验证。
 - 清晰的安装、升级、卸载和回滚路径。
 
@@ -40,17 +40,17 @@ v1.0 包含：
 
 ### 普通用户
 
-主要通过 Codex Plugin 或 Starter Template 使用。假设已安装受支持的 Godot，目标体验不超过三个主要步骤：
+通过 Codex Plugin 使用。假设已安装受支持的 Godot，目标体验不超过三个主要步骤：
 
-1. 安装 Plugin，或取得 Starter Template。
-2. 在项目中启动 Codex 并运行初始化工作流。
+1. 从受支持的远程来源安装 Plugin。
+2. 在 Codex 中运行初始化工作流；需要新项目时由 Plugin 使用内含 Starter Template 创建。
 3. 打开/运行已通过基础验证的 Godot 项目并开始协作。
 
 若 Godot 缺失，`doctor` 只报告推荐版本、用途、影响和显式安装方式，不自动安装。引擎安装是外部前置条件，不伪装为无感步骤。
 
 ### CI 与高级用户
 
-通过 CLI 使用机器可读命令、明确退出码、非交互模式、证据路径和可固定版本的发布物。用户收到的是预构建/已打包产物，不需要 clone 或执行 `npm build`。
+通过 Plugin 内含的 CLI 使用机器可读命令、明确退出码、非交互模式、证据路径和可固定版本的发布物。v1.0 不另行发布独立 CLI archive、npm CLI 包或 Homebrew formula。
 
 ## 5. 核心成功指标
 
@@ -66,8 +66,8 @@ v1.0 包含：
 1. **模型解析**：使用逻辑 Profile、能力等级、会话继承和用户覆盖；具体模型解析由 Codex/用户环境承担。
 2. **门禁与 Hooks**：提供 `manual`、`standard`、`strict` 模式；门禁同时存在于 Codex 工作流、CLI 命令、显式可选 Git hooks 与发布 CI，且普通构建/导出/发布命令内建最低必要门禁。
 3. **真正的原生协作**：智能编排由 Codex 原生子代理完成，使用有界并行、单一所有权、只读评审、文件化任务与可恢复交接；CLI 不扮演智能协调器。
-4. **低门槛分发**：Plugin/Starter Template 优先；CLI 提供预构建或已打包入口，不要求源码构建或前沿运行时。
+4. **低门槛分发**：Plugin 是唯一用户安装入口；Starter Template、预构建 CLI 与私有 runner 都在同一 Plugin 闭包内，不要求源码构建、第二份下载或前沿运行时。
 
 ## 7. 当前阶段
 
-Phase 0 只建立开发基线、决策草案、来源审计、支持矩阵建议和环境盘点。所有 ADR 与 Support Matrix 均未冻结；在用户明确批准 Phase 0 前，不进入产品实现。
+Phase 0 已通过审阅，M1/M2 本地实现已完成，当前处于 M3 安装与发布验证。Plugin-only contract 已实现；下一份干净单 Plugin candidate、真实远程无阻断安装、required CI、升级/回滚与最终只读审计仍未完成。

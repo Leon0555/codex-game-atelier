@@ -149,6 +149,7 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 			return releaseCheckCancelled(started, result, data)
 		}
 		data.Checks = append(data.Checks, distributionChecks...)
+		data.Checks = append(data.Checks, releaseCheck{ID: "remote-plugin-install", Outcome: "NOT_RUN", Summary: "A clean Apple Silicon install from the supported remote Plugin source has not yet completed without Gatekeeper intervention."})
 		data.Checks = append(data.Checks, releaseCheck{ID: "required-ci", Outcome: "NOT_RUN", Summary: "Required CI evidence remains unavailable until the minimum workflow completes on its GitHub-hosted runner."})
 	}
 	return finishReleaseCheck(started, result, data)
@@ -160,7 +161,7 @@ func strictDistributionChecks(ctx context.Context, candidate string) ([]releaseC
 		summaries := []string{
 			"No explicit local distribution candidate was provided for strict clean-source verification.",
 			"No explicit local distribution candidate was provided for strict Plugin verification.",
-			"No explicit local distribution candidate was provided for strict Starter verification.",
+			"No explicit local distribution candidate was provided for strict embedded Starter verification.",
 			"No explicit local distribution candidate was provided for strict license and provenance verification.",
 		}
 		checks := make([]releaseCheck, len(ids))
@@ -174,7 +175,7 @@ func strictDistributionChecks(ctx context.Context, candidate string) ([]releaseC
 	summaries := []string{
 		"The candidate contains verified clean Git and Go build provenance.",
 		"The bounded Plugin archive, inventory, targets, and build records passed.",
-		"The bounded Starter archive and Plugin version pairing passed.",
+		"The embedded Starter inventory and Plugin version pairing passed.",
 		"Project and Go notices, checksums, and cross-manifest provenance passed.",
 	}
 	if err != nil {

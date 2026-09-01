@@ -19,7 +19,7 @@ v1.0 目标：
 - Codex 原生核心、有界子代理编排和职责清晰的 Agents。
 - 精简的顶层 Skills、确定性 CLI、文件化状态和证据系统。
 - Godot 生产级适配器及参考游戏或垂直切片。
-- Starter Template 与 Codex Plugin 两种主要分发入口。
+- Codex Plugin 是 v1 唯一普通用户分发入口；Starter Template 作为 Plugin 内置初始化能力提供，不形成第二个公开下载入口。
 - 测试、构建、导出、恢复、安装、升级、卸载和发布验证闭环。
 
 v1.0 只承诺 Support Matrix 中明确列出的 Godot 版本、宿主平台和导出目标。Unity 整体延期，不实现 Unity 适配器、Skills、测试矩阵或发布门禁，也不得宣传 v1.0 支持 Unity。
@@ -70,7 +70,7 @@ Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导�
 
 - 冻结已批准的 Support Matrix、ADR 与公共 JSON 契约。
 - 维护已完成的逻辑能力 Profile、有界 Codex 原生协作、`manual`/`standard`/`strict` 门禁、只读 `release check`、显式可选 Git hook 与最小 CI。
-- 冻结 Plugin/Starter/CLI 分发闭包，并在明确权限边界内验证取得、安装、发现、初始化、升级、卸载、回滚、许可、来源与无隐藏外部写入。
+- 冻结单 Plugin 内含 Starter/CLI/runner 的分发闭包，并在明确权限边界内验证取得、安装、发现、初始化、升级、卸载、回滚、许可、来源与无隐藏外部写入。
 - 维护已完成的 Go CLI、Plugin、Skill、Starter Template、Godot 垂直切片和 M1 evidence；实验产物不得直接视为生产实现。
 - 只读环境检查、官方资料研究和非破坏性验证。
 
@@ -172,7 +172,7 @@ v1.0 以 Godot 实证以下候选公共适配器能力：`detect`、`doctor`、`
 - 错误、结构化输出和退出码支持自动诊断。
 - 关键失败场景具有恢复或明确修复路径。
 - 没有未解决的 blocker 或 high 安全问题，性能无未解释严重回退。
-- Plugin 与 Starter Template 的安装、升级、卸载、回滚和分发产物经过独立验证。
+- Plugin 的安装、升级、卸载、回滚和分发产物经过独立验证；内置 Starter Template 的取得与初始化包含在同一闭包中。
 - 文档与实际命令、版本和行为一致。
 - CI 必选发布检查通过，最终 Sol `xhigh` 只读审计通过。
 - 用户明确批准正式发布。

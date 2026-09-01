@@ -53,7 +53,7 @@ class GatePolicyTests(unittest.TestCase):
 
     def test_only_strict_can_include_complete_release_set(self) -> None:
         release = load(POLICY)["commands"]["release-check"]
-        complete = {"plugin-bundle", "starter-package", "license-and-provenance", "required-ci"}
+        complete = {"plugin-bundle", "starter-package", "license-and-provenance", "remote-plugin-install", "required-ci"}
         self.assertTrue(complete.isdisjoint(release["manual"]))
         self.assertTrue(complete.isdisjoint(release["standard"]))
         self.assertTrue(complete.issubset(release["strict"]))

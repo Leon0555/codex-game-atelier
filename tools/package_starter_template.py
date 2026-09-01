@@ -131,7 +131,7 @@ def package_files(package: Path) -> list[dict[str, object]]:
     return files
 
 
-def write_package_manifest(package: Path, plugin_version: str) -> None:
+def write_package_manifest(package: Path, plugin_version: str, *, embedded: bool = False) -> None:
     files = package_files(package)
     content = {
         "schema_version": "1.0.0",
@@ -140,7 +140,7 @@ def write_package_manifest(package: Path, plugin_version: str) -> None:
             "kind": "codex-plugin",
             "name": "codex-game-atelier",
             "verified_plugin_version": plugin_version,
-            "embedded": False,
+            "embedded": embedded,
         },
         "engine": {
             "kind": "godot",
@@ -188,7 +188,7 @@ def validate_packaged_source(package: Path) -> None:
             raise TemplatePackageError("packaged Godot source violates the Starter Template contract") from error
 
 
-def verify_package(package: Path) -> None:
+def verify_package(package: Path, *, embedded: bool = False) -> None:
     package = safe_directory(package, "Starter Template package root")
     if stat.S_IMODE(package.lstat().st_mode) != 0o755:
         raise TemplatePackageError("Starter Template package root mode is invalid")
@@ -240,7 +240,7 @@ def verify_package(package: Path) -> None:
         "kind": "codex-plugin",
         "name": "codex-game-atelier",
         "verified_plugin_version": verified_version,
-        "embedded": False,
+        "embedded": embedded,
     }:
         raise TemplatePackageError("Starter Template Plugin pairing is invalid")
     if manifest["engine"] != {
@@ -258,7 +258,13 @@ def verify_package(package: Path) -> None:
         raise TemplatePackageError("Starter Template manifest size is invalid")
 
 
-def build_package(output: Path, source: Path = TEMPLATE_SOURCE, plugin_manifest: Path = PLUGIN_MANIFEST) -> None:
+def build_package(
+    output: Path,
+    source: Path = TEMPLATE_SOURCE,
+    plugin_manifest: Path = PLUGIN_MANIFEST,
+    *,
+    embedded: bool = False,
+) -> None:
     if output.exists() or output.is_symlink():
         raise TemplatePackageError("output path already exists; choose a new directory")
     validate_template(source)
@@ -280,8 +286,8 @@ def build_package(output: Path, source: Path = TEMPLATE_SOURCE, plugin_manifest:
             regular_file(source_file, MAX_FILE_BYTES)
             shutil.copyfile(source_file, output / name, follow_symlinks=False)
             (output / name).chmod(0o644)
-        write_package_manifest(output, read_plugin_version(plugin_manifest))
-        verify_package(output)
+        write_package_manifest(output, read_plugin_version(plugin_manifest), embedded=embedded)
+        verify_package(output, embedded=embedded)
     except Exception:
         shutil.rmtree(output)
         raise

@@ -113,7 +113,7 @@ Godot 官方模板的 macOS 应用是 Universal 2（x86_64 + arm64），但本�
 - 不做 Intel 实机 smoke，不声明 Intel 运行已验证。
 - 不做 Godot 游戏产物的 Developer ID 签名或 Apple 公证。
 - 对外只声明“macOS Apple Silicon 技术导出已验证”；不得声明产物已验证可直接面向普通 macOS 用户公开分发。
-- 该决定针对 Godot 游戏导出产物。框架自身预构建 CLI 如何通过 Plugin 分发及是否触发 Gatekeeper，由 Phase 1 Plugin 打包 Spike 单独验证，不能从本决定自动推导。
+- 框架 v1 只通过 Codex Plugin 分发，包内携带 CLI/runner 与 Starter Template；不提供独立原生下载包。Apple 公证不列为默认门禁，改以干净 Apple Silicon 上的真实远程 Plugin 无阻断安装为门禁；若失败，再通过新决策评估公证这一备选方案。
 
 ## 11. 官方依据
 

@@ -5,7 +5,7 @@
 
 ## 1. 已完成基线
 
-Phase 0 已于 2026-08-24 通过用户审阅，确立了 Godot-only v1.0、Go CLI、MIT License、文件化状态与证据、Plugin + Starter Template 配套分发等边界。
+Phase 0 已于 2026-08-24 通过用户审阅，确立了 Godot-only v1.0、Go CLI、MIT License、文件化状态与证据；2026-08-31 又通过 ADR 0023 把 v1 用户分发收敛为单一 Codex Plugin，Starter Template 与 CLI/runner 均内含其中。
 
 Phase 1 已完成的生产薄切片包括：
 
@@ -13,7 +13,7 @@ Phase 1 已完成的生产薄切片包括：
 - 静态及 Godot Headless `validate`、固定零依赖 GDScript `test`。
 - 原子 run evidence、结构化 `logs`、有界 run scanner 与只读 `clean --list`。
 - 可复现的多宿主预构建 Plugin bundle；当前只有 macOS Apple Silicon 完成原生执行验证。
-- 与已安装 Plugin 配套的干净 Starter Template 及可复现 archive/checksum。
+- 干净 Starter Template 及其独立 archive/checksum 历史验证；下一候选将其作为 Plugin 内含能力，不再单独面向用户发布。
 
 这些结果证明了当前垂直骨架，不自动等于 v1.0 发布门禁已经通过。
 
@@ -62,14 +62,14 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **已完成（本地开发候选）**：冻结 Plugin/Starter Template/CLI 的精确版本闭合和分发清单；两次候选逐字节一致。当前 `0.2.0` 不是 v1.0 最终版本冻结，framework artifact Gatekeeper 状态仍 `NOT_EVALUATED`。
+1. **历史本地候选已完成；单 Plugin contract 与创建入口已实现、真实候选待生成**：`0.2.0` 双 archive 候选的精确版本闭合和逐字节重现性已验证，但不再代表 v1 最终分发形状。`1.2.0` 打包与 strict verifier 已改为一个内含 Starter 与 CLI/runner 的 Plugin archive；`starter create` 已实现固定 inventory/hash/version 校验、macOS no-replace 原子创建和现有目标拒绝，并能继续调用 `initialize`。必须从干净 revision 生成下一候选后才可把实际 artifact 标记 PASS。
 2. **进行中（最小真实闭环已 PASS）**：当前 Codex CLI 已从专用本地 marketplace A 完成真实注册、安装、安装态校验、全新任务 Skill 发现、包内 CLI 调用、卸载和 marketplace 清理；其他 Plugin 清单未变。失败升级、成功升级与上一版本回滚按用户收敛范围留到最终候选，详见 [`m3-minimal-plugin-install-2026-08-31.md`](validation/m3-minimal-plugin-install-2026-08-31.md)。
-3. **进行中（本地供应链、strict 分发门禁与 fresh Starter E2E 已闭合；framework Gatekeeper 当前 FAIL）**：checksum、manifest、archive 安全、clean Git/Go provenance、Go notices、静态秘密/网络/遥测/写入边界 PASS；strict CLI 已能直接有界复验 candidate 并将本地四项分发 gate 置为 PASS。候选内 CLI 又在新解包的特殊路径 Starter 上完成 initialize、Headless、6/6 tests、Debug/Release build、直接 Release export、arm64 target smoke 与只读聚合；strict 为 10 PASS、1 `NOT_RUN`，仅 required CI 尚缺。随后本地 quarantine Spike 证明当前 framework archive 解包后会被 Gatekeeper 阻断，不能公开分发。详见 [`m3-supply-chain-readonly-audit-2026-08-31.md`](validation/m3-supply-chain-readonly-audit-2026-08-31.md)、[`m3-supply-chain-remediation-2026-08-31.md`](validation/m3-supply-chain-remediation-2026-08-31.md)、[`m3-fresh-starter-candidate-e2e-2026-08-31.md`](validation/m3-fresh-starter-candidate-e2e-2026-08-31.md) 与 [`m3-framework-gatekeeper-spike-2026-08-31.md`](validation/m3-framework-gatekeeper-spike-2026-08-31.md)。这仍是当前用户/机器上的 fresh project，不是干净用户环境；framework 分发策略与三宿主 Tier 1 证据仍未关闭，最终独立只读终审尚未执行。
-4. **设计已冻结、发布配置 NOT RUN**：npm Trusted Publishing、2FA 与 package provenance 方向已记录；当前没有 npm package、remote、release workflow、OIDC attestation 或 SBOM，不实际发布。
+3. **进行中（本地供应链与 E2E 已闭合；远程 Plugin 门禁 NOT RUN）**：历史双 archive candidate 的 checksum、manifest、archive 安全、clean Git/Go provenance、Go notices、静态秘密/网络/遥测/写入边界及 fresh Starter E2E 已 PASS。本地 quarantine 手工解包路径曾被 Gatekeeper 阻断，但 ADR 0023 不再把该非发布路径作为 v1 门禁。下一步是在干净 Apple Silicon 环境从真实远程 Plugin 来源安装，不经过系统设置放行、`xattr` 或隐藏策略修改，实测 Skill、包内 CLI/runner 和 Godot 工作流。若失败，再单独评估 Apple 公证；不预先实施。
+4. **Plugin 发布配置 NOT RUN**：当前没有 remote、release workflow、远程 Plugin 来源或 attestation，不实际发布。npm CLI 包已移出 v1 计划。
 5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
-6. 用户明确批准后，才允许 GitHub Release、npm publish 或 Marketplace 提交。
+6. 用户明确批准后，才允许创建/推送远程仓库或提交远程 Plugin 来源；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
-M3 不做：Godot 游戏产物签名/公证、自动账号登录、长期发布 Token、未经授权的远程写入。
+M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
 
 退出条件：冻结范围内所有必选发布门禁为 PASS，Blocker/High 为零，用户明确批准发布。
 
@@ -83,7 +83,7 @@ M3 不做：Godot 游戏产物签名/公证、自动账号登录、长期发布 
 - 第三方 GDScript 测试框架、过滤/异步 fixture 平台。
 - raw 日志捕获、follow/tail、分片和通用脱敏流水线。
 - 多套顶层 Skills 或为每种责任创建独立常驻 Agent。
-- npm 包装实现及完整 SBOM，直到候选版本确有发布需要。
+- npm 包装实现、独立 CLI archive、DMG/PKG 与预防性 Apple 公证。
 
 这些延后项如果改变已冻结产品承诺，必须在实施前重新决策；不能因为未排入当前开发循环就被描述成已经支持。
 

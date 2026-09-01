@@ -2,7 +2,8 @@
 
 - 状态：Accepted（M3 本地发布工作区门禁）
 - 日期：2026-08-31
-- 决策范围：`release check --mode strict` 如何消费 Plugin/Starter/license/provenance 事实
+- 决策范围：`release check --mode strict` 如何消费 Plugin/embedded-Starter/license/provenance 事实
+- 后续变更：ADR 0023 将 candidate 从双 archive 升级为 `1.2.0` 单 Plugin archive，并增加独立 `remote-plugin-install` 门禁；本 ADR 的只读、零执行和保守阻断语义保持不变。
 
 ## 背景
 
@@ -13,11 +14,11 @@ CLI 不能启动 Python、npm、shell 或任意验证脚本，也不能因为增
 ## 决策
 
 1. `release check` 新增可选 `--distribution-candidate <directory>`，只允许与显式 `--mode strict` 一起使用。manual/standard 不读取该输入，也不能把它误报为 release ready。
-2. 未提供 candidate 时保持现有四项 `NOT_RUN`。提供后，CLI 只读验证固定 `1.1.0` distribution manifest、顶层 allowlist、文件 hash/size/mode、外部 checksum、Plugin/Starter archive 的有界安全结构、包内 manifest/inventory、版本闭合、项目/第三方 notices 和 clean Go build metadata。
+2. 未提供 candidate 时保持现有四项 `NOT_RUN`。提供后，CLI 只读验证固定 `1.2.0` distribution manifest、顶层 allowlist、文件 hash/size/mode、外部 checksum、单 Plugin archive 的有界安全结构、包内 Starter manifest/inventory、版本闭合、项目/第三方 notices 和 clean Go build metadata。
 3. CLI 不执行 archive 内代码、不解包到磁盘、不启动外部进程。Go build info 直接从有界内存读取；Universal 2 两个 slice 分别验证。
 4. 完整闭包通过时，`clean-source-policy`、`plugin-bundle`、`starter-package`、`license-and-provenance` 为 PASS。任一步失败时四项均保守标记 BLOCKED；stdout 不回显用户绝对路径或不可信自由文本。
-5. `required-ci` 继续为 `NOT_RUN`，直到存在受信 GitHub-hosted required check 输入契约。仅有本地 candidate 不能令 `release_ready=true`。
-6. 该检查证明当前本地字节符合固定闭包，不证明 Publisher 身份、Developer ID/Gatekeeper、Windows/Linux 原生运行、升级/回滚或远程 package provenance。
+5. `remote-plugin-install` 与 `required-ci` 继续为 `NOT_RUN`，直到分别存在干净 Apple Silicon 远程 Plugin 无阻断安装证据和受信 GitHub-hosted required check 输入契约。仅有本地 candidate 不能令 `release_ready=true`。
+6. 该检查证明当前本地字节符合固定闭包，不证明 Publisher 身份、远程 Plugin/Gatekeeper 行为、Windows/Linux 原生运行、升级/回滚或远程 package provenance。
 
 ## 备选方案
 

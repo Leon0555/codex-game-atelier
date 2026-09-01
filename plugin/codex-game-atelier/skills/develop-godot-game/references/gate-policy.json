@@ -16,7 +16,7 @@
     "release-check": {
       "manual": ["project-state", "support-scope"],
       "standard": ["project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export"],
-      "strict": ["project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export", "clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance", "required-ci"]
+      "strict": ["project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export", "clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance", "remote-plugin-install", "required-ci"]
     }
   }
 }

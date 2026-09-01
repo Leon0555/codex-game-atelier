@@ -1,6 +1,6 @@
 ---
 name: develop-godot-game
-description: Inspect, initialize, validate, test, build, export, aggregate release readiness, or read verified run diagnostics for a supported Godot/GDScript project through the bundled Codex Game Atelier CLI. Use for Atelier project readiness and recorded Godot workflows; external release, arbitrary scripts, and raw log access are not implemented.
+description: Create a bundled Starter project, inspect, initialize, validate, test, build, export, aggregate release readiness, or read verified run diagnostics for a supported Godot/GDScript project through the bundled Codex Game Atelier CLI. Use for Atelier project readiness and recorded Godot workflows; external release, arbitrary scripts, and raw log access are not implemented.
 ---
 
 # Develop Godot Game
@@ -31,6 +31,8 @@ In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other r
 
 ## Operations
 
+- For a new project, disclose that `starter create --project <new-directory>` creates that project-level directory and its Starter files. Require a target whose parent already exists; never choose an existing file or directory. The command validates the exact embedded Starter inventory and hashes, stages private files, and atomically publishes the new directory without overwriting. Do not shell-copy or manually reconstruct the template.
+- After `starter create` passes, run `initialize --project <new-directory>` as the second deterministic operation. These two CLI operations form one guided Plugin workflow; creation deliberately does not hide initialization or start Godot. If either reports `BLOCKED` or `FAIL`, stop and preserve the target and evidence exactly as reported.
 - Resolve the user's Godot project path before invoking the CLI. `detect`, `doctor`, `status`, `logs --run-id`, `release check`, and `clean --list` are read-only. `clean --list` is only a preview and never authorizes deletion.
 - Invoke `initialize` only when the user explicitly asks to initialize Atelier state. A successful first run creates `.gameatelier/project.json` and a persistent advisory-lock file; it does not modify `project.godot`, install Godot, or run the engine. Never use it as repair, migration, force, or overwrite.
 - `validate` records an immutable run even for the default static baseline. Use `--headless` only after the user explicitly authorizes Godot's standard `user://` writes. Do not add arbitrary Godot arguments.
@@ -40,4 +42,4 @@ In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other r
 - `release check [--mode manual|standard|strict]` writes no project state or evidence. Standard requires a clean bounded run store, the latest current-revision Headless/test/release-export facts to pass, and the current Release ZIP to still match its manifest. Manual/standard are never strict release-ready; preserve every strict `NOT_RUN`/`BLOCKED` item exactly as reported.
 - Treat `BLOCKED`, `FAIL`, nonzero exit codes, missing evidence, and unsafe state exactly as reported. Preserve incomplete/corrupt runs and failure evidence.
 
-External release, recovery, deletion, raw log capture, arbitrary code execution, Git-hook installation, dependency installation, telemetry, login, signing/notarization, and publication are outside this Skill. Do not fabricate them or replace them with ad hoc shell workflows. If a bundled executable is unavailable, stop the affected operation and report the missing artifact.
+External release, recovery, deletion, raw log capture, arbitrary code execution, Git-hook installation, dependency installation, telemetry, login, signing/notarization, and publication are outside this Skill. Do not fabricate them or replace them with ad hoc shell workflows. `starter create` never installs Godot or dependencies, accesses the network, writes user-level Codex state, or initializes Git. If a bundled executable is unavailable, stop the affected operation and report the missing artifact.

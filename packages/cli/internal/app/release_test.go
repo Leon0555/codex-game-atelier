@@ -60,10 +60,10 @@ func TestReleaseCheckStrictReportsDeferredDistributionGates(t *testing.T) {
 	if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "RELEASE_CHECK_INCOMPLETE" {
 		t.Fatalf("strict release check did not block honestly: code=%d result=%+v", code, result)
 	}
-	assertReleaseCheckIDs(t, result, "project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export", "clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance", "required-ci")
+	assertReleaseCheckIDs(t, result, "project-state", "support-scope", "run-store-integrity", "latest-headless-validation", "latest-fixed-gdscript-tests", "latest-release-export", "clean-source-policy", "plugin-bundle", "starter-package", "license-and-provenance", "remote-plugin-install", "required-ci")
 	data := resultDataMap(t, result)
 	counts := data["counts"].(map[string]any)
-	if counts["not_run"] != float64(5) || data["release_ready"] != false {
+	if counts["not_run"] != float64(6) || data["release_ready"] != false {
 		t.Fatalf("strict deferred gates were not explicit: %#v", data)
 	}
 }
@@ -121,7 +121,7 @@ func TestReleaseCheckStrictConsumesCandidateButKeepsRequiredCIBlocked(t *testing
 	}
 	data := resultDataMap(t, result)
 	counts := data["counts"].(map[string]any)
-	if data["release_ready"] != false || counts["passed"] != float64(10) || counts["blocked"] != float64(0) || counts["not_run"] != float64(1) {
+	if data["release_ready"] != false || counts["passed"] != float64(10) || counts["blocked"] != float64(0) || counts["not_run"] != float64(2) {
 		t.Fatalf("strict local candidate bypassed required CI or lost a PASS gate: %#v", data)
 	}
 	checks := data["checks"].([]any)

@@ -29,6 +29,9 @@ import unicodedata
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from tools import package_starter_template  # noqa: E402
+
 PLUGIN_SOURCE = ROOT / "plugin" / "codex-game-atelier"
 SCHEMA_SOURCE = ROOT / "schemas" / "v1"
 MAX_BINARY_BYTES = 64 * 1024 * 1024
@@ -51,6 +54,7 @@ RECOVERY_SCHEMA_FILES = {
     f"schemas/v1/{name}.schema.json" for name in RECOVERY_SCHEMA_NAMES
 }
 ALLOWED_DISTRIBUTED_TEXT_FILES = ALLOWED_SOURCE_FILES | RECOVERY_SCHEMA_FILES
+STARTER_ROOT = "starter-template"
 FORBIDDEN_CONCRETE_MODEL_ID = re.compile(
     r"\b(?:gpt|claude|gemini|deepseek|llama|mistral|qwen)[-_ ]?\d",
     re.IGNORECASE,
@@ -77,7 +81,7 @@ MANDATORY_EXPORT_GATES = {
     "project-state", "supported-host", "godot-standard-version", "gdscript-only",
     "engine-user-data-authorization", "fixed-export-preset", "artifact-integrity", "target-smoke",
 }
-STRICT_RELEASE_GATES = {"plugin-bundle", "starter-package", "license-and-provenance", "required-ci"}
+STRICT_RELEASE_GATES = {"plugin-bundle", "starter-package", "license-and-provenance", "remote-plugin-install", "required-ci"}
 
 TARGETS = (
     {
@@ -186,7 +190,11 @@ def copy_recovery_schema_closure(destination: Path) -> None:
 
 
 def verify_distributed_model_policy(bundle: Path) -> None:
-    for relative in sorted(ALLOWED_DISTRIBUTED_TEXT_FILES):
+    starter_text = {
+        f"{STARTER_ROOT}/{relative}"
+        for relative in package_starter_template.PACKAGE_FILES
+    }
+    for relative in sorted(ALLOWED_DISTRIBUTED_TEXT_FILES | starter_text):
         path = bundle / relative
         regular_file(path, 1024 * 1024)
         try:
@@ -601,8 +609,14 @@ def write_bundle_manifest(bundle: Path, build_provenance: dict[str, object]) -> 
     validate_build_provenance(build_provenance)
     plugin = read_plugin_manifest(bundle)
     content = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "plugin": {"name": plugin["name"], "version": plugin["version"]},
+        "starter_template": {
+            "name": "codex-game-atelier-starter",
+            "version": plugin["version"],
+            "path": STARTER_ROOT,
+            "distribution": "embedded-in-plugin",
+        },
         "build_provenance": build_provenance,
         "source_build_required": False,
         "telemetry_enabled": False,
@@ -645,7 +659,11 @@ def verify_bundle(bundle: Path) -> None:
         "skills/develop-godot-game/references",
         "schemas",
         "schemas/v1",
-    } | {f"bin/{target['host']}" for target in TARGETS}
+        STARTER_ROOT,
+    } | {f"bin/{target['host']}" for target in TARGETS} | {
+        f"{STARTER_ROOT}/{relative}"
+        for relative in package_starter_template.SOURCE_DIRECTORIES
+    }
     observed_directories = set()
     for path in bundle.rglob("*"):
         details = path.lstat()
@@ -657,10 +675,17 @@ def verify_bundle(bundle: Path) -> None:
         raise BundleError("bundle directory paths do not match the fixed allowlist")
     plugin = read_plugin_manifest(bundle)
     manifest = load_bundle_manifest(bundle)
-    if set(manifest) != {"schema_version", "plugin", "build_provenance", "source_build_required", "telemetry_enabled", "hosts", "files", "file_count", "expanded_byte_size"}:
+    if set(manifest) != {"schema_version", "plugin", "starter_template", "build_provenance", "source_build_required", "telemetry_enabled", "hosts", "files", "file_count", "expanded_byte_size"}:
         raise BundleError("bundle manifest fields are invalid")
-    if manifest["schema_version"] != "1.1.0" or manifest["plugin"] != {"name": plugin["name"], "version": plugin["version"]}:
+    if manifest["schema_version"] != "1.2.0" or manifest["plugin"] != {"name": plugin["name"], "version": plugin["version"]}:
         raise BundleError("bundle manifest identity is invalid")
+    if manifest["starter_template"] != {
+        "name": "codex-game-atelier-starter",
+        "version": plugin["version"],
+        "path": STARTER_ROOT,
+        "distribution": "embedded-in-plugin",
+    }:
+        raise BundleError("embedded Starter identity is invalid")
     validate_build_provenance(manifest["build_provenance"])
     if manifest["source_build_required"] is not False or manifest["telemetry_enabled"] is not False:
         raise BundleError("bundle policy flags are invalid")
@@ -677,7 +702,11 @@ def verify_bundle(bundle: Path) -> None:
         for target in TARGETS
         for name in (target["cli_name"], target["runner_name"])
     }
-    expected_paths = ALLOWED_DISTRIBUTED_TEXT_FILES | {"LICENSE", "NOTICE", THIRD_PARTY_NOTICES} | binary_paths
+    starter_paths = {
+        f"{STARTER_ROOT}/{relative}"
+        for relative in package_starter_template.PACKAGE_FILES
+    }
+    expected_paths = ALLOWED_DISTRIBUTED_TEXT_FILES | {"LICENSE", "NOTICE", THIRD_PARTY_NOTICES} | binary_paths | starter_paths
     if declared_paths != expected_paths:
         raise BundleError("bundle content paths do not match the fixed allowlist")
     for name in ("LICENSE", "NOTICE", THIRD_PARTY_NOTICES):
@@ -697,6 +726,14 @@ def verify_bundle(bundle: Path) -> None:
     validate_profile_catalog(bundle)
     validate_gate_policy(bundle)
     validate_recovery_schema_closure(bundle)
+    try:
+        package_starter_template.verify_package(bundle / STARTER_ROOT, embedded=True)
+    except package_starter_template.TemplatePackageError as error:
+        raise BundleError("embedded Starter Template is invalid") from error
+    starter_manifest = package_starter_template.load_package_manifest(bundle / STARTER_ROOT)
+    pairing = starter_manifest.get("pairing")
+    if not isinstance(pairing, dict) or pairing.get("embedded") is not True or pairing.get("verified_plugin_version") != plugin["version"]:
+        raise BundleError("embedded Starter pairing is invalid")
     for target in TARGETS:
         host = target["host"]
         for name in (target["cli_name"], target["runner_name"]):
@@ -887,6 +924,11 @@ def build_bundle(args: argparse.Namespace) -> None:
         version_override = getattr(args, "version", None)
         if version_override:
             override_plugin_version(output, version_override)
+        package_starter_template.build_package(
+            output / STARTER_ROOT,
+            plugin_manifest=output / ".codex-plugin" / "plugin.json",
+            embedded=True,
+        )
         copy_recovery_schema_closure(output)
         copy_regular = (
             (ROOT / "LICENSE", output / "LICENSE"),

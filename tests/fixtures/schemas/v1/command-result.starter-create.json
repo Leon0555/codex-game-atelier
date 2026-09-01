@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260901t000000.000000000z-0123456789ab",
+  "command": {
+    "name": "starter create",
+    "arguments": {
+      "project": "provided"
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-09-01T00:00:00Z",
+  "finished_at": "2026-09-01T00:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "A verified Starter project was created atomically without initializing project state.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "created": true,
+    "initialized": false,
+    "template_version": "0.2.0",
+    "file_count": 11,
+    "expanded_byte_size": 8192,
+    "next_command": "initialize --project <created-project>"
+  }
+}

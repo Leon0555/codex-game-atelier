@@ -32,34 +32,30 @@ class DistributionPackageTests(unittest.TestCase):
         "binary_build_record_count": 8,
     }
 
-    def inputs(self, root: Path, starter_version: str | None = None) -> tuple[Path, Path]:
+    def inputs(self, root: Path, starter_version: str | None = None) -> Path:
         plugin = root / "plugin"
-        starter = root / "starter"
         plugin.mkdir()
-        starter.mkdir()
         (plugin / "BUNDLE-MANIFEST.json").write_text(
             json.dumps(
                 {
                     "plugin": {"name": "codex-game-atelier", "version": self.VERSION},
+                    "starter_template": {
+                        "name": "codex-game-atelier-starter",
+                        "version": starter_version or self.VERSION,
+                        "path": "starter-template",
+                        "distribution": "embedded-in-plugin",
+                    },
                     "build_provenance": self.BUILD_PROVENANCE,
                 }
             ),
             encoding="utf-8",
         )
-        (starter / "TEMPLATE-MANIFEST.json").write_text(
-            json.dumps({"pairing": {"verified_plugin_version": starter_version or self.VERSION}}),
-            encoding="utf-8",
-        )
-        return plugin, starter
+        return plugin
 
     @staticmethod
     def fake_archive(source: Path, output: Path) -> None:
-        if "starter" in output.name:
-            member_name = "codex-game-atelier-starter/TEMPLATE-MANIFEST.json"
-            payload = (source / "TEMPLATE-MANIFEST.json").read_bytes()
-        else:
-            member_name = "codex-game-atelier/BUNDLE-MANIFEST.json"
-            payload = (source / "BUNDLE-MANIFEST.json").read_bytes()
+        member_name = "codex-game-atelier/BUNDLE-MANIFEST.json"
+        payload = (source / "BUNDLE-MANIFEST.json").read_bytes()
         with tarfile.open(output, mode="w:gz") as archive:
             info = tarfile.TarInfo(member_name)
             info.size = len(payload)
@@ -76,19 +72,16 @@ class DistributionPackageTests(unittest.TestCase):
     def patches(self):
         return (
             mock.patch.object(package_distribution.package_plugin, "verify_bundle"),
-            mock.patch.object(package_distribution.package_starter_template, "verify_package"),
             mock.patch.object(package_distribution.package_plugin, "create_archive", side_effect=self.fake_archive),
-            mock.patch.object(package_distribution.package_starter_template, "create_archive", side_effect=self.fake_archive),
             mock.patch.object(package_distribution.package_plugin, "verify_archive"),
-            mock.patch.object(package_distribution.package_starter_template, "verify_archive"),
         )
 
     def build(self, root: Path) -> Path:
-        plugin, starter = self.inputs(root)
+        plugin = self.inputs(root)
         output = root / "candidate"
         contexts = self.patches()
-        with contexts[0], contexts[1], contexts[2], contexts[3], contexts[4], contexts[5]:
-            package_distribution.build_candidate(output, plugin, starter)
+        with contexts[0], contexts[1], contexts[2]:
+            package_distribution.build_candidate(output, plugin)
         return output
 
     def test_build_closes_plugin_cli_runner_and_starter_versions(self) -> None:
@@ -102,6 +95,9 @@ class DistributionPackageTests(unittest.TestCase):
                 manifest["components"]["starter_template"]["verified_plugin_version"],
                 self.VERSION,
             )
+            self.assertEqual(manifest["components"]["starter_template"]["distribution"], "embedded-in-plugin")
+            self.assertEqual(manifest["policies"]["distribution_channel"], "codex-plugin-only")
+            self.assertFalse(manifest["policies"]["apple_notarization_required"])
             self.assertFalse(manifest["release"]["external_publication_performed"])
             self.assertEqual(manifest["build_provenance"], self.BUILD_PROVENANCE)
             self.assertFalse(manifest["policies"]["source_build_required"])
@@ -134,25 +130,23 @@ class DistributionPackageTests(unittest.TestCase):
     def test_build_rejects_component_version_mismatch_without_output(self) -> None:
         with tempfile.TemporaryDirectory(prefix="atelier-distribution-") as temporary:
             root = Path(temporary)
-            plugin, starter = self.inputs(root, starter_version="0.2.1")
+            plugin = self.inputs(root, starter_version="0.2.1")
             output = root / "candidate"
-            with mock.patch.object(package_distribution.package_plugin, "verify_bundle"), mock.patch.object(
-                package_distribution.package_starter_template, "verify_package"
-            ):
+            with mock.patch.object(package_distribution.package_plugin, "verify_bundle"):
                 with self.assertRaises(package_distribution.DistributionError):
-                    package_distribution.build_candidate(output, plugin, starter)
+                    package_distribution.build_candidate(output, plugin)
             self.assertFalse(output.exists())
 
     def test_build_never_overwrites_existing_output(self) -> None:
         with tempfile.TemporaryDirectory(prefix="atelier-distribution-") as temporary:
             root = Path(temporary)
-            plugin, starter = self.inputs(root)
+            plugin = self.inputs(root)
             output = root / "candidate"
             output.mkdir()
             marker = output / "user.txt"
             marker.write_text("preserve\n", encoding="utf-8")
             with self.assertRaises(package_distribution.DistributionError):
-                package_distribution.build_candidate(output, plugin, starter)
+                package_distribution.build_candidate(output, plugin)
             self.assertEqual(marker.read_text(encoding="utf-8"), "preserve\n")
 
 

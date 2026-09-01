@@ -1,5 +1,7 @@
 # M3 供应链修复与本地候选复审
 
+> 后续决策（2026-08-31）：ADR 0023 已把 framework Gatekeeper 的下一步改为真实远程 Plugin 无阻断安装；Developer ID/Apple 公证仅在该路径失败后另行决策。本文的历史候选与 quarantine 结果仍有效，但“先实施签名/公证”的顺序不再适用。
+
 - 日期：2026-08-31
 - 实现提交：`ea3da8ec66c75504d8b2c857b956f59e904b8f56`
 - 候选：`.tools/distributions/codex-game-atelier-0.2.0-m3-clean-ea3da8e-a/`

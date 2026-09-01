@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "distribution-manifest.schema.json",
-  "title": "Codex Game Atelier closed local distribution manifest",
+  "title": "Codex Game Atelier Plugin-only local distribution manifest",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -16,7 +16,7 @@
     "expanded_byte_size"
   ],
   "properties": {
-    "schema_version": { "const": "1.1.0" },
+    "schema_version": { "const": "1.2.0" },
     "release": {
       "type": "object",
       "additionalProperties": false,
@@ -49,14 +49,13 @@
         "starter_template": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["name", "version", "archive", "checksum", "verified_plugin_version", "embedded_plugin"],
+          "required": ["name", "version", "path", "verified_plugin_version", "distribution"],
           "properties": {
             "name": { "const": "codex-game-atelier-starter" },
             "version": { "$ref": "#/$defs/version" },
-            "archive": { "$ref": "#/$defs/fileName" },
-            "checksum": { "$ref": "#/$defs/fileName" },
+            "path": { "const": "starter-template" },
             "verified_plugin_version": { "$ref": "#/$defs/version" },
-            "embedded_plugin": { "const": false }
+            "distribution": { "const": "embedded-in-plugin" }
           }
         }
       }
@@ -104,7 +103,10 @@
         "hidden_external_writes",
         "git_hooks_automatically_installed",
         "game_export_signing_notarization_required",
-        "framework_artifact_signing_notarization_status"
+        "distribution_channel",
+        "standalone_user_binary_published",
+        "apple_notarization_required",
+        "remote_plugin_gatekeeper_validation"
       ],
       "properties": {
         "license": { "const": "MIT" },
@@ -113,13 +115,16 @@
         "hidden_external_writes": { "const": false },
         "git_hooks_automatically_installed": { "const": false },
         "game_export_signing_notarization_required": { "const": false },
-        "framework_artifact_signing_notarization_status": { "const": "NOT_EVALUATED" }
+        "distribution_channel": { "const": "codex-plugin-only" },
+        "standalone_user_binary_published": { "const": false },
+        "apple_notarization_required": { "const": false },
+        "remote_plugin_gatekeeper_validation": { "const": "NOT_RUN" }
       }
     },
     "files": {
       "type": "array",
-      "minItems": 7,
-      "maxItems": 7,
+      "minItems": 5,
+      "maxItems": 5,
       "uniqueItems": true,
       "items": {
         "type": "object",
@@ -133,8 +138,8 @@
         }
       }
     },
-    "file_count": { "const": 7 },
-    "expanded_byte_size": { "type": "integer", "minimum": 7, "maximum": 201326592 }
+    "file_count": { "const": 5 },
+    "expanded_byte_size": { "type": "integer", "minimum": 5, "maximum": 201326592 }
   },
   "$defs": {
     "version": {

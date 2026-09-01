@@ -129,6 +129,22 @@ def main() -> None:
         target[path[-1]] = invalid_value
         expect_invalid(initialize_validator, candidate, label)
 
+    starter_create = load_json(FIXTURE_ROOT / "command-result.starter-create.json")
+    if not isinstance(starter_create, dict):
+        raise SystemExit("starter create fixture must be an object")
+    invalid_starter_path = copy.deepcopy(starter_create)
+    invalid_starter_path["command"]["arguments"]["project"] = "/private/project"
+    expect_invalid(validators["command-result"], invalid_starter_path, "Starter result exposing an absolute path")
+    invalid_starter_initialized = copy.deepcopy(starter_create)
+    invalid_starter_initialized["data"]["initialized"] = True
+    expect_invalid(validators["command-result"], invalid_starter_initialized, "Starter create claiming hidden initialization")
+    invalid_starter_not_created = copy.deepcopy(starter_create)
+    invalid_starter_not_created["data"]["created"] = False
+    expect_invalid(validators["command-result"], invalid_starter_not_created, "passing Starter create without a created target")
+    invalid_starter_evidence = copy.deepcopy(starter_create)
+    invalid_starter_evidence["evidence"] = [{"id": "unexpected", "path": ".gameatelier/unexpected.json"}]
+    expect_invalid(validators["command-result"], invalid_starter_evidence, "Starter create with hidden evidence writes")
+
     headless_intent = load_json(FIXTURE_ROOT / "run-intent.headless.json")
     if not isinstance(headless_intent, dict):
         raise SystemExit("headless run-intent fixture must be an object")
@@ -346,7 +362,7 @@ def main() -> None:
         f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
         f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
         f"{len(persisted_collaboration)} persisted collaboration records, "
-        "31 negative assertions, headless, test, export, and logs cross-fixture semantics"
+        "35 negative assertions, Starter create, headless, test, export, and logs cross-fixture semantics"
     )
 
 

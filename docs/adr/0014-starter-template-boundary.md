@@ -1,6 +1,6 @@
 # ADR 0014：Starter Template 干净身份与分发配对边界
 
-- 状态：Accepted（用户于 2026-08-26 选择方案 A：Starter Template 与已安装 Plugin 配套）
+- 状态：Accepted（干净模板边界继续有效；独立 archive 取得方式已由 ADR 0023 部分取代）
 - 日期：2026-08-26
 - 决策范围：Starter Template 内容、身份/缓存边界、固定测试入口和普通用户首次使用路径
 
@@ -20,9 +20,9 @@ Starter Template 是普通用户主要入口之一，但不能把源码仓库研
 
 ## 分发决策
 
-### A. Template 与 Codex Plugin 配套（已采用）
+### A. Template 与 Codex Plugin 配套（已采用；分发形态由 ADR 0023 收敛）
 
-用户取得干净游戏模板，Codex 工作流与预构建 CLI 由单独安装的 Plugin 提供。Skill、CLI、checksum、升级和回滚只有一个 owner，不在每个游戏仓库复制平台二进制。“取得 Starter Template”不替代 Plugin 安装；三步文案固定为“Godot 与 Plugin 前置条件已满足后的模板起步路径”。
+用户取得干净游戏模板，Codex 工作流与预构建 CLI 由安装的 Plugin 提供。Skill、CLI、checksum、升级和回滚只有一个 owner，不在每个游戏仓库复制平台二进制。ADR 0023 进一步规定模板随 Plugin 提供并由 Plugin 内 CLI/Skill 初始化，不再发布独立 Starter archive；复制到用户项目后的干净内容契约保持不变。
 
 确定性 Template archive 不嵌入 `bin/`、`skills/` 或 Plugin manifest；包内 `TEMPLATE-MANIFEST.json` 记录 `embedded=false`、配套 Plugin 名称和本 candidate 已验证的 Plugin 版本。该字段不声称是最低版本或兼容范围；兼容策略在真实升级/回滚实证后另行冻结。Plugin 安装后可离线使用，不得在模板首次打开时隐式下载工具。
 

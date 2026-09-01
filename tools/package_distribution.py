@@ -19,7 +19,7 @@ import unicodedata
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
-from tools import package_plugin, package_starter_template  # noqa: E402
+from tools import package_plugin  # noqa: E402
 
 
 MANIFEST_NAME = "DISTRIBUTION-MANIFEST.json"
@@ -108,35 +108,38 @@ def component_names(version: str) -> dict[str, str]:
         raise DistributionError("distribution version is not valid semantic versioning")
     return {
         "plugin": f"codex-game-atelier-{version}.tar.gz",
-        "starter": f"codex-game-atelier-starter-{version}.tar.gz",
     }
 
 
-def load_component_versions(candidate: Path, names: dict[str, str]) -> tuple[str, str, dict[str, object]]:
+def load_component_versions(candidate: Path, names: dict[str, str]) -> tuple[str, dict[str, object]]:
     plugin_archive = candidate / names["plugin"]
-    starter_archive = candidate / names["starter"]
     try:
         package_plugin.verify_archive(plugin_archive)
-        package_starter_template.verify_archive(starter_archive)
-    except (package_plugin.BundleError, package_starter_template.TemplatePackageError) as error:
+    except package_plugin.BundleError as error:
         raise DistributionError("component archive verification failed") from error
     plugin = archive_member_json(plugin_archive, "codex-game-atelier/BUNDLE-MANIFEST.json")
-    starter = archive_member_json(
-        starter_archive,
-        "codex-game-atelier-starter/TEMPLATE-MANIFEST.json",
-    )
     plugin_identity = plugin.get("plugin")
+    starter_identity = plugin.get("starter_template")
     plugin_provenance = plugin.get("build_provenance")
-    pairing = starter.get("pairing")
     plugin_version = plugin_identity.get("version") if isinstance(plugin_identity, dict) else None
-    starter_version = pairing.get("verified_plugin_version") if isinstance(pairing, dict) else None
-    if not isinstance(plugin_version, str) or not isinstance(starter_version, str) or not isinstance(plugin_provenance, dict):
+    starter_version = starter_identity.get("version") if isinstance(starter_identity, dict) else None
+    if (
+        not isinstance(plugin_version, str)
+        or starter_version != plugin_version
+        or starter_identity != {
+            "name": "codex-game-atelier-starter",
+            "version": plugin_version,
+            "path": "starter-template",
+            "distribution": "embedded-in-plugin",
+        }
+        or not isinstance(plugin_provenance, dict)
+    ):
         raise DistributionError("component version metadata is invalid")
     try:
         package_plugin.validate_build_provenance(plugin_provenance)
     except package_plugin.BundleError as error:
         raise DistributionError("component build provenance is invalid") from error
-    return plugin_version, starter_version, plugin_provenance
+    return plugin_version, plugin_provenance
 
 
 def inventory(candidate: Path) -> list[dict[str, object]]:
@@ -164,7 +167,7 @@ def write_manifest(candidate: Path, version: str, build_provenance: dict[str, ob
     names = component_names(version)
     files = inventory(candidate)
     content = {
-        "schema_version": "1.1.0",
+        "schema_version": "1.2.0",
         "release": {
             "name": "codex-game-atelier",
             "version": version,
@@ -183,10 +186,9 @@ def write_manifest(candidate: Path, version: str, build_provenance: dict[str, ob
             "starter_template": {
                 "name": "codex-game-atelier-starter",
                 "version": version,
-                "archive": names["starter"],
-                "checksum": names["starter"] + ".sha256",
+                "path": "starter-template",
                 "verified_plugin_version": version,
-                "embedded_plugin": False,
+                "distribution": "embedded-in-plugin",
             },
         },
         "engine": {
@@ -203,7 +205,10 @@ def write_manifest(candidate: Path, version: str, build_provenance: dict[str, ob
             "hidden_external_writes": False,
             "git_hooks_automatically_installed": False,
             "game_export_signing_notarization_required": False,
-            "framework_artifact_signing_notarization_status": "NOT_EVALUATED",
+            "distribution_channel": "codex-plugin-only",
+            "standalone_user_binary_published": False,
+            "apple_notarization_required": False,
+            "remote_plugin_gatekeeper_validation": "NOT_RUN",
         },
         "files": files,
         "file_count": len(files),
@@ -238,7 +243,7 @@ def verify_candidate(candidate: Path) -> None:
         "schema_version", "release", "components", "engine", "build_provenance", "policies",
         "files", "file_count", "expanded_byte_size",
     }
-    if set(manifest) != expected_keys or manifest["schema_version"] != "1.1.0":
+    if set(manifest) != expected_keys or manifest["schema_version"] != "1.2.0":
         raise DistributionError("distribution manifest fields are invalid")
     release = manifest["release"]
     if not isinstance(release, dict):
@@ -254,7 +259,7 @@ def verify_candidate(candidate: Path) -> None:
     names = component_names(version)
     expected_files = {
         "LICENSE", "NOTICE", THIRD_PARTY_NOTICES, names["plugin"], names["plugin"] + ".sha256",
-        names["starter"], names["starter"] + ".sha256", MANIFEST_NAME,
+        MANIFEST_NAME,
     }
     observed = {path.name for path in candidate.iterdir()}
     if observed != expected_files:
@@ -266,8 +271,8 @@ def verify_candidate(candidate: Path) -> None:
         details = regular_file(candidate / name, MAX_FILE_BYTES)
         if stat.S_IMODE(details.st_mode) != 0o644:
             raise DistributionError("distribution candidate file mode is invalid")
-    plugin_version, starter_version, plugin_provenance = load_component_versions(candidate, names)
-    if plugin_version != version or starter_version != version:
+    plugin_version, plugin_provenance = load_component_versions(candidate, names)
+    if plugin_version != version:
         raise DistributionError("Plugin, CLI, runner, and Starter versions are not closed")
     try:
         package_plugin.validate_build_provenance(manifest["build_provenance"])
@@ -284,8 +289,8 @@ def verify_candidate(candidate: Path) -> None:
         },
         "starter_template": {
             "name": "codex-game-atelier-starter", "version": version,
-            "archive": names["starter"], "checksum": names["starter"] + ".sha256",
-            "verified_plugin_version": version, "embedded_plugin": False,
+            "path": "starter-template", "verified_plugin_version": version,
+            "distribution": "embedded-in-plugin",
         },
     }
     if components != expected_components:
@@ -300,7 +305,10 @@ def verify_candidate(candidate: Path) -> None:
         "telemetry_enabled": False, "hidden_external_writes": False,
         "git_hooks_automatically_installed": False,
         "game_export_signing_notarization_required": False,
-        "framework_artifact_signing_notarization_status": "NOT_EVALUATED",
+        "distribution_channel": "codex-plugin-only",
+        "standalone_user_binary_published": False,
+        "apple_notarization_required": False,
+        "remote_plugin_gatekeeper_validation": "NOT_RUN",
     }:
         raise DistributionError("distribution policy contract is invalid")
     actual_inventory = inventory(candidate)
@@ -314,36 +322,36 @@ def verify_candidate(candidate: Path) -> None:
             raise DistributionError("distribution license or notice differs from the repository source")
 
 
-def build_candidate(output: Path, plugin_bundle: Path, starter_package: Path) -> None:
+def build_candidate(output: Path, plugin_bundle: Path) -> None:
     output = output.resolve(strict=False)
     if output.exists() or output.is_symlink():
         raise DistributionError("output path already exists; choose a new directory")
     try:
         plugin_bundle = plugin_bundle.resolve(strict=False)
-        starter_package = starter_package.resolve(strict=False)
         package_plugin.verify_bundle(plugin_bundle)
-        package_starter_template.verify_package(starter_package)
         plugin_manifest = package_plugin.load_bundle_manifest(plugin_bundle)
-        starter_manifest = package_starter_template.load_package_manifest(starter_package)
-    except (package_plugin.BundleError, package_starter_template.TemplatePackageError) as error:
+    except package_plugin.BundleError as error:
         raise DistributionError("input component verification failed") from error
     plugin_identity = plugin_manifest.get("plugin")
+    starter_identity = plugin_manifest.get("starter_template")
     plugin_provenance = plugin_manifest.get("build_provenance")
-    pairing = starter_manifest.get("pairing")
     version = plugin_identity.get("version") if isinstance(plugin_identity, dict) else None
-    starter_version = pairing.get("verified_plugin_version") if isinstance(pairing, dict) else None
     try:
         package_plugin.validate_build_provenance(plugin_provenance)
     except package_plugin.BundleError as error:
         raise DistributionError("input Plugin provenance is not verified-clean") from error
-    if not isinstance(version, str) or version != starter_version:
-        raise DistributionError("input Plugin and Starter versions do not match")
+    if not isinstance(version, str) or starter_identity != {
+        "name": "codex-game-atelier-starter",
+        "version": version,
+        "path": "starter-template",
+        "distribution": "embedded-in-plugin",
+    }:
+        raise DistributionError("input Plugin embedded Starter closure is invalid")
     names = component_names(version)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.mkdir(mode=0o755)
     try:
         package_plugin.create_archive(plugin_bundle, output / names["plugin"])
-        package_starter_template.create_archive(starter_package, output / names["starter"])
         for name in ("LICENSE", "NOTICE", THIRD_PARTY_NOTICES):
             shutil.copyfile(ROOT / name, output / name, follow_symlinks=False)
             (output / name).chmod(0o644)
@@ -360,7 +368,6 @@ def parser() -> argparse.ArgumentParser:
     build = commands.add_parser("build", help="assemble a verified local release candidate")
     build.add_argument("--output", type=Path, required=True)
     build.add_argument("--plugin-bundle", type=Path, required=True)
-    build.add_argument("--starter-package", type=Path, required=True)
     verify = commands.add_parser("verify", help="verify a local release candidate without executing it")
     verify.add_argument("candidate", type=Path)
     return root
@@ -370,7 +377,7 @@ def main() -> int:
     args = parser().parse_args()
     try:
         if args.command == "build":
-            build_candidate(args.output, args.plugin_bundle, args.starter_package)
+            build_candidate(args.output, args.plugin_bundle)
             print(f"Distribution candidate built and verified: {args.output}")
         else:
             verify_candidate(args.candidate)

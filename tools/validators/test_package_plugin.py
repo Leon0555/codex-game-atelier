@@ -249,6 +249,19 @@ class PluginBundleTests(unittest.TestCase):
             with self.assertRaises(package_plugin.BundleError):
                 package_plugin.verify_distributed_model_policy(bundle)
 
+    def test_skill_exposes_only_the_verified_embedded_starter_flow(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, self.sources(root / "sources")))
+            skill = (bundle / "skills/develop-godot-game/SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("starter create --project <new-directory>", skill)
+            self.assertIn("run `initialize --project <new-directory>`", skill)
+            self.assertIn("Do not shell-copy or manually reconstruct the template", skill)
+            self.assertIn("never installs Godot or dependencies", skill)
+            self.assertIn("writes user-level Codex state", skill)
+
     def test_recovery_schema_closure_is_packaged_and_bundle_only(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

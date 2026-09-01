@@ -1,6 +1,6 @@
 # ADR 0004：CLI 运行时与零构建分发
 
-- 状态：Accepted（分发方向与 Go 生产实现语言均已批准）
+- 状态：Accepted（Go 生产实现语言继续有效；v1 分发入口与 standalone/npm 建议已由 ADR 0023 部分取代；embedded Starter 创建由 ADR 0024 细化）
 - 日期：2026-08-24；更新：2026-08-25
 - 决策范围：CLI 运行时契约、Plugin/Template/npm/Release 分发与发布安全
 
@@ -12,7 +12,7 @@
 
 ### 用户入口
 
-1. Codex Plugin 与 Starter Template 是普通用户主要入口。
+1. 原决策将 Codex Plugin 与 Starter Template 并列为普通用户入口；ADR 0023 已将 v1 收敛为 Plugin-only，Starter Template 改为 Plugin 内置初始化能力；ADR 0024 冻结由包内 CLI 的 `starter create` 安全创建新目录，再显式 `initialize` 的确定性路径。
 2. CLI 是二者的确定性底座，也是 CI/高级用户入口；普通用户不需要先学习 CLI 命令表。
 3. 在已安装受支持 Godot 的前提下，目标首次使用不超过三个主要步骤。
 
@@ -22,7 +22,7 @@
 2. 优先验证自包含原生 CLI：macOS arm64、Windows x64、Linux x64 各有确定版本、checksum 和 artifact manifest。
 3. **v1 CLI 的生产实现语言冻结为 Go。** Phase 1 的 Rust/Go 对照显示，两者本机启动速度无决定性差异；Go 样品使用零第三方依赖，维护者工具链更小，并可在不增加 SDK 的情况下生成 Tier 1 x64 交叉产物。Rust 的 stripped binary 明显更小，但不足以抵消 v1 构建、依赖和跨平台维护成本。用户于 2026-08-25 明确批准 Go；详见 `docs/spikes/phase1-runtime-results.md`。
 4. 若原生方案不满足 Plugin/维护成本，备选为发布已 bundle 的 JavaScript `dist`，支持保守的 LTS Node 下限；用户仍不执行 build。不得把最新 Node 当唯一要求。
-5. npm 包是便利入口，不是普通用户唯一入口：可以是包含 JS launcher 和平台二进制 packages 的 meta package；安装脚本不得隐式编译或下载 Godot。
+5. npm 包的便利入口建议不进入 v1 当前计划；ADR 0023 禁止把 npm CLI 或 standalone binary 作为 v1 普通用户分发入口。
 6. Plugin 内如何携带/定位平台 CLI 必须通过官方 Plugin 打包规则和当前客户端实测后再冻结，不能在 Phase 0 假设。
 
 这里的 “Spike” 不是正式产品实现：Rust 与 Go 样品只用于比较二进制体积、启动速度、跨平台构建和进程控制。Go 的生产实现必须在正式包路径重新实现或正式审查，不直接复制未完成的 Spike；Rust 样品保留为研究证据，不进入生产 CLI、Plugin、Starter Template 或发布产物。Plugin 打包、升级/回滚和 evidence 写入仍需继续验证。

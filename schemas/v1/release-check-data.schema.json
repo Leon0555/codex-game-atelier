@@ -13,7 +13,7 @@
     "release_ready": { "type": "boolean" },
     "checks": {
       "type": "array",
-      "maxItems": 11,
+      "maxItems": 12,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -30,9 +30,9 @@
       "additionalProperties": false,
       "required": ["passed", "blocked", "not_run"],
       "properties": {
-        "passed": { "type": "integer", "minimum": 0, "maximum": 11 },
-        "blocked": { "type": "integer", "minimum": 0, "maximum": 11 },
-        "not_run": { "type": "integer", "minimum": 0, "maximum": 11 }
+        "passed": { "type": "integer", "minimum": 0, "maximum": 12 },
+        "blocked": { "type": "integer", "minimum": 0, "maximum": 12 },
+        "not_run": { "type": "integer", "minimum": 0, "maximum": 12 }
       }
     }
   },

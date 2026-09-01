@@ -1,5 +1,7 @@
 # M3 Framework quarantine / Gatekeeper Spike
 
+> 后续决策（2026-08-31）：ADR 0023 已把本记录中的手动 archive/quarantine 路径排除出 v1 支持渠道。Apple 公证不再是默认门禁；当前门禁是干净 Apple Silicon 上真实远程 Plugin 的无阻断安装。以下内容保留为历史失败 evidence，不代表当前实施计划要求预先签名或公证。
+
 - 日期：2026-08-31
 - 候选源码：`de3f7420d346222a515b3ffc07b9a76b01807fe2`
 - 记录基线：`4f14093`

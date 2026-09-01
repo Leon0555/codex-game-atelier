@@ -1,6 +1,6 @@
 # ADR 0019：同版本闭合的本地分发候选
 
-- 状态：Accepted（M3 本地候选装配契约）
+- 状态：Superseded for future candidates（`0.2.0` 双 archive 历史证据保留；下一候选由 ADR 0023 改为 Plugin-only）
 - 日期：2026-08-30
 - 决策范围：Plugin、预构建 CLI/runner、Starter Template、许可证和 checksum 的版本闭合
 

@@ -12,12 +12,13 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Codex Game Atelier",
-    "shortDescription": "Validate, test, and export supported Godot projects.",
-    "longDescription": "Godot workflows for project inspection, explicit initialization, recorded validation and tests, committed-run diagnostics, bounded cleanup previews, unsigned macOS technical builds and exports, and read-only release readiness checks. External release and raw log retention are not implemented.",
+    "shortDescription": "Create, validate, test, and export supported Godot projects.",
+    "longDescription": "Godot workflows for verified Starter creation, explicit initialization, project inspection, recorded validation and tests, committed-run diagnostics, bounded cleanup previews, unsigned macOS technical builds and exports, and read-only release readiness checks. External release and raw log retention are not implemented.",
     "developerName": "Leon0555",
     "category": "Productivity",
     "capabilities": ["Read", "Write"],
     "defaultPrompt": [
+      "Create a new Codex Game Atelier Starter project in a directory I choose, then initialize it.",
       "Inspect this Godot project and report its Atelier readiness.",
       "Validate this initialized project and show the structured result.",
       "Run the fixed GDScript tests after confirming required authorization."

@@ -165,6 +165,42 @@
       "then": { "properties": { "data": { "$ref": "initialize-data.schema.json" } } }
     },
     {
+      "if": { "properties": { "command": { "properties": { "name": { "const": "starter create" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
+      "then": {
+        "properties": {
+          "command": {
+            "properties": {
+              "arguments": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["project"],
+                "properties": { "project": { "const": "provided" } }
+              }
+            }
+          },
+          "evidence": { "maxItems": 0 },
+          "data": { "$ref": "starter-create-data.schema.json" }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": { "properties": { "name": { "const": "starter create" } }, "required": ["name"] },
+          "outcome": { "const": "PASS" }
+        },
+        "required": ["command", "outcome"]
+      },
+      "then": {
+        "properties": {
+          "data": {
+            "properties": { "created": { "const": true } },
+            "required": ["created", "template_version", "file_count", "expanded_byte_size", "next_command"]
+          }
+        }
+      }
+    },
+    {
       "if": { "properties": { "command": { "properties": { "name": { "const": "logs" } }, "required": ["name"] }, "exit_code": { "not": { "const": 2 } } }, "required": ["command", "exit_code"] },
       "then": {
         "properties": {

@@ -14,7 +14,7 @@
 ## 2. 逻辑分层
 
 ```text
-Codex Plugin / Starter Template
+Codex Plugin (includes Starter Template)
         |
         +-- focused Skills ---------> Codex-native orchestration
         |                                  |
@@ -32,7 +32,7 @@ Deterministic CLI ---------------------------------+
                 +-- CI and release verification
 ```
 
-Plugin 是可安装分发入口，Starter Template 是可复制的项目起点；二者共享相同契约和最少工作流，不分别演化成两个产品。CLI 为二者提供确定性底座，也可以独立用于 CI 与高级自动化。
+Plugin 是 v1.0 唯一用户安装入口。Starter Template 是 Plugin 内含的项目起点，公开 CLI 与私有 runner 也是 Plugin 内部组件；三者共享同一版本和完整性闭包，不分别作为用户下载产品。CI 的获取方式在接入远程仓库前另行冻结，不借此恢复独立 CLI 用户分发。
 
 ## 3. Codex 原生编排
 
@@ -72,11 +72,12 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 
 ## 4. 确定性 CLI
 
-候选公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议，`logs` 已按 ADR 0012 建立 committed run 的零自由文本结构投影；其余仍是后续候选：
+公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议，`logs` 已按 ADR 0012 建立 committed run 的零自由文本结构投影，`starter create` 已按 ADR 0024 建立 embedded Starter 的安全创建路径：
 
 - `detect`：发现 Godot 与项目，纯读。
 - `doctor`：当前生产切片纯读验证宿主、项目文件、GDScript、Godot 可执行文件和自报的精确标准版标识；版本文本不替代安装来源、散列或签名验证。导出模板与更完整的平台/配置诊断属于后续实现。
 - `initialize`：用户显式请求时，为已有 Godot/GDScript 项目原子创建最小状态；合法重跑零修改，不写 evidence、不修复或覆盖异常状态。
+- `starter create`：从当前 Plugin 根内严格验证 embedded Starter 的固定 inventory、hash、mode 与版本配对，向一个不存在的新目录私有 staging 后 no-replace 原子发布；不复制 package-only 文件，不初始化状态/Git，不运行 Godot，不联网，不写用户级 Codex 状态。
 - `validate`：默认验证 pinned 项目状态、regular `project.godot`、GDScript 边界和持久化能力；显式 `--headless` 在用户授权标准 `user://` 后，固定配套 runner 与 Godot 的已打开源文件身份，并为 version/scene 分别创建阶段独立的 runner/engine 快照，通过继承的 pinned 项目目录 fd 执行固定验证，再把外部写入符号化记录在 intent。项目公开路径身份在引擎前后核对，路径被并发替换时 observation 作废；Godot/runner 公共路径被替换不会重定向已固定执行。任何瞬时文件清理失败都会阻止 `result.json` 发布。完整场景/资源图和日志保留仍属后续切片。
 - `test`：当前固定执行 `res://tests/atelier_test_runner.gd`，不接受任意脚本/Godot 参数；复用 pinned version/test 双阶段执行，严格解析唯一 JSON marker，把断言失败映射为 3、引擎/协议失败映射为 5、超时/取消映射为 6，并原子记录逐项 test report。它执行用户拥有或已审阅的项目代码，不声称提供代码沙箱；第三方测试框架适配、过滤和原始日志保留属于后续切片。
 - `build --profile debug|release`：面向用户的默认目标工作流，执行相应门禁并复用 `export` 产生 runnable artifact；底层 evidence 只记录一次并互相引用，不假设 Godot 存在独立编译流水线。
@@ -144,10 +145,12 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 推荐方向（见 ADR 0004）：
 
-- 普通用户：Plugin 或 Starter Template，不需要 clone 源码或执行项目构建。
-- CLI：生产实现语言为 Go；提供可校验的预构建跨平台 artifact bundle。Headless 所需的公开 CLI 与 sibling 私有 runner 作为一个不可拆分的分发单元；当前本地候选采用 `darwin-universal2`、`linux-amd64`、`windows-amd64` 固定目录、逐文件 manifest、可复现 archive 与外部 checksum。M3 再用维护端分发 manifest 把 Plugin、CLI/runner、Starter、LICENSE 与 NOTICE 绑定到一个精确版本；它仍只是 `local-candidate`。框架 artifact 的签名/Gatekeeper 状态为 `NOT_EVALUATED`，不能提前宣称解决。npm 包作为高级用户便利入口时只包含已构建产物，不要求本机编译。
+- 普通用户：只安装 Codex Plugin，不需要 clone 源码、单独下载 Starter/CLI 或执行项目构建。
+- Plugin 闭包：Go 公开 CLI、sibling 私有 runner、Starter Template、Skills、Schemas、LICENSE、NOTICE 与第三方声明绑定到同一精确版本。`darwin-universal2`、`linux-amd64`、`windows-amd64` 仍是包内固定目录；当前只有 Apple Silicon 完成原生执行验证。
+- macOS 发布门禁：不预先实施 Developer ID 签名或 Apple 公证。门禁改为从真实远程 Plugin 来源在干净 Apple Silicon 环境安装，且无需系统设置放行、`xattr` 清除或其他隐藏策略修改即可调用包内 CLI/runner 并完成真实 Godot 工作流。若该实测失败，公证仅作为需新 ADR 和用户批准的备选方案。
+- v1.0 不发布独立 CLI archive、GitHub Release 二进制 ZIP、npm CLI 包、Homebrew、DMG 或 PKG。历史 `0.2.0` 双 archive 本地候选只保留为证据，不代表未来分发形状。
 - Rust/Go 语言对照已完成并由用户于 2026-08-25 冻结 Go。Phase 1 只把 macOS Apple Silicon 作为当前原生验证宿主；Windows/Linux 仅保留交叉构建 artifact 形状，原生 runner 已按用户决定延期，不能因此扩大支持声明。
-- 发布使用受保护 tag、GitHub-hosted runner、OIDC Trusted Publishing、最小权限和 provenance；不用长期发布 Token。
+- 远程 Plugin 发布使用受保护 tag、最小权限和可审计 provenance；不用长期发布 Token。具体远程来源与 CI 获取方式在首次远程演练前冻结。
 
 ## 9. 安全与隐私
 
@@ -160,11 +163,11 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- Plugin 本地 bundle 已能携带/定位各平台 CLI，且与 Starter/许可/checksum 形成同版本本地 candidate；最小真实 Codex 安装、新任务发现、包内 CLI 调用与卸载已 PASS，升级/失败升级/回滚仍待最终候选。
-- Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、quarantine、升级/回滚路径仍待验证。
+- Plugin 本地 bundle 已能携带/定位各平台 CLI；历史双 archive candidate 和最小本地 Codex 安装闭环已 PASS。单 Plugin contract、embedded Starter 校验和 `starter create` 已实现并通过仓库内 macOS 聚焦测试；仍需从干净 revision 生成真实单 Plugin 候选，升级/失败升级/回滚留到最终候选。
+- Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过包内入口、Headless validate 与固定 GDScript test。Linux/Windows 原生运行、远程 Plugin 无阻断安装、升级/回滚路径仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 已能用显式本地 candidate 在内存中验证 clean-source、Plugin、Starter、license/provenance 四项分发门禁；未提供或验证失败会诚实保持 `NOT_RUN/BLOCKED`。required CI 尚未接入，最小 macOS CI 只完成本地 contract 验证，GitHub-hosted 执行仍 `NOT RUN`。
+- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在包内复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。下一份真实干净候选尚未生成，远程 Plugin 无阻断安装和 required CI 未接入时必须保持 `NOT RUN/BLOCKED`。
 
 ## 11. 当前依据
 

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "starter-create-data.schema.json",
+  "title": "Codex Game Atelier Starter creation data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["created", "initialized"],
+  "properties": {
+    "created": { "type": "boolean" },
+    "initialized": { "const": false },
+    "template_version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "file_count": { "type": "integer", "minimum": 1, "maximum": 23 },
+    "expanded_byte_size": { "type": "integer", "minimum": 1, "maximum": 8388608 },
+    "next_command": { "const": "initialize --project <created-project>" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "created": { "const": true } }, "required": ["created"] },
+      "then": { "required": ["template_version", "file_count", "expanded_byte_size", "next_command"] }
+    }
+  ]
+}

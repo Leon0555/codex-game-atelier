@@ -33,9 +33,6 @@ const (
 	maxPluginArchiveBytes    = 128 * 1024 * 1024
 	maxPluginExpandedBytes   = 256 * 1024 * 1024
 	maxPluginMemberBytes     = 64 * 1024 * 1024
-	maxStarterArchiveBytes   = 16 * 1024 * 1024
-	maxStarterExpandedBytes  = 8 * 1024 * 1024
-	maxStarterMemberBytes    = 1024 * 1024
 )
 
 var (
@@ -99,12 +96,11 @@ type distributionPluginComponent struct {
 }
 
 type distributionStarterComponent struct {
-	Name                  string                   `json:"name"`
-	Version               string                   `json:"version"`
-	Archive               string                   `json:"archive"`
-	Checksum              string                   `json:"checksum"`
-	VerifiedPluginVersion string                   `json:"verified_plugin_version"`
-	EmbeddedPlugin        requiredDistributionBool `json:"embedded_plugin"`
+	Name                  string `json:"name"`
+	Version               string `json:"version"`
+	Path                  string `json:"path"`
+	VerifiedPluginVersion string `json:"verified_plugin_version"`
+	Distribution          string `json:"distribution"`
 }
 
 type distributionComponents struct {
@@ -126,7 +122,10 @@ type distributionPolicies struct {
 	HiddenExternalWrites                  requiredDistributionBool `json:"hidden_external_writes"`
 	GitHooksAutomaticallyInstalled        requiredDistributionBool `json:"git_hooks_automatically_installed"`
 	GameExportSigningNotarizationRequired requiredDistributionBool `json:"game_export_signing_notarization_required"`
-	FrameworkSigningNotarizationStatus    string                   `json:"framework_artifact_signing_notarization_status"`
+	DistributionChannel                   string                   `json:"distribution_channel"`
+	StandaloneUserBinaryPublished         requiredDistributionBool `json:"standalone_user_binary_published"`
+	AppleNotarizationRequired             requiredDistributionBool `json:"apple_notarization_required"`
+	RemotePluginGatekeeperValidation      string                   `json:"remote_plugin_gatekeeper_validation"`
 }
 
 type distributionManifest struct {
@@ -158,6 +157,12 @@ type pluginBundleManifest struct {
 		Name    string `json:"name"`
 		Version string `json:"version"`
 	} `json:"plugin"`
+	StarterTemplate struct {
+		Name         string `json:"name"`
+		Version      string `json:"version"`
+		Path         string `json:"path"`
+		Distribution string `json:"distribution"`
+	} `json:"starter_template"`
 	BuildProvenance     distributionBuildProvenance `json:"build_provenance"`
 	SourceBuildRequired requiredDistributionBool    `json:"source_build_required"`
 	TelemetryEnabled    requiredDistributionBool    `json:"telemetry_enabled"`
@@ -223,17 +228,16 @@ func verifyDistributionCandidate(ctx context.Context, candidate string) error {
 
 	version := manifest.Release.Version
 	pluginArchive := "codex-game-atelier-" + version + ".tar.gz"
-	starterArchive := "codex-game-atelier-starter-" + version + ".tar.gz"
 	expectedNames := []string{
 		distributionManifestName, "LICENSE", "NOTICE", "THIRD_PARTY_NOTICES",
-		pluginArchive, pluginArchive + ".sha256", starterArchive, starterArchive + ".sha256",
+		pluginArchive, pluginArchive + ".sha256",
 	}
 	if err := verifyDistributionRootNames(root, expectedNames); err != nil {
 		return err
 	}
 
-	actualInventory := make([]distributionFileRecord, 0, 7)
-	contents := make(map[string][]byte, 7)
+	actualInventory := make([]distributionFileRecord, 0, 5)
+	contents := make(map[string][]byte, 5)
 	var total int64
 	for _, name := range expectedNames {
 		if name == distributionManifestName {
@@ -261,9 +265,6 @@ func verifyDistributionCandidate(ctx context.Context, candidate string) error {
 	if err := verifyExternalArchiveChecksum(contents[pluginArchive], contents[pluginArchive+".sha256"], pluginArchive); err != nil {
 		return err
 	}
-	if err := verifyExternalArchiveChecksum(contents[starterArchive], contents[starterArchive+".sha256"], starterArchive); err != nil {
-		return err
-	}
 	if err := validateDistributionLegalTexts(contents); err != nil {
 		return err
 	}
@@ -273,15 +274,7 @@ func verifyDistributionCandidate(ctx context.Context, candidate string) error {
 	if err != nil {
 		return err
 	}
-	starterFiles := expectedStarterArchiveFiles()
-	starter, err := inspectDistributionArchive(ctx, contents[starterArchive], "codex-game-atelier-starter", starterFiles, 24, maxStarterMemberBytes, maxStarterExpandedBytes)
-	if err != nil {
-		return err
-	}
 	if err := validatePluginArchive(plugin, manifest, contents); err != nil {
-		return err
-	}
-	if err := validateStarterArchive(starter, manifest, contents); err != nil {
 		return err
 	}
 	return ctx.Err()
@@ -289,16 +282,15 @@ func verifyDistributionCandidate(ctx context.Context, candidate string) error {
 
 func validateDistributionManifestIdentity(manifest distributionManifest) error {
 	version := manifest.Release.Version
-	if manifest.SchemaVersion != "1.1.0" || distributionVersionPattern.MatchString(version) == false {
+	if manifest.SchemaVersion != "1.2.0" || distributionVersionPattern.MatchString(version) == false {
 		return errors.New("distribution manifest version is unsupported")
 	}
 	if manifest.Release != (distributionReleaseIdentity{Name: "codex-game-atelier", Version: version, Status: "local-candidate", ExternalPublicationPerformed: distributionBool(false)}) {
 		return errors.New("distribution release identity is invalid")
 	}
 	pluginArchive := "codex-game-atelier-" + version + ".tar.gz"
-	starterArchive := "codex-game-atelier-starter-" + version + ".tar.gz"
 	expectedPlugin := distributionPluginComponent{Name: "codex-game-atelier", Version: version, Archive: pluginArchive, Checksum: pluginArchive + ".sha256", CLIVersion: version, PrivateRunnerVersion: version}
-	expectedStarter := distributionStarterComponent{Name: "codex-game-atelier-starter", Version: version, Archive: starterArchive, Checksum: starterArchive + ".sha256", VerifiedPluginVersion: version, EmbeddedPlugin: distributionBool(false)}
+	expectedStarter := distributionStarterComponent{Name: "codex-game-atelier-starter", Version: version, Path: "starter-template", VerifiedPluginVersion: version, Distribution: "embedded-in-plugin"}
 	if manifest.Components.Plugin != expectedPlugin || manifest.Components.StarterPackage != expectedStarter {
 		return errors.New("distribution component closure is invalid")
 	}
@@ -312,7 +304,10 @@ func validateDistributionManifestIdentity(manifest distributionManifest) error {
 		HiddenExternalWrites:                  distributionBool(false),
 		GitHooksAutomaticallyInstalled:        distributionBool(false),
 		GameExportSigningNotarizationRequired: distributionBool(false),
-		FrameworkSigningNotarizationStatus:    "NOT_EVALUATED",
+		DistributionChannel:                   "codex-plugin-only",
+		StandaloneUserBinaryPublished:         distributionBool(false),
+		AppleNotarizationRequired:             distributionBool(false),
+		RemotePluginGatekeeperValidation:      "NOT_RUN",
 	}
 	if manifest.Policies != expectedPolicies {
 		return errors.New("distribution policies are invalid")
@@ -572,6 +567,9 @@ func expectedPluginArchiveFiles() map[string]bool {
 	for _, name := range paths {
 		result[name] = true
 	}
+	for name := range expectedStarterArchiveFiles() {
+		result["starter-template/"+name] = true
+	}
 	return result
 }
 
@@ -593,8 +591,11 @@ func validatePluginArchive(archive archiveInspection, candidate distributionMani
 		return errors.New("Plugin bundle manifest is invalid")
 	}
 	version := candidate.Release.Version
-	if manifest.SchemaVersion != "1.1.0" || manifest.PluginIdentity.Name != "codex-game-atelier" || manifest.PluginIdentity.Version != version || manifest.SourceBuildRequired != distributionBool(false) || manifest.TelemetryEnabled != distributionBool(false) {
+	if manifest.SchemaVersion != "1.2.0" || manifest.PluginIdentity.Name != "codex-game-atelier" || manifest.PluginIdentity.Version != version || manifest.SourceBuildRequired != distributionBool(false) || manifest.TelemetryEnabled != distributionBool(false) {
 		return errors.New("Plugin bundle identity or policy is invalid")
+	}
+	if manifest.StarterTemplate.Name != "codex-game-atelier-starter" || manifest.StarterTemplate.Version != version || manifest.StarterTemplate.Path != "starter-template" || manifest.StarterTemplate.Distribution != "embedded-in-plugin" {
+		return errors.New("Plugin embedded Starter identity is invalid")
 	}
 	if !reflect.DeepEqual(manifest.BuildProvenance, candidate.BuildProvenance) || validateDistributionProvenance(manifest.BuildProvenance) != nil {
 		return errors.New("Plugin build provenance differs from the distribution")
@@ -628,7 +629,31 @@ func validatePluginArchive(archive archiveInspection, candidate distributionMani
 			return errors.New("Plugin distributed text violates the model or internal-instruction boundary")
 		}
 	}
+	if err := validateEmbeddedStarterArchive(archive, candidate, rootFiles); err != nil {
+		return err
+	}
 	return validatePluginBuildRecords(archive.Files, candidate.BuildProvenance)
+}
+
+func validateEmbeddedStarterArchive(plugin archiveInspection, candidate distributionManifest, rootFiles map[string][]byte) error {
+	const prefix = "starter-template/"
+	starter := archiveInspection{Files: make(map[string][]byte)}
+	for name, data := range plugin.Files {
+		if strings.HasPrefix(name, prefix) {
+			starter.Files[strings.TrimPrefix(name, prefix)] = data
+		}
+	}
+	for _, record := range plugin.Inventory {
+		if strings.HasPrefix(record.Path, prefix) {
+			trimmed := record
+			trimmed.Path = strings.TrimPrefix(record.Path, prefix)
+			if trimmed.Path != starterManifestName {
+				starter.Inventory = append(starter.Inventory, trimmed)
+			}
+		}
+	}
+	sort.Slice(starter.Inventory, func(i, j int) bool { return starter.Inventory[i].Path < starter.Inventory[j].Path })
+	return validateStarterArchive(starter, candidate, rootFiles)
 }
 
 func expectedPluginHosts() []pluginHostDeclaration {
@@ -646,7 +671,7 @@ func validateStarterArchive(archive archiveInspection, candidate distributionMan
 		return errors.New("Starter manifest is invalid")
 	}
 	version := candidate.Release.Version
-	if manifest.SchemaVersion != "1.0.0" || manifest.Template.Name != "codex-game-atelier-starter" || manifest.Template.Version != version || manifest.Pairing.Kind != "codex-plugin" || manifest.Pairing.Name != "codex-game-atelier" || manifest.Pairing.VerifiedPluginVersion != version || manifest.Pairing.Embedded != distributionBool(false) || manifest.TelemetryEnabled != distributionBool(false) {
+	if manifest.SchemaVersion != "1.0.0" || manifest.Template.Name != "codex-game-atelier-starter" || manifest.Template.Version != version || manifest.Pairing.Kind != "codex-plugin" || manifest.Pairing.Name != "codex-game-atelier" || manifest.Pairing.VerifiedPluginVersion != version || manifest.Pairing.Embedded != distributionBool(true) || manifest.TelemetryEnabled != distributionBool(false) {
 		return errors.New("Starter identity, pairing, or policy is invalid")
 	}
 	if manifest.Engine != candidate.Engine || !reflect.DeepEqual(manifest.Files, archive.Inventory) || manifest.FileCount != len(archive.Inventory) || manifest.ExpandedByteSize != sumDistributionInventory(archive.Inventory) {

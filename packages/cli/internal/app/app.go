@@ -25,7 +25,7 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 
 	started := time.Now().UTC()
 	if len(args) == 0 {
-		return emitUsage(stdout, started, "cli", "expected build, clean, detect, doctor, export, hooks, initialize, logs, release, status, test, validate, or --version")
+		return emitUsage(stdout, started, "cli", "expected build, clean, detect, doctor, export, hooks, initialize, logs, release, starter, status, test, validate, or --version")
 	}
 
 	var result contract.Result
@@ -48,6 +48,8 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 		result = runLogs(ctx, started, args[1:])
 	case "release":
 		result = runRelease(ctx, started, args[1:])
+	case "starter":
+		result = runStarter(ctx, started, args[1:])
 	case "status":
 		result = runStatus(started, args[1:])
 	case "test":

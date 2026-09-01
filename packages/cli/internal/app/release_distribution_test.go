@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"path/filepath"
@@ -137,7 +138,24 @@ func TestLocalCleanDistributionCandidateWhenPresent(t *testing.T) {
 	} else if err != nil {
 		t.Fatal(err)
 	}
-	if err := verifyDistributionCandidate(context.Background(), candidate); err != nil {
-		t.Fatalf("local clean candidate did not pass the Go verifier: %v", err)
+	manifestBytes, err := os.ReadFile(filepath.Join(candidate, distributionManifestName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var identity struct {
+		SchemaVersion string `json:"schema_version"`
+	}
+	if err := json.Unmarshal(manifestBytes, &identity); err != nil {
+		t.Fatal(err)
+	}
+	verificationErr := verifyDistributionCandidate(context.Background(), candidate)
+	if identity.SchemaVersion == "1.1.0" {
+		if verificationErr == nil {
+			t.Fatal("historical dual-archive candidate was accepted as the Plugin-only v1 shape")
+		}
+		return
+	}
+	if verificationErr != nil {
+		t.Fatalf("current local candidate did not pass the Go verifier: %v", verificationErr)
 	}
 }

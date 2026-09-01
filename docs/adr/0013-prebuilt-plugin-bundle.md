@@ -1,6 +1,6 @@
 # ADR 0013：预构建 Plugin Bundle、完整性与宿主声明
 
-- 状态：Proposed（Phase 1 本地 artifact 已实证；真实 Codex 安装与 Gatekeeper 路径尚未完成）
+- 状态：Accepted（本地 bundle/lifecycle 已实证；分发入口与 Gatekeeper 门禁由 ADR 0023 取代）
 - 日期：2026-08-26
 - 决策范围：Plugin 平台布局、预构建 CLI/runner 配对、包清单、压缩包完整性与支持声明
 
@@ -21,6 +21,7 @@ codex-game-atelier/
 ├── LICENSE
 ├── NOTICE
 ├── THIRD_PARTY_NOTICES
+├── starter-template/...
 ├── skills/develop-godot-game/...
 └── bin/
     ├── darwin-universal2/{codex-game-atelier,codex-game-atelier-runner}
@@ -50,7 +51,7 @@ codex-game-atelier/
 
 本 ADR 暂不批准用户级安装器或 Marketplace 写入。真实 Codex 安装缓存中的 Skill 相对路径、执行权限、带 quarantine 下载路径、升级失败不切换 active version、卸载不触碰游戏项目和回滚到上一已验证版本，必须在本 ADR 转为 Accepted 前取得证据。
 
-游戏导出“不要求签名/公证”的既有决定不自动覆盖框架自身下载 CLI。若真实 quarantine 安装触发 Gatekeeper，再单独决定 CLI 是否需要签名或公证；当前不得宣称该风险已解决。
+ADR 0023 已冻结 v1 Plugin-only：Apple 公证不是默认门禁，真实远程 Plugin 在干净 Apple Silicon 环境无阻断安装才是门禁。只有该路径失败后，才能通过新决策把公证作为备选方案。
 
 ## 备选方案
 
@@ -84,6 +85,6 @@ codex-game-atelier/
 
 - Codex 实际安装缓存中的 Plugin 加载、Skill 定位、包内 CLI/runner 调用和卸载。
 - 中文、空格和特殊字符安装路径。
-- 带 quarantine 的真实下载/解包/Gatekeeper 行为。
+- 受支持远程 Plugin 来源的干净安装、quarantine/Gatekeeper 观察和包内 CLI/runner 实际调用。
 - archive 重现性、checksum 失败、安全解包、升级失败与回滚测试。
 - Linux/Windows native runner 延后不阻碍本 ADR 接受，但二者必须继续明确为 NOT RUN，不能升级支持声明。
