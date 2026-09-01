@@ -1,14 +1,15 @@
 # Godot v1.0 Support Matrix 实施基线
 
-状态：**Phase 1 实施目标已冻结；所有生产级声明仍需 Phase 1+ 实证**
+状态：**v1 实施范围已冻结；生产级声明仍需完整发布门禁实证**
 调研基准：2026-08-24
 当前官方稳定版：Godot `4.7.2-stable`（2026-08-18）
+范围更新：2026-09-01（ADR 0025）
 
 已确认：
 
 - v1.0 单版本基线为 Godot `4.7.2-stable`。
 - v1.0 只支持标准版/GDScript，Godot .NET/C# 延后。
-- Tier 1 宿主一次包含 macOS Apple Silicon、Windows x64、Linux x64。
+- v1 唯一 Tier 1 宿主为 macOS Apple Silicon；Windows x64、Linux x64 仅保留交叉构建 artifact，不属于 v1 支持或发布门禁。
 - 新 patch 的完整矩阵重验目标为 7 个自然日。
 - 不要求 Intel Mac 实机 smoke；macOS 支持声明限定为“生成 Universal 2，但只验证 Apple Silicon”，不声明 Intel 运行已验证。
 - v1.0 不要求 Godot 游戏产物的 Developer ID 签名或 Apple 公证；只验证 macOS Apple Silicon 技术导出，不声明公开分发就绪。
@@ -39,16 +40,16 @@ v1.0 只承诺一个经过完整验证的 Godot 稳定小版本，并固定到�
 | 宿主 | 推荐等级 | v1.0 验证范围 | 不自动推导的承诺 |
 | --- | --- | --- | --- |
 | macOS Apple Silicon | Tier 1 | CLI、Godot Editor/Headless、测试、构建、导出、异常恢复、中文/空格路径 | 不承诺 macOS Intel 作为开发宿主 |
-| Windows x64 | Tier 1 | 同上，使用原生 Windows runner/机器 | 不承诺 Windows ARM/x86_32 |
-| Linux x64 | Tier 1 | 同上；作为主要无 GPU headless CI | 不承诺 Linux ARM、发行版全集或所有桌面环境 |
+| Windows x64 | Artifact-only；v1 不支持 | 只验证 Go 交叉编译、PE/amd64 形状和 clean provenance；产品 Skill/CLI 不在该宿主启用 | 不代表原生运行、Godot、文件系统/锁、安装或导出支持 |
+| Linux x64 | Artifact-only；v1 不支持 | 只验证 Go 交叉编译、ELF/amd64 形状和 clean provenance；产品 Skill/CLI 不在该宿主启用 | 不代表原生运行、Godot、文件系统/锁、安装或导出支持 |
 
-Tier 1 的含义是每个发布候选都必须在该宿主用冻结版本完成规定的端到端流程；任何必选项缺失，该宿主不能标为生产级。
+Tier 1 的含义是每个发布候选都必须在 macOS Apple Silicon 用冻结版本完成规定的端到端流程；任何必选项缺失时不得标为生产级。Artifact-only 文件不是用户支持承诺，也不能关闭任何原生门禁。
 
 ## 4. CI Headless 推荐
 
-- PR 快速层：Linux x64、冻结 Godot 版本、`--headless`，覆盖 schema、CLI、场景/资源加载和测试。
-- 合并/夜间层：macOS Apple Silicon、Windows x64、Linux x64 的宿主级 smoke 与恢复场景。
-- Release 层：三宿主完整矩阵，加每个承诺导出目标的产物和目标平台启动证据。
+- PR/合并层：macOS Apple Silicon，覆盖 schema、Go、CLI 与静态分发契约；runner 必须断言 `uname -m` 为 `arm64`。
+- Release 层：macOS Apple Silicon 完整 Godot Headless/test/build/export、恢复、Plugin 生命周期与目标 smoke。
+- 可选 artifact 层：在任意可信构建宿主交叉生成 Windows/Linux CLI/runner 并验证格式/provenance；该层不计入 v1 原生支持。
 - 无 GPU runner 必须使用 headless；有 GPU 时仍可用 headless 避免编辑器 UI。
 - Headless 不等于“无需 Godot Editor 或 export templates”。命令行导出仍需要匹配的编辑器和模板。
 
@@ -60,8 +61,8 @@ CI 缓存只能提升速度，不能成为唯一证据。至少保留版本、ru
 
 | 导出目标 | v1.0 推荐 | 验证要求 | 明确限制 |
 | --- | --- | --- | --- |
-| Windows x64 | 纳入 Tier 1 desktop export | Release/Debug export、产物检查、Windows x64 实机 smoke | 不含 Windows ARM/x86_32；代码签名单独验证 |
-| Linux x64 | 纳入 Tier 1 desktop export | Release/Debug export、权限/产物检查、Linux x64 smoke | 不承诺其他架构、发行格式或发行版全集 |
+| Windows x64 | v1 不支持 | 不进入 build/export 或发布门禁 | 无原生 smoke，不得宣传可交付 |
+| Linux x64 | v1 不支持 | 不进入 build/export 或发布门禁 | 无原生 smoke，不得宣传可交付 |
 | macOS Apple Silicon（Godot 产物格式为 Universal 2） | 纳入 Tier 1 desktop export | 未签名、未公证的 `.app`/ZIP 技术导出与 Apple Silicon smoke | 不做 Intel smoke；不声明 x86_64 运行或公开分发已验证。DMG 只能从 macOS 导出 |
 
 Godot 官方模板的 macOS 应用是 Universal 2（x86_64 + arm64），但本项目的开发宿主和运行验证都只承诺 Apple Silicon。由于用户确认不做 Intel target smoke，对外必须使用准确声明：“生成 Universal 2，但只验证 Apple Silicon”；不得把产物含 x86_64 slice 等同于 Intel 已支持。
@@ -83,7 +84,7 @@ Godot 官方模板的 macOS 应用是 Universal 2（x86_64 + arm64），但本�
 - Godot 4.8 dev/beta/RC、4.6 及更旧版本，除非后续矩阵另行纳入。
 - Godot .NET/C#；v1.0 已确认只支持标准版/GDScript。
 - Web、Android、iOS、主机、XR 和 dedicated-server 发行目标。
-- macOS Intel 作为开发宿主或已验证运行目标、Windows ARM、Linux ARM。
+- macOS Intel、Windows 与 Linux 作为 v1 开发宿主或已验证运行/导出目标。
 - Godot 游戏产物的平台代码签名、公证、公开分发就绪验证、商店发布、账号代办或自动凭据管理。
 - 用户自定义引擎构建、第三方 export templates 和所有渲染器/硬件组合。
 
@@ -92,7 +93,7 @@ Godot 官方模板的 macOS 应用是 Universal 2（x86_64 + arm64），但本�
 ### Patch
 
 1. 上游发布新的 4.7.x 后创建候选验证，不立即修改对外基线。
-2. 在所有冻结宿主、核心测试、参考游戏和导出目标通过后发布框架兼容更新。
+2. 在冻结的 macOS Apple Silicon 宿主、核心测试、参考游戏和 macOS 技术导出通过后发布框架兼容更新。
 3. 新基线发布时淘汰旧 patch 的生产承诺，并保留至少一个可回滚的框架/矩阵记录。
 4. patch 完整矩阵重验目标为 7 个自然日；在重验通过前，对外基线仍保持上一已验证 patch，不把上游发布自动视为支持。
 

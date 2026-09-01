@@ -61,7 +61,7 @@ Plugin bundle 必须带上 `common`、`error`、`task`、`handoff`、`evidence` 
 | --- | --- | --- | --- |
 | `build` | `--project`；`--profile debug|release`；可选 `--mode manual|standard|strict`、`--godot`、`--timeout-ms`、`--allow-engine-user-data` | 与 `export` 相同；不开放 preset 参数 | 固定选择 `macOS Technical` 并复用同一 export 执行/evidence；standard 在同一总 timeout 内先执行 Headless 与固定 tests；当前只启用 macOS Apple Silicon |
 | `clean --list` | 必选 `--list`；可选 `--project` | 零写入、零 evidence、不创建 lock | 有界扫描 run store；完整验证 committed 闭包，只把 incomplete/orphan 列为预览候选，corrupt 受保护；不删除、不恢复、不修复 |
-| `detect` | `--project`，可选 `--godot` | 零写入、不启动 Godot | 发现项目、Godot 候选和 Tier 1 宿主 |
+| `detect` | `--project`，可选 `--godot` | 零写入、不启动 Godot | 发现项目、Godot 候选和 v1 支持宿主；当前只启用 macOS Apple Silicon |
 | `doctor` | 同上，加 `--timeout-ms`；可选 `--export` | 零文件写入；只执行固定的 `Godot --version` | 检查宿主、项目文件、GDScript 范围、可执行文件和自报的 `4.7.2-stable` 标准版标识；`--export` 还要求匹配版本及当前宿主的 bounded export-template 文件；不以版本文本替代二进制来源验证 |
 | `export` | `--project`；`--profile debug|release`；固定 `--preset "macOS Technical"`；可选 `--mode manual|standard|strict`、`--godot`、`--timeout-ms`、`--allow-engine-user-data` | 写 immutable run/evidence 与一个 ZIP artifact；standard/strict 的嵌套 gate 各自写独立事实；获准时使用 Godot 标准 `user://` | manual 只省略 workflow 扩展；standard 先 Headless/test、失败即停；strict 先完成 standard 再对 M3 未实现项阻断；真正导出只在有界项目快照上运行，验证 Universal 2 ZIP 与 Apple Silicon target smoke |
 | `hooks list/plan/status` | `--project` | 零写入、零 evidence、不创建 hooks 目录 | 只支持项目根的普通 `.git` 目录与默认 hooks path；列出固定 `pre-commit`、ownership manifest、manual release check 和 absent/installed/stale/conflict 状态 |
@@ -84,4 +84,4 @@ Hooks 命令同样不写 `.gameatelier` evidence；只有显式 `hooks install/u
 
 第一版 schema 版本为 `1.0.0`。任何破坏性变化都需要 ADR、迁移预览、备份与回退；文件中的 `schema_version` 不能随 CLI 版本隐式改变。Phase 1 生产基线仍不等于 v1.0 长期兼容冻结。
 
-维护端 `tools/package_distribution.py` 不属于最终用户 CLI。它只在已验证、已内含 Starter 的 Plugin bundle 之上创建或静态复验一个此前不存在的本地 candidate；不会安装 Plugin、修改 Codex 配置、联网或发布。Plugin 与 distribution manifest 必须记录由打包器从六个二进制文件、八个架构记录实测得到的 clean Git revision、精确 Go 版本、`-trimpath` 与 `CGO_ENABLED=0`；dirty 或来源不一致在创建输出前阻断。包含 Go 二进制的 Plugin/candidate 必须携带仓库 `THIRD_PARTY_NOTICES`。candidate 的 `local-candidate` 状态、远程 Plugin 门禁 `NOT_RUN` 以及 Windows/Linux 原生 `NOT_RUN` 不得被解释成严格发布通过；Apple 公证不是默认门禁。
+维护端 `tools/package_distribution.py` 不属于最终用户 CLI。它只在已验证、已内含 Starter 的 Plugin bundle 之上创建或静态复验一个此前不存在的本地 candidate；不会安装 Plugin、修改 Codex 配置、联网或发布。Plugin 与 distribution manifest 必须记录由打包器从六个二进制文件、八个架构记录实测得到的 clean Git revision、精确 Go 版本、`-trimpath` 与 `CGO_ENABLED=0`；dirty 或来源不一致在创建输出前阻断。包含 Go 二进制的 Plugin/candidate 必须携带仓库 `THIRD_PARTY_NOTICES`。candidate 的 `local-candidate` 状态和远程 Plugin 门禁 `NOT_RUN` 不得被解释成严格发布通过；Windows/Linux 文件只属于 unsupported artifact-only 供应链记录，不是 v1 门禁；Apple 公证不是默认门禁。

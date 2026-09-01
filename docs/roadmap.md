@@ -87,14 +87,9 @@ M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自
 
 这些延后项如果改变已冻结产品承诺，必须在实施前重新决策；不能因为未排入当前开发循环就被描述成已经支持。
 
-## 4. Windows/Linux 决策检查点
+## 4. Windows/Linux 决策
 
-用户已决定当前不建设 Windows/Linux 原生 runner。M2 结束时再确认 v1.0 最终对外范围：
-
-1. 补齐 Windows x64、Linux x64 原生端到端证据，维持三宿主 Tier 1；或
-2. 通过 Support Matrix 决策把 v1.0 生产级承诺限定为 macOS Apple Silicon，并把其他宿主明确降为预览/产物可用性声明。
-
-在此决策前，交叉构建只证明 artifact 可生成，不证明对应宿主受支持。
+用户于 2026-09-01 批准 ADR 0025：v1.0 生产级承诺只包含 macOS Apple Silicon。Windows/Linux 保留交叉构建 artifact 作为未来工程输入，但在 v1 中明确不支持、不执行、不宣传，也不进入发布门禁。未来纳入任一宿主必须新立 ADR 并补齐原生矩阵。
 
 ## 5. 后续版本
 

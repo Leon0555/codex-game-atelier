@@ -1,6 +1,6 @@
 # ADR 0004：CLI 运行时与零构建分发
 
-- 状态：Accepted（Go 生产实现语言继续有效；v1 分发入口与 standalone/npm 建议已由 ADR 0023 部分取代；embedded Starter 创建由 ADR 0024 细化）
+- 状态：Accepted（Go 生产实现语言继续有效；v1 分发入口由 ADR 0023、embedded Starter 由 ADR 0024、生产宿主范围由 ADR 0025 细化或取代）
 - 日期：2026-08-24；更新：2026-08-25
 - 决策范围：CLI 运行时契约、Plugin/Template/npm/Release 分发与发布安全
 
@@ -19,8 +19,8 @@
 ### 分发契约
 
 1. 用户取得的是**预构建或已打包**产物，永不要求从仓库源码构建。
-2. 优先验证自包含原生 CLI：macOS arm64、Windows x64、Linux x64 各有确定版本、checksum 和 artifact manifest。
-3. **v1 CLI 的生产实现语言冻结为 Go。** Phase 1 的 Rust/Go 对照显示，两者本机启动速度无决定性差异；Go 样品使用零第三方依赖，维护者工具链更小，并可在不增加 SDK 的情况下生成 Tier 1 x64 交叉产物。Rust 的 stripped binary 明显更小，但不足以抵消 v1 构建、依赖和跨平台维护成本。用户于 2026-08-25 明确批准 Go；详见 `docs/spikes/phase1-runtime-results.md`。
+2. 自包含 Plugin 为 macOS Apple Silicon 提供生产 CLI；Windows/Linux 交叉构建文件只保留确定版本、checksum 和 artifact manifest，按 ADR 0025 不属于 v1 支持。
+3. **v1 CLI 的生产实现语言冻结为 Go。** Phase 1 的 Rust/Go 对照显示，两者本机启动速度无决定性差异；Go 样品使用零第三方依赖，维护者工具链更小，并可在不增加 SDK 的情况下生成 Windows/Linux x64 artifact。Rust 的 stripped binary 明显更小，但不足以抵消 v1 构建、依赖和跨平台维护成本。用户于 2026-08-25 明确批准 Go；详见 `docs/spikes/phase1-runtime-results.md`。
 4. 若原生方案不满足 Plugin/维护成本，备选为发布已 bundle 的 JavaScript `dist`，支持保守的 LTS Node 下限；用户仍不执行 build。不得把最新 Node 当唯一要求。
 5. npm 包的便利入口建议不进入 v1 当前计划；ADR 0023 禁止把 npm CLI 或 standalone binary 作为 v1 普通用户分发入口。
 6. Plugin 内如何携带/定位平台 CLI 必须通过官方 Plugin 打包规则和当前客户端实测后再冻结，不能在 Phase 0 假设。
@@ -62,9 +62,9 @@
 
 拒绝。版本不确定、隐藏网络副作用和供应链风险高；任何下载必须显式、固定版本并校验。
 
-### D. 只发布单一平台二进制
+### D. 只承诺单一生产宿主
 
-拒绝 v1.0 推荐矩阵。会与三宿主生产承诺冲突。
+原决策拒绝；ADR 0025 已取代。v1 现只承诺 macOS Apple Silicon，Windows/Linux artifact 不构成生产支持。
 
 ## 理由
 
@@ -89,7 +89,7 @@
 
 ## Phase 1 Spike 验收
 
-- 三宿主 hello/detect/doctor 二进制的体积、冷启动、JSON、进程取消和路径处理。
+- macOS 生产入口以及 Windows/Linux artifact 的体积、冷启动或静态形状、JSON、进程取消和路径处理；非 macOS 项只作为历史 Spike/未来验证，不构成 v1 支持。
 - Plugin/Starter Template 能否无源码构建地调用固定 CLI。
 - npm meta package 在无编译器环境安装，且无隐藏下载/脚本副作用。
 - 升级、回滚、checksum 失败和不支持平台诊断。

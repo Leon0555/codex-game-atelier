@@ -22,6 +22,8 @@ class CIWorkflowTests(unittest.TestCase):
         self.assertNotIn("pull_request_target", document["on"])
         self.assertNotIn("write", text.lower())
         self.assertIn("persist-credentials: false", text)
+        self.assertIn('test "$(uname -m)" = arm64', text)
+        self.assertIn("Cross-build unsupported artifact-only entry pairs", text)
 
     def test_external_actions_are_pinned_and_required_checks_are_present(self) -> None:
         text = WORKFLOW.read_text(encoding="utf-8")

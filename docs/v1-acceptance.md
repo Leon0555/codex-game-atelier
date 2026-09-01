@@ -30,7 +30,7 @@
 | V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | PARTIAL（历史本地 marketplace 安装、新任务 Skill 发现和 fresh Starter E2E 已 PASS；`0.3.0-rc.1` 单 Plugin candidate A/B 重现、包内 CLI/runner smoke 及实际特殊路径 `starter create → initialize → status` PASS；真实远程无阻断安装仍 NOT RUN） |
 | V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PARTIAL（`0.3.0-rc.1` 单 Plugin archive 安全、checksum、clean Git/Go provenance、Go notices、A/B 本地重现性、静态秘密/网络/遥测/写入边界、既有真实本地安装/卸载，以及当前候选隔离 `CODEX_HOME` 安装/cache 核对/卸载 PASS；远程 Plugin 无阻断安装、升级/回滚、动态 trace、required CI 与 remote provenance 仍 NOT RUN） |
 | V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（当前用户/机器上的 fresh packaged Starter 特殊路径全流程、Debug/Release 技术产物、双架构静态验证与 Apple Silicon target smoke 已 PASS；全新用户或机器环境仍未完成） |
-| V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | BLOCKED（矩阵仍冻结三宿主 Tier 1，但 Windows/Linux 原生证据已延期；最终候选必须补齐原生矩阵或经用户决策降为 macOS Apple Silicon 生产承诺） |
+| V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（ADR 0025 已将 v1 生产承诺冻结为 macOS Apple Silicon；Windows/Linux 明确为 artifact-only、v1 不支持且不进入发布门禁；现有声明与原生证据范围一致） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | NOT RUN |
 | V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN |
 
@@ -57,7 +57,7 @@
 
 ## 4. 当前延期项的验收语义
 
-- Windows x64 与 Linux x64 原生 runner 当前 `NOT RUN`。到 M2 结束时决定补齐 Tier 1 证据或正式调整 Support Matrix；在此之前不能 PASS V1-10。
+- Windows x64 与 Linux x64 原生 runner 不属于 v1 门禁；交叉构建只保留 artifact/provenance 证据，不能被描述为 preview 或原生支持。未来升级支持必须新立 ADR 并完成原生矩阵。
 - v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。任何远程仓库创建、push、远程 Plugin 提交或账号操作仍需要单独用户授权。
 - Plugin 最小真实安装/发现/卸载闭环已于 2026-08-31 PASS；升级、失败升级与回滚仍只在最终候选集中演练，不能由本次结果推定通过。
 - Apple 公证不属于默认发布门禁。真实远程 Plugin 在干净 Apple Silicon 环境无阻断安装才是门禁；若失败，必须另立决策后才能把公证作为备选解决方案。

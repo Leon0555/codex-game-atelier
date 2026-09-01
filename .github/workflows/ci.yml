@@ -22,6 +22,9 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Assert Apple Silicon host
+        run: test "$(uname -m)" = arm64
+
       - name: Set up minimum Go toolchain
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -50,7 +53,7 @@ jobs:
         working-directory: packages/cli
         run: go test -count=1 ./...
 
-      - name: Cross-build artifact-only entry pairs
+      - name: Cross-build unsupported artifact-only entry pairs
         working-directory: packages/cli
         env:
           CGO_ENABLED: "0"

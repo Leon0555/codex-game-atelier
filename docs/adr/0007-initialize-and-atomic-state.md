@@ -11,7 +11,7 @@
 ## 决策
 
 1. 公共命令为 `codex-game-atelier initialize [--project <dir>]`。它只初始化已有 Godot/GDScript 项目的 Atelier 状态，不创建或修改 `project.godot`，不要求 Godot executable，不运行引擎，也不写项目外。
-2. 前置检查全部通过前零写入：目标必须存在 `project.godot`、不属于 Godot .NET/C#，并运行在已完成本命令原生事务验证的宿主上。当前只启用 macOS Apple Silicon；Linux x64 与 Windows x64 虽属于 v1.0 Tier 1 目标，但在各自原生文件系统/锁测试通过前显式返回 `INITIALIZE_HOST_NOT_VERIFIED`。
+2. 前置检查全部通过前零写入：目标必须存在 `project.godot`、不属于 Godot .NET/C#，并运行在已完成本命令原生事务验证的宿主上。当前只启用 macOS Apple Silicon；ADR 0025 已将 Linux x64 与 Windows x64 移出 v1 支持，它们继续显式返回 `INITIALIZE_HOST_NOT_VERIFIED`。
 3. 首次状态固定为：schema `1.0.0`、revision `0`、mode `standard`、Godot `4.7.2-stable`/GDScript、空 task/run refs、省略 `last_command_result_ref`、UTC canonical 时间戳。
 4. `project_id` 使用 CSPRNG 生成 `project-` 加 128-bit 小写 hex，不由路径、目录名、时间、机器或账号派生。复制已初始化目录会保留身份；创建新身份留给未来显式 clone/reinitialize 决策，Starter Template 不携带生成后的 state。
 5. 合法既有 v1 state 返回 `PASS`/0、`created:false`，不得改字节、mtime、revision 或时间。无效、未知 schema、symlink、特殊文件或不安全状态返回 `FAIL`/7，不覆盖、修复、迁移或 force。

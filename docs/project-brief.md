@@ -33,6 +33,7 @@ v1.0 包含：
 - 要求普通用户 clone 源码、运行项目构建或学习大量 CLI 命令。
 - 将本仓库的内部研发流程强制施加给用户游戏项目。
 - Godot 游戏产物的 macOS Developer ID 签名、Apple 公证或公开分发就绪承诺；v1.0 只验证 Apple Silicon 技术导出。
+- Windows、Linux 或 macOS Intel 的 v1 原生宿主与游戏导出支持；Windows/Linux 交叉构建 artifact 仅供未来验证。
 
 未来如研究 Unity，保留一条长期安全边界：`unity eval` 默认关闭，不进入核心构建、测试、导出或发布路径。该边界在 v1.0 不实现。
 
@@ -70,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0 已通过审阅，M1/M2 本地实现已完成，当前处于 M3 安装与发布验证。Plugin-only contract 已实现；下一份干净单 Plugin candidate、真实远程无阻断安装、required CI、升级/回滚与最终只读审计仍未完成。
+Phase 0 已通过审阅，M1/M2 本地实现已完成，当前处于 M3 安装与发布验证。Plugin-only contract 与 `0.3.0-rc.1` 干净单 Plugin candidate 已完成；ADR 0025 已将 v1 生产支持冻结为 macOS Apple Silicon。真实远程无阻断安装、required CI、升级/回滚与最终只读审计仍未完成。
