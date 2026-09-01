@@ -1,0 +1,11 @@
+{
+  "name": "codex-game-atelier",
+  "plugins": [
+    {
+      "name": "codex-game-atelier",
+      "source": "./plugins/codex-game-atelier",
+      "authPolicy": "ON_INSTALL",
+      "installationPolicy": "AVAILABLE"
+    }
+  ]
+}

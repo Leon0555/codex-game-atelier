@@ -1,0 +1,4 @@
+interface:
+  display_name: "Develop Godot Game"
+  short_description: "Validate, test, and export supported Godot projects"
+  default_prompt: "Use $develop-godot-game to inspect this Godot project and choose the safest implemented Atelier workflow."
