@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "atelier-20260901t160000.000000000z-abcdef123456",
+  "command": {
+    "name": "release check",
+    "arguments": {
+      "project": ".",
+      "mode": "strict",
+      "distribution_candidate": "provided",
+      "release_evidence": "provided"
+    }
+  },
+  "outcome": "PASS",
+  "started_at": "2026-09-01T16:00:00Z",
+  "finished_at": "2026-09-01T16:00:00.010Z",
+  "duration_ms": 10,
+  "exit_code": 0,
+  "summary": "Selected release checks passed without modifying the project.",
+  "errors": [],
+  "evidence": [],
+  "data": {
+    "scope": "project-release",
+    "selected_mode": "strict",
+    "project_mode": "standard",
+    "project_revision": 0,
+    "release_ready": true,
+    "checks": [
+      { "id": "project-state", "outcome": "PASS", "summary": "Project state passed." },
+      { "id": "support-scope", "outcome": "PASS", "summary": "Support scope passed." },
+      { "id": "run-store-integrity", "outcome": "PASS", "summary": "Run store passed." },
+      { "id": "latest-headless-validation", "outcome": "PASS", "summary": "Headless validation passed." },
+      { "id": "latest-fixed-gdscript-tests", "outcome": "PASS", "summary": "GDScript tests passed." },
+      { "id": "latest-release-export", "outcome": "PASS", "summary": "Release export passed." },
+      { "id": "clean-source-policy", "outcome": "PASS", "summary": "Clean source passed." },
+      { "id": "plugin-bundle", "outcome": "PASS", "summary": "Plugin bundle passed." },
+      { "id": "starter-package", "outcome": "PASS", "summary": "Starter package passed." },
+      { "id": "license-and-provenance", "outcome": "PASS", "summary": "License and provenance passed." },
+      { "id": "remote-plugin-install", "outcome": "PASS", "summary": "Remote Plugin install passed." },
+      { "id": "required-ci", "outcome": "PASS", "summary": "Required CI passed." }
+    ],
+    "counts": {
+      "passed": 12,
+      "blocked": 0,
+      "not_run": 0
+    }
+  }
+}

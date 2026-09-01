@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -135,6 +136,39 @@ func TestReleaseCheckStrictConsumesCandidateButKeepsRequiredCIBlocked(t *testing
 	}
 }
 
+func TestReleaseCheckStrictConsumesBoundExternalEvidenceReadOnly(t *testing.T) {
+	requireInitializePlatform(t)
+	project, stateRoot, state := createRunStoreProject(t, "release strict external evidence")
+	commitReleaseCheckPrerequisites(t, project, stateRoot, state)
+	stateRoot.Close()
+	originalCandidate := verifyReleaseDistributionCandidate
+	originalEvidence := verifyReleaseEvidenceManifest
+	verifyReleaseDistributionCandidate = func(context.Context, string) error { return nil }
+	verifyReleaseEvidenceManifest = func(context.Context, string, string) error { return nil }
+	defer func() {
+		verifyReleaseDistributionCandidate = originalCandidate
+		verifyReleaseEvidenceManifest = originalEvidence
+	}()
+
+	before := snapshotTree(t, filepath.Join(project, ".gameatelier"))
+	code, result, stdout, stderr := execute(t, context.Background(), "release", "check", "--project", project, "--mode", "strict", "--distribution-candidate", "/private/candidate/path", "--release-evidence", "/private/evidence/path")
+	after := snapshotTree(t, filepath.Join(project, ".gameatelier"))
+	if code != contract.ExitOK || result.Outcome != "PASS" || stderr != "" || !reflect.DeepEqual(before, after) {
+		t.Fatalf("strict bound evidence check failed or wrote state: code=%d result=%+v stderr=%q", code, result, stderr)
+	}
+	if result.Command.Arguments["distribution_candidate"] != "provided" || result.Command.Arguments["release_evidence"] != "provided" || result.Command.Arguments["mode"] != "strict" {
+		t.Fatalf("strict input presence was not recorded symbolically: %+v", result.Command.Arguments)
+	}
+	if strings.Contains(stdout, "/private/candidate/path") || strings.Contains(stdout, "/private/evidence/path") {
+		t.Fatalf("strict result disclosed an input path: %s", stdout)
+	}
+	data := resultDataMap(t, result)
+	counts := data["counts"].(map[string]any)
+	if data["release_ready"] != true || counts["passed"] != float64(12) || counts["blocked"] != float64(0) || counts["not_run"] != float64(0) {
+		t.Fatalf("strict bound evidence did not close all release gates: %#v", data)
+	}
+}
+
 func TestCurrentReleaseEvidenceRequiresCurrentRevisionAndExactCommands(t *testing.T) {
 	runs := []verifiedRun{
 		{ProjectRevision: 4, Result: contract.Result{Outcome: "PASS", FinishedAt: "2026-08-29T01:00:00Z", Command: contract.Command{Name: "validate", Arguments: map[string]any{"headless": true}}}},
@@ -186,6 +220,14 @@ func TestReleaseCheckRejectsInvalidInvocationAndCancellation(t *testing.T) {
 	code, result, _, _ = execute(t, context.Background(), "release", "check", "--mode", "standard", "--distribution-candidate", "candidate")
 	if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" {
 		t.Fatalf("distribution candidate was accepted outside explicit strict mode: code=%d result=%+v", code, result)
+	}
+	code, result, _, _ = execute(t, context.Background(), "release", "check", "--mode", "strict", "--release-evidence", "evidence.json")
+	if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" {
+		t.Fatalf("release evidence was accepted without a distribution candidate: code=%d result=%+v", code, result)
+	}
+	code, result, _, _ = execute(t, context.Background(), "release", "check", "--mode", "standard", "--distribution-candidate", "candidate", "--release-evidence", "evidence.json")
+	if code != contract.ExitUsage || firstErrorCode(result) != "INVALID_ARGUMENT" {
+		t.Fatalf("release evidence was accepted outside explicit strict mode: code=%d result=%+v", code, result)
 	}
 
 	requireInitializePlatform(t)

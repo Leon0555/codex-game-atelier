@@ -3,6 +3,7 @@
 - 状态：Accepted（M2 生产契约；strict 分发门禁仍待 M3）
 - 日期：2026-08-29
 - 决策范围：`release check` 的副作用、模式解析、证据新鲜度、artifact 复验和退出语义
+- 后续变更：ADR 0022 接入本地 candidate；ADR 0026 接入与 candidate 绑定的单一外部 release evidence。只读、零项目 evidence 与保守阻断语义不变。
 
 ## 背景
 

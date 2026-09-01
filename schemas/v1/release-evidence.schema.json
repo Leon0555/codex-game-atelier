@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "release-evidence.schema.json",
+  "title": "Codex Game Atelier bound external release evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "release", "remote_plugin_install", "required_ci", "recorded_at"],
+  "properties": {
+    "schema_version": { "const": "1.0.0" },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "repository", "source_revision", "distribution_manifest_sha256", "plugin_archive_sha256"],
+      "properties": {
+        "name": { "const": "codex-game-atelier" },
+        "version": { "$ref": "#/$defs/version" },
+        "repository": { "$ref": "#/$defs/repository" },
+        "source_revision": { "$ref": "#/$defs/revision" },
+        "distribution_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "plugin_archive_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "remote_plugin_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "source", "repository", "marketplace_ref", "marketplace_revision", "installed_version", "candidate_archive_sha256", "host", "architecture", "godot_version", "gatekeeper_intervention", "system_settings_override", "quarantine_removed", "cli_smoke", "private_runner_refusal", "starter_create", "new_task_skill_discovery", "headless_validation", "gdscript_tests", "gdscript_test_count", "lifecycle"],
+      "properties": {
+        "outcome": { "const": "PASS" },
+        "source": { "const": "github" },
+        "repository": { "$ref": "#/$defs/repository" },
+        "marketplace_ref": { "type": "string", "minLength": 1, "maxLength": 160 },
+        "marketplace_revision": { "$ref": "#/$defs/revision" },
+        "installed_version": { "$ref": "#/$defs/version" },
+        "candidate_archive_sha256": { "$ref": "#/$defs/sha256" },
+        "host": { "const": "macos" },
+        "architecture": { "const": "arm64" },
+        "godot_version": { "const": "4.7.2-stable" },
+        "gatekeeper_intervention": { "const": false },
+        "system_settings_override": { "const": false },
+        "quarantine_removed": { "const": false },
+        "cli_smoke": { "const": "PASS" },
+        "private_runner_refusal": { "const": "PASS" },
+        "starter_create": { "const": "PASS" },
+        "new_task_skill_discovery": { "const": "PASS" },
+        "headless_validation": { "const": "PASS" },
+        "gdscript_tests": { "const": "PASS" },
+        "gdscript_test_count": { "const": 6 },
+        "lifecycle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "upgrade_from_version", "upgrade_to_version", "successful_upgrade", "failed_upgrade_rejected", "failed_upgrade_active_version", "rollback_to_version", "rollback", "uninstall_and_state_restore"],
+          "properties": {
+            "outcome": { "const": "PASS" },
+            "upgrade_from_version": { "$ref": "#/$defs/version" },
+            "upgrade_to_version": { "$ref": "#/$defs/version" },
+            "successful_upgrade": { "const": "PASS" },
+            "failed_upgrade_rejected": { "const": "PASS" },
+            "failed_upgrade_active_version": { "$ref": "#/$defs/version" },
+            "rollback_to_version": { "$ref": "#/$defs/version" },
+            "rollback": { "const": "PASS" },
+            "uninstall_and_state_restore": { "const": "PASS" }
+          }
+        }
+      }
+    },
+    "required_ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["outcome", "provider", "repository", "workflow_path", "job_name", "run_id", "run_url", "head_sha", "event", "branch", "branch_protection_required"],
+      "properties": {
+        "outcome": { "const": "PASS" },
+        "provider": { "const": "github-actions" },
+        "repository": { "$ref": "#/$defs/repository" },
+        "workflow_path": { "const": ".github/workflows/ci.yml" },
+        "job_name": { "const": "verify-macos-arm64" },
+        "run_id": { "type": "integer", "minimum": 1, "maximum": 9223372036854775807 },
+        "run_url": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "head_sha": { "$ref": "#/$defs/revision" },
+        "event": { "const": "push" },
+        "branch": { "const": "main" },
+        "branch_protection_required": { "const": true }
+      }
+    },
+    "recorded_at": { "type": "string", "format": "date-time", "minLength": 20, "maxLength": 64 }
+  },
+  "$defs": {
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "maxLength": 200 }
+  }
+}

@@ -3,7 +3,7 @@
 - 状态：Accepted（M3 本地发布工作区门禁）
 - 日期：2026-08-31
 - 决策范围：`release check --mode strict` 如何消费 Plugin/embedded-Starter/license/provenance 事实
-- 后续变更：ADR 0023 将 candidate 从双 archive 升级为 `1.2.0` 单 Plugin archive，并增加独立 `remote-plugin-install` 门禁；本 ADR 的只读、零执行和保守阻断语义保持不变。
+- 后续变更：ADR 0023 将 candidate 从双 archive 升级为 `1.2.0` 单 Plugin archive并增加独立 `remote-plugin-install` 门禁；ADR 0026 再用一个绑定式外部 manifest 接入该门禁与 required CI。本 ADR 的只读、零执行和保守阻断语义保持不变。
 
 ## 背景
 

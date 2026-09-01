@@ -167,7 +167,7 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过本地与远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围；远程安装态的新任务 Skill 发现与全新用户/机器复验仍待验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 的 `1.2.0` contract 已迁移为单 Plugin archive，并在 `0.3.0-rc.1` 候选中复验 embedded Starter、license/provenance；历史 `1.1.0` 双 archive candidate 会被新 verifier 明确拒绝。远程 Plugin 与 hosted CI 事实已 PASS，但尚未作为受信任机器可读输入接入 strict，因此命令继续保持 `NOT RUN/BLOCKED`。
+- strict `release check` 的本地 `1.2.0` contract 已迁移为单 Plugin archive；外部 `1.0.0` release evidence contract 又以单一只读输入绑定 candidate version/source revision/manifest/archive hash、macOS Apple Silicon 远程 Plugin 观察和固定 GitHub-hosted required CI。输入不会联网或自证发布者身份；真实 `rc.2` 证据、branch protection 和完整 strict PASS 仍须在当前实现提交后生成。
 
 ## 11. 当前依据
 

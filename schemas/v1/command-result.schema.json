@@ -262,6 +262,27 @@
                       "project": { "const": "." },
                       "mode": { "type": "string", "enum": ["manual", "standard", "strict"] }
                     }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project", "mode", "distribution_candidate"],
+                    "properties": {
+                      "project": { "const": "." },
+                      "mode": { "const": "strict" },
+                      "distribution_candidate": { "const": "provided" }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["project", "mode", "distribution_candidate", "release_evidence"],
+                    "properties": {
+                      "project": { "const": "." },
+                      "mode": { "const": "strict" },
+                      "distribution_candidate": { "const": "provided" },
+                      "release_evidence": { "const": "provided" }
+                    }
                   }
                 ]
               }

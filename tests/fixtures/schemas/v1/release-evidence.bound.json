@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "release": {
+    "name": "codex-game-atelier",
+    "version": "0.3.0-rc.2",
+    "repository": "Example/codex-game-atelier",
+    "source_revision": "1111111111111111111111111111111111111111",
+    "distribution_manifest_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "plugin_archive_sha256": "3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "remote_plugin_install": {
+    "outcome": "PASS",
+    "source": "github",
+    "repository": "Example/codex-game-atelier",
+    "marketplace_ref": "marketplace/v0.3.0-rc.2",
+    "marketplace_revision": "4444444444444444444444444444444444444444",
+    "installed_version": "0.3.0-rc.2",
+    "candidate_archive_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "host": "macos",
+    "architecture": "arm64",
+    "godot_version": "4.7.2-stable",
+    "gatekeeper_intervention": false,
+    "system_settings_override": false,
+    "quarantine_removed": false,
+    "cli_smoke": "PASS",
+    "private_runner_refusal": "PASS",
+    "starter_create": "PASS",
+    "new_task_skill_discovery": "PASS",
+    "headless_validation": "PASS",
+    "gdscript_tests": "PASS",
+    "gdscript_test_count": 6,
+    "lifecycle": {
+      "outcome": "PASS",
+      "upgrade_from_version": "0.3.0-rc.1",
+      "upgrade_to_version": "0.3.0-rc.2",
+      "successful_upgrade": "PASS",
+      "failed_upgrade_rejected": "PASS",
+      "failed_upgrade_active_version": "0.3.0-rc.2",
+      "rollback_to_version": "0.3.0-rc.1",
+      "rollback": "PASS",
+      "uninstall_and_state_restore": "PASS"
+    }
+  },
+  "required_ci": {
+    "outcome": "PASS",
+    "provider": "github-actions",
+    "repository": "Example/codex-game-atelier",
+    "workflow_path": ".github/workflows/ci.yml",
+    "job_name": "verify-macos-arm64",
+    "run_id": 123456,
+    "run_url": "https://github.com/Example/codex-game-atelier/actions/runs/123456",
+    "head_sha": "1111111111111111111111111111111111111111",
+    "event": "push",
+    "branch": "main",
+    "branch_protection_required": true
+  },
+  "recorded_at": "2026-09-01T16:00:00Z"
+}

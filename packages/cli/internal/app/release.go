@@ -43,11 +43,12 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 	project := set.String("project", ".", "project directory")
 	mode := set.String("mode", "", "gate mode override")
 	distributionCandidate := set.String("distribution-candidate", "", "verified local distribution candidate")
+	releaseEvidence := set.String("release-evidence", "", "bound external release evidence")
 	if err := rejectDuplicateFlags(args); err != nil {
 		return parseError(started, "release check", err.Error(), map[string]any{})
 	}
-	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || !validOptionalGateMode(*mode) || *distributionCandidate != "" && *mode != "strict" {
-		return parseError(started, "release check", "release check accepts --project, --mode manual|standard|strict, and --distribution-candidate with explicit strict mode only", map[string]any{})
+	if err := set.Parse(args); err != nil || set.NArg() != 0 || *project == "" || !validOptionalGateMode(*mode) || *distributionCandidate != "" && *mode != "strict" || *releaseEvidence != "" && (*mode != "strict" || *distributionCandidate == "") {
+		return parseError(started, "release check", "release check accepts --project, --mode manual|standard|strict, and --distribution-candidate plus optional --release-evidence with explicit strict mode only", map[string]any{})
 	}
 
 	selectedMode := *mode
@@ -57,6 +58,9 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 	}
 	if *distributionCandidate != "" {
 		commandArguments["distribution_candidate"] = "provided"
+	}
+	if *releaseEvidence != "" {
+		commandArguments["release_evidence"] = "provided"
 	}
 	result := contract.NewResult(started, contract.Command{Name: "release check", Arguments: commandArguments})
 	data := emptyReleaseCheckData(selectedMode)
@@ -149,8 +153,11 @@ func runReleaseCheck(ctx context.Context, started time.Time, args []string) cont
 			return releaseCheckCancelled(started, result, data)
 		}
 		data.Checks = append(data.Checks, distributionChecks...)
-		data.Checks = append(data.Checks, releaseCheck{ID: "remote-plugin-install", Outcome: "NOT_RUN", Summary: "A clean Apple Silicon install from the supported remote Plugin source has not yet completed without Gatekeeper intervention."})
-		data.Checks = append(data.Checks, releaseCheck{ID: "required-ci", Outcome: "NOT_RUN", Summary: "Required CI evidence remains unavailable until the minimum workflow completes on its GitHub-hosted runner."})
+		externalChecks, externalErr := externalReleaseChecks(ctx, *releaseEvidence, *distributionCandidate)
+		if externalErr != nil && ctx.Err() != nil {
+			return releaseCheckCancelled(started, result, data)
+		}
+		data.Checks = append(data.Checks, externalChecks...)
 	}
 	return finishReleaseCheck(started, result, data)
 }

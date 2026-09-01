@@ -62,6 +62,25 @@ def main() -> None:
         validator.validate(load_json(path))
         fixture_count += 1
 
+    release_evidence = load_json(FIXTURE_ROOT / "release-evidence.bound.json")
+    if not isinstance(release_evidence, dict):
+        raise SystemExit("release evidence fixture must be an object")
+    invalid_release_evidence_extra = copy.deepcopy(release_evidence)
+    invalid_release_evidence_extra["untrusted"] = True
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_extra, "release evidence unknown field")
+    invalid_release_evidence_gatekeeper = copy.deepcopy(release_evidence)
+    invalid_release_evidence_gatekeeper["remote_plugin_install"]["gatekeeper_intervention"] = True
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_gatekeeper, "release evidence Gatekeeper intervention")
+    invalid_release_evidence_required = copy.deepcopy(release_evidence)
+    invalid_release_evidence_required["required_ci"]["branch_protection_required"] = False
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_required, "release evidence without required CI")
+    invalid_release_evidence_discovery = copy.deepcopy(release_evidence)
+    invalid_release_evidence_discovery["remote_plugin_install"]["new_task_skill_discovery"] = "NOT_RUN"
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_discovery, "release evidence without new-task Skill discovery")
+    invalid_release_evidence_lifecycle = copy.deepcopy(release_evidence)
+    invalid_release_evidence_lifecycle["remote_plugin_install"]["lifecycle"]["failed_upgrade_rejected"] = "NOT_RUN"
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_lifecycle, "release evidence without failed-upgrade rejection")
+
     profile_catalog = load_json(PROFILE_CATALOG)
     validators["capability-profile-catalog"].validate(profile_catalog)
     if profile_catalog != load_json(FIXTURE_ROOT / "capability-profile-catalog.default.json"):
