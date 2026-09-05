@@ -6,7 +6,7 @@
   "additionalProperties": false,
   "required": ["schema_version", "release", "remote_plugin_install", "required_ci", "recorded_at"],
   "properties": {
-    "schema_version": { "const": "1.0.0" },
+    "schema_version": { "const": "1.1.0" },
     "release": {
       "type": "object",
       "additionalProperties": false,
@@ -23,7 +23,7 @@
     "remote_plugin_install": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["outcome", "source", "repository", "marketplace_ref", "marketplace_revision", "installed_version", "candidate_archive_sha256", "host", "architecture", "godot_version", "gatekeeper_intervention", "system_settings_override", "quarantine_removed", "cli_smoke", "private_runner_refusal", "starter_create", "new_task_skill_discovery", "headless_validation", "gdscript_tests", "gdscript_test_count", "lifecycle"],
+      "required": ["outcome", "source", "repository", "marketplace_ref", "marketplace_revision", "installed_version", "candidate_archive_sha256", "observed_at", "codex_cli_version", "host", "architecture", "godot_version", "gatekeeper_intervention", "system_settings_override", "quarantine_removed", "cli_smoke", "private_runner_refusal", "starter_create", "new_task_skill_discovery", "skill_discovery", "headless_validation", "gdscript_tests", "gdscript_test_count", "lifecycle"],
       "properties": {
         "outcome": { "const": "PASS" },
         "source": { "const": "github" },
@@ -32,6 +32,8 @@
         "marketplace_revision": { "$ref": "#/$defs/revision" },
         "installed_version": { "$ref": "#/$defs/version" },
         "candidate_archive_sha256": { "$ref": "#/$defs/sha256" },
+        "observed_at": { "$ref": "#/$defs/timestamp" },
+        "codex_cli_version": { "type": "string", "pattern": "^codex-cli [0-9A-Za-z.+-]{1,48}$", "maxLength": 58 },
         "host": { "const": "macos" },
         "architecture": { "const": "arm64" },
         "godot_version": { "const": "4.7.2-stable" },
@@ -42,13 +44,24 @@
         "private_runner_refusal": { "const": "PASS" },
         "starter_create": { "const": "PASS" },
         "new_task_skill_discovery": { "const": "PASS" },
+        "skill_discovery": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["outcome", "thread_id", "skill_name", "entry_relative_path"],
+          "properties": {
+            "outcome": { "const": "PASS" },
+            "thread_id": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+            "skill_name": { "const": "codex-game-atelier:develop-godot-game" },
+            "entry_relative_path": { "const": "skills/develop-godot-game/SKILL.md" }
+          }
+        },
         "headless_validation": { "const": "PASS" },
         "gdscript_tests": { "const": "PASS" },
         "gdscript_test_count": { "const": 6 },
         "lifecycle": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["outcome", "upgrade_from_version", "upgrade_to_version", "successful_upgrade", "failed_upgrade_rejected", "failed_upgrade_active_version", "rollback_to_version", "rollback", "uninstall_and_state_restore"],
+          "required": ["outcome", "upgrade_from_version", "upgrade_to_version", "successful_upgrade", "failed_upgrade_rejected", "failed_upgrade_active_version", "rollback_to_version", "rollback", "uninstall_and_state_restore", "operations", "state_before", "state_after"],
           "properties": {
             "outcome": { "const": "PASS" },
             "upgrade_from_version": { "$ref": "#/$defs/version" },
@@ -58,7 +71,25 @@
             "failed_upgrade_active_version": { "$ref": "#/$defs/version" },
             "rollback_to_version": { "$ref": "#/$defs/version" },
             "rollback": { "const": "PASS" },
-            "uninstall_and_state_restore": { "const": "PASS" }
+            "uninstall_and_state_restore": { "const": "PASS" },
+            "operations": {
+              "type": "array",
+              "minItems": 8,
+              "maxItems": 8,
+              "prefixItems": [
+                { "$ref": "#/$defs/baseline_install" },
+                { "$ref": "#/$defs/upgrade_to_candidate" },
+                { "$ref": "#/$defs/invalid_upgrade_rejected" },
+                { "$ref": "#/$defs/rollback_to_previous" },
+                { "$ref": "#/$defs/candidate_reinstall" },
+                { "$ref": "#/$defs/plugin_uninstall" },
+                { "$ref": "#/$defs/marketplace_remove" },
+                { "$ref": "#/$defs/config_state_restore" }
+              ],
+              "items": false
+            },
+            "state_before": { "$ref": "#/$defs/user_state" },
+            "state_after": { "$ref": "#/$defs/user_state" }
           }
         }
       }
@@ -66,7 +97,7 @@
     "required_ci": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["outcome", "provider", "repository", "workflow_path", "job_name", "run_id", "run_url", "head_sha", "event", "branch", "branch_protection_required"],
+      "required": ["outcome", "provider", "repository", "workflow_path", "job_name", "run_id", "run_url", "head_sha", "event", "branch", "branch_protection_required", "branch_protection"],
       "properties": {
         "outcome": { "const": "PASS" },
         "provider": { "const": "github-actions" },
@@ -78,7 +109,23 @@
         "head_sha": { "$ref": "#/$defs/revision" },
         "event": { "const": "push" },
         "branch": { "const": "main" },
-        "branch_protection_required": { "const": true }
+        "branch_protection_required": { "const": true },
+        "branch_protection": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["observed_at", "repository", "branch", "required_check", "strict", "enforce_admins", "allow_force_pushes", "allow_deletions", "required_signatures"],
+          "properties": {
+            "observed_at": { "$ref": "#/$defs/timestamp" },
+            "repository": { "$ref": "#/$defs/repository" },
+            "branch": { "const": "main" },
+            "required_check": { "const": "verify-macos-arm64" },
+            "strict": { "const": true },
+            "enforce_admins": { "const": true },
+            "allow_force_pushes": { "const": false },
+            "allow_deletions": { "const": false },
+            "required_signatures": { "const": false }
+          }
+        }
       }
     },
     "recorded_at": { "type": "string", "format": "date-time", "minLength": 20, "maxLength": 64 }
@@ -90,6 +137,108 @@
     },
     "revision": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-    "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "maxLength": 200 }
+    "repository": { "type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", "maxLength": 200 },
+    "timestamp": { "type": "string", "format": "date-time", "minLength": 20, "maxLength": 64 },
+    "baseline_install": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code", "active_version"],
+      "properties": {
+        "id": { "const": "baseline-install" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 },
+        "active_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "upgrade_to_candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code", "active_version"],
+      "properties": {
+        "id": { "const": "upgrade-to-candidate" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 },
+        "active_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "invalid_upgrade_rejected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code", "active_version"],
+      "properties": {
+        "id": { "const": "invalid-upgrade-rejected" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 1 },
+        "active_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "rollback_to_previous": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code", "active_version"],
+      "properties": {
+        "id": { "const": "rollback-to-previous" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 },
+        "active_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "candidate_reinstall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code", "active_version"],
+      "properties": {
+        "id": { "const": "candidate-reinstall" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 },
+        "active_version": { "$ref": "#/$defs/version" }
+      }
+    },
+    "plugin_uninstall": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code"],
+      "properties": {
+        "id": { "const": "plugin-uninstall" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 }
+      }
+    },
+    "marketplace_remove": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code"],
+      "properties": {
+        "id": { "const": "marketplace-remove" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 }
+      }
+    },
+    "config_state_restore": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcome", "exit_code"],
+      "properties": {
+        "id": { "const": "config-state-restore" },
+        "outcome": { "const": "PASS" },
+        "exit_code": { "const": 0 }
+      }
+    },
+    "user_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["installed_plugin_count", "installed_plugin_ids_sha256", "marketplace_count", "marketplace_names_sha256", "atelier_plugin_count", "atelier_marketplace_count", "config_mode", "config_byte_size", "config_sha256"],
+      "properties": {
+        "installed_plugin_count": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "installed_plugin_ids_sha256": { "$ref": "#/$defs/sha256" },
+        "marketplace_count": { "type": "integer", "minimum": 0, "maximum": 1024 },
+        "marketplace_names_sha256": { "$ref": "#/$defs/sha256" },
+        "atelier_plugin_count": { "const": 0 },
+        "atelier_marketplace_count": { "const": 0 },
+        "config_mode": { "const": "0600" },
+        "config_byte_size": { "type": "integer", "minimum": 1, "maximum": 1048576 },
+        "config_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
   }
 }

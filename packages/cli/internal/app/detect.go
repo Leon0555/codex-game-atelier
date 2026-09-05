@@ -44,7 +44,7 @@ func runDetect(started time.Time, args []string) contract.Result {
 		failures = append(failures, *godotFailure)
 	}
 	if !data.Host.Supported {
-		failures = append(failures, prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 Tier 1 support matrix.", "Use macOS Apple Silicon, Windows x64, or Linux x64."))
+		failures = append(failures, prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 production support matrix.", "Use macOS Apple Silicon for v1.0; Windows and Linux binaries are artifact-only and unsupported."))
 	}
 
 	if len(failures) > 0 {

@@ -163,11 +163,11 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 待 Phase 1 验证
 
-- `0.3.0-rc.1` 单 Plugin 候选已从 clean `969bef0...` 生成并逐字节重现；远程 Git-backed 安装的 cache 又与该候选逐文件一致，包内 CLI/runner、特殊路径 Starter、Headless validate 和固定 GDScript 6/6 已 PASS。真实用户级升级、失败升级不替换 active version、回滚、卸载与精确状态恢复也已 PASS。
-- Go CLI 的当前本地 Plugin archive 约 12 MiB；Apple Silicon 已通过本地与远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围；远程安装态的新任务 Skill 发现与全新用户/机器复验仍待验证。
+- `0.3.0-rc.2` 单 Plugin 候选已从 clean `280de4a...` 生成并逐字节重现；远程 Git-backed 安装、包内 CLI/runner、特殊路径 Starter、Headless validate、固定 GDScript 6/6、新任务 Skill 发现与用户级生命周期均产生了 PASS 证据。但最终只读审计发现 rc.2 的 host 判定仍把 Windows/Linux 当成 supported，因此该候选被拒绝，不得晋升。
+- Go CLI 的当前 Plugin archive 约 13 MiB；Apple Silicon 已通过本地与远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围；按用户决定，全新用户或第二台机器复验延后到最终 RC。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 的本地 `1.2.0` contract 已迁移为单 Plugin archive；外部 `1.0.0` release evidence contract 又以单一只读输入绑定 candidate version/source revision/manifest/archive hash、macOS Apple Silicon 远程 Plugin 观察和固定 GitHub-hosted required CI。输入不会联网或自证发布者身份；真实 `rc.2` 证据、branch protection 和完整 strict PASS 仍须在当前实现提交后生成。
+- strict `release check` 的本地 `1.2.0` contract 使用单 Plugin archive；外部 release evidence 已从 rc.2 历史 `1.0.0` 升级为 `1.1.0`，在 candidate/version/revision/hash 之外强制记录 Codex CLI 与观察时间、新任务 Skill 身份、固定生命周期操作/退出码、前后用户状态摘要和 branch-protection 快照。输入仍不联网或自证发布者身份；rc.3 必须重新生成该闭包，正式发布还需现场复核、保护版本 ref、独立终审和用户批准。
 
 ## 11. 当前依据
 

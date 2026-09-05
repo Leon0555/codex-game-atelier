@@ -71,6 +71,9 @@ def main() -> None:
     invalid_release_evidence_gatekeeper = copy.deepcopy(release_evidence)
     invalid_release_evidence_gatekeeper["remote_plugin_install"]["gatekeeper_intervention"] = True
     expect_invalid(validators["release-evidence"], invalid_release_evidence_gatekeeper, "release evidence Gatekeeper intervention")
+    invalid_release_evidence_null_gatekeeper = copy.deepcopy(release_evidence)
+    invalid_release_evidence_null_gatekeeper["remote_plugin_install"]["gatekeeper_intervention"] = None
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_null_gatekeeper, "release evidence null Gatekeeper intervention")
     invalid_release_evidence_required = copy.deepcopy(release_evidence)
     invalid_release_evidence_required["required_ci"]["branch_protection_required"] = False
     expect_invalid(validators["release-evidence"], invalid_release_evidence_required, "release evidence without required CI")
@@ -80,6 +83,50 @@ def main() -> None:
     invalid_release_evidence_lifecycle = copy.deepcopy(release_evidence)
     invalid_release_evidence_lifecycle["remote_plugin_install"]["lifecycle"]["failed_upgrade_rejected"] = "NOT_RUN"
     expect_invalid(validators["release-evidence"], invalid_release_evidence_lifecycle, "release evidence without failed-upgrade rejection")
+    invalid_release_evidence_duplicate_operations = copy.deepcopy(release_evidence)
+    duplicate = invalid_release_evidence_duplicate_operations["remote_plugin_install"]["lifecycle"]["operations"][0]
+    invalid_release_evidence_duplicate_operations["remote_plugin_install"]["lifecycle"]["operations"] = [copy.deepcopy(duplicate) for _ in range(8)]
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_duplicate_operations, "release evidence with duplicate lifecycle operations")
+    invalid_release_evidence_operation_order = copy.deepcopy(release_evidence)
+    operations = invalid_release_evidence_operation_order["remote_plugin_install"]["lifecycle"]["operations"]
+    operations[0], operations[1] = operations[1], operations[0]
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_operation_order, "release evidence with reordered lifecycle operations")
+    invalid_release_evidence_operation_exit = copy.deepcopy(release_evidence)
+    invalid_release_evidence_operation_exit["remote_plugin_install"]["lifecycle"]["operations"][2]["exit_code"] = 0
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_operation_exit, "release evidence with wrong lifecycle exit code")
+    invalid_release_evidence_missing_exit = copy.deepcopy(release_evidence)
+    invalid_release_evidence_missing_exit["remote_plugin_install"]["lifecycle"]["operations"][0].pop("exit_code")
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_missing_exit, "release evidence without lifecycle exit code")
+    invalid_release_evidence_missing_active = copy.deepcopy(release_evidence)
+    invalid_release_evidence_missing_active["remote_plugin_install"]["lifecycle"]["operations"][1].pop("active_version")
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_missing_active, "release evidence without required active version")
+    invalid_release_evidence_extra_active = copy.deepcopy(release_evidence)
+    invalid_release_evidence_extra_active["remote_plugin_install"]["lifecycle"]["operations"][5]["active_version"] = "0.3.0-rc.2"
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_extra_active, "release evidence with forbidden active version")
+    invalid_release_evidence_old_version = copy.deepcopy(release_evidence)
+    invalid_release_evidence_old_version["schema_version"] = "1.0.0"
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_old_version, "release evidence using retired schema version")
+    zero_count_release_evidence = copy.deepcopy(release_evidence)
+    for state_name in ("state_before", "state_after"):
+        state = zero_count_release_evidence["remote_plugin_install"]["lifecycle"][state_name]
+        state["installed_plugin_count"] = 0
+        state["marketplace_count"] = 0
+    validators["release-evidence"].validate(zero_count_release_evidence)
+    maximum_count_release_evidence = copy.deepcopy(release_evidence)
+    for state_name in ("state_before", "state_after"):
+        state = maximum_count_release_evidence["remote_plugin_install"]["lifecycle"][state_name]
+        state["installed_plugin_count"] = 4096
+        state["marketplace_count"] = 1024
+    validators["release-evidence"].validate(maximum_count_release_evidence)
+    invalid_release_evidence_plugin_count = copy.deepcopy(release_evidence)
+    invalid_release_evidence_plugin_count["remote_plugin_install"]["lifecycle"]["state_before"]["installed_plugin_count"] = 4097
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_plugin_count, "release evidence Plugin count above bound")
+    invalid_release_evidence_null_plugin_count = copy.deepcopy(release_evidence)
+    invalid_release_evidence_null_plugin_count["remote_plugin_install"]["lifecycle"]["state_before"]["installed_plugin_count"] = None
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_null_plugin_count, "release evidence null Plugin count")
+    invalid_release_evidence_marketplace_count = copy.deepcopy(release_evidence)
+    invalid_release_evidence_marketplace_count["remote_plugin_install"]["lifecycle"]["state_before"]["marketplace_count"] = 1025
+    expect_invalid(validators["release-evidence"], invalid_release_evidence_marketplace_count, "release evidence marketplace count above bound")
 
     profile_catalog = load_json(PROFILE_CATALOG)
     validators["capability-profile-catalog"].validate(profile_catalog)
@@ -381,7 +428,7 @@ def main() -> None:
         f"Draft 2020-12 schema validation PASS: {len(schemas)} schemas, "
         f"{fixture_count} fixtures, {len(persisted_evidence)} persisted Starter Template records, "
         f"{len(persisted_collaboration)} persisted collaboration records, "
-        "35 negative assertions, Starter create, headless, test, export, and logs cross-fixture semantics"
+        "44 negative assertions, Starter create, headless, test, export, and logs cross-fixture semantics"
     )
 
 

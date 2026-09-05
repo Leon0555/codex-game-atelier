@@ -48,9 +48,9 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
 2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
 3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
-4. **已完成（required CI 保持阶段阻断）**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，standard 聚合当前 revision 最新 evidence 并复验 Release ZIP；strict 可显式读取本地 candidate，在内存中关闭 clean-source、Plugin、Starter、license/provenance 四项，不执行包内代码、不回显绝对路径；required CI 在托管证据可用前继续 `NOT_RUN`。不实现自动外部发布，也不增加独立 `release prepare` 流水线。
+4. **已完成实现、候选重验中**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，strict 在内存中验证本地 candidate 与绑定 external evidence，不执行包内代码、不回显绝对路径。rc.2 曾取得 12/12 PASS，但最终审计发现候选运行时支持范围冲突和外部记录过薄；external evidence 已升级为 1.1.0，须由 rc.3 重新取得完整 PASS。
 5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
-6. **已完成托管运行**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。首次 run 暴露并修复 Go 1.24 `os.Root.Name()` 测试假失败；修复后 run `33515728377` 全部 PASS。branch protection required check 尚未配置。
+6. **已完成托管与强制门禁**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。候选源码 run `33521593327` 全部 PASS；GitHub `main` 已将 `verify-macos-arm64` 配为 strict required check，并对管理员生效，禁止 force push 和 branch deletion。
 
 M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 
@@ -62,10 +62,10 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **已完成（单 Plugin 本地候选）**：历史 `0.2.0` 双 archive 候选继续只作证据。`0.3.0-rc.1` 已从 clean `969bef0...` 生成 `1.2.0` 单 Plugin candidate；A/B 逐字节一致，可信本机 CLI/runner smoke、特殊路径 `starter create → initialize → status` 和 strict clean-source/Plugin/embedded-Starter/license-provenance 四项均 PASS。详见 [`m3-plugin-only-candidate-2026-09-01.md`](validation/m3-plugin-only-candidate-2026-09-01.md)。
-2. **已完成真实远程生命周期**：`0.3.0-rc.1` 从 GitHub Marketplace ref 安装到隔离 `CODEX_HOME`，cache 与本地审计候选逐文件一致，包内 CLI/runner 与特殊路径 Starter/Headless/6-test 工作流 PASS。真实 `~/.codex` 又完成 `rc.0 → rc.1`、无效候选不替换 active `rc.1`、`rc.1 → rc.0`、卸载和精确状态恢复。详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
-3. **进行中（远程无阻断安装与 Godot E2E 已 PASS）**：Git-backed 远程 Plugin 没有 quarantine，不需系统设置放行、`xattr` 或隐藏策略修改；因此 Apple 公证继续不是 v1 门禁。仍待从远程安装态新建 Codex 任务并由主机自动发现 Skill，以及全新用户/机器的独立复验。
-4. **Plugin 发布配置进行中**：公开 remote、`main` 与固定 Marketplace 测试分支已建立，hosted CI 已 PASS；但正式 release workflow、受保护 tag、branch protection required check 和 attestation 仍 NOT RUN。npm CLI 包已移出 v1 计划。
+1. **rc.2 已拒绝，rc.3 修复中**：rc.2 A/B、本地 Godot 与分发门禁本身通过，但最终审计发现 CLI host 判定违反 macOS-only ADR。代码已改为仅 `darwin/arm64` supported，并增加 macOS/Intel/Windows/Linux 矩阵测试；须在修复合并后从 clean revision 重建 rc.3。
+2. **rc.2 历史生命周期已完成，rc.3 须重跑**：rc.2 的远程安装、失败升级保持 active、回滚、新任务 Skill 发现和精确状态恢复都是真实证据，但不能绑定到修复后的二进制。rc.3 必须以 rc.2 为 previous version 重跑同一闭环。
+3. **当前机器无阻断安装结论仍有效但须绑定 rc.3**：rc.2 没有 quarantine 或系统设置绕过，Apple 公证继续不是 v1 门禁。全新用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
+4. **主分支强制已完成，external evidence 加固中**：`main` required CI 已启用；1.1.0 证据新增生命周期操作/退出码、前后状态、Codex CLI/Skill 观察和 branch-protection 快照。rc.3 strict PASS、最终终审、版本 ref、Plugin 发布与用户批准仍待完成。rc.2 失败详情见 [`m3-rc2-final-readonly-audit-2026-09-02.md`](validation/m3-rc2-final-readonly-audit-2026-09-02.md)。
 5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
 6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 

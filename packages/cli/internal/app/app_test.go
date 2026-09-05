@@ -553,6 +553,29 @@ func TestVersion(t *testing.T) {
 	}
 }
 
+func TestV1SupportedHostMatrix(t *testing.T) {
+	tests := []struct {
+		name      string
+		goos      string
+		goarch    string
+		supported bool
+	}{
+		{name: "macOS Apple Silicon", goos: "darwin", goarch: "arm64", supported: true},
+		{name: "macOS Intel", goos: "darwin", goarch: "amd64", supported: false},
+		{name: "Windows x64 artifact only", goos: "windows", goarch: "amd64", supported: false},
+		{name: "Linux x64 artifact only", goos: "linux", goarch: "amd64", supported: false},
+		{name: "Linux arm64", goos: "linux", goarch: "arm64", supported: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := isSupportedHost(test.goos, test.goarch); got != test.supported {
+				t.Fatalf("isSupportedHost(%q, %q) = %v, want %v", test.goos, test.goarch, got, test.supported)
+			}
+		})
+	}
+}
+
 type ioDiscard struct{}
 
 func (ioDiscard) Write(input []byte) (int, error) { return len(input), nil }

@@ -131,10 +131,8 @@ func rejectDuplicateFlags(args []string) error {
 	return nil
 }
 
-func supportedHost() bool {
-	return (runtime.GOOS == "darwin" && runtime.GOARCH == "arm64") ||
-		(runtime.GOOS == "windows" && runtime.GOARCH == "amd64") ||
-		(runtime.GOOS == "linux" && runtime.GOARCH == "amd64")
+func isSupportedHost(goos, goarch string) bool {
+	return goos == "darwin" && goarch == "arm64"
 }
 
 type hostData struct {
@@ -144,5 +142,5 @@ type hostData struct {
 }
 
 func currentHostData() hostData {
-	return hostData{OS: runtime.GOOS, Arch: runtime.GOARCH, Supported: supportedHost()}
+	return hostData{OS: runtime.GOOS, Arch: runtime.GOARCH, Supported: isSupportedHost(runtime.GOOS, runtime.GOARCH)}
 }
