@@ -1,8 +1,8 @@
 {
   "interface": {
-    "displayName": "Codex Game Atelier Local"
+    "displayName": "Codex Game Atelier"
   },
-  "name": "codex-game-atelier-local",
+  "name": "codex-game-atelier",
   "plugins": [
     {
       "category": "Productivity",
