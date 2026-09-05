@@ -71,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0 已通过审阅，M1/M2 实现已完成，当前处于 M3 发布验证收尾。Plugin-only contract 与 `0.3.0-rc.1` 干净单 Plugin candidate 已完成；ADR 0025 已将 v1 生产支持冻结为 macOS Apple Silicon。Git-backed 远程无阻断安装、包内 Godot E2E、hosted Apple Silicon CI 与真实用户级升级/失败升级/回滚已 PASS。远程安装态的新任务 Skill 发现、branch protection required check、受保护发布 provenance、全新用户/机器复验与最终独立只读审计仍未完成。
+Phase 0 已通过审阅，M1/M2 实现已完成，当前处于 M3 发布验证修复轮。`0.3.0-rc.2` 的远程安装、Godot E2E、新任务 Skill 发现、生命周期、required CI、branch protection 和 strict 12/12 均产生了证据，但最终独立审计发现运行时仍把 Windows/Linux 判为 v1 supported，并指出外部观察记录过薄，因此 rc.2 被拒绝。当前修复将运行时严格收敛到 ADR 0025 的 macOS Apple Silicon-only，并把 external evidence 升级为 1.1.0 结构化操作/状态快照；合并后必须重建 rc.3 并重跑绑定门禁。按用户决定，全新用户/第二台机器复验延后到最终 RC；受保护版本 ref 与用户正式发布批准仍未完成。

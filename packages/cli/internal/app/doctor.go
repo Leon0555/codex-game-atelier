@@ -98,10 +98,10 @@ func runDoctor(ctx context.Context, started time.Time, args []string) contract.R
 	failures := make([]contract.Error, 0, 4)
 
 	if data.Host.Supported {
-		data.Checks = append(data.Checks, doctorCheck{ID: "host", Outcome: "PASS", Summary: "Host is included in the v1.0 Tier 1 matrix."})
+		data.Checks = append(data.Checks, doctorCheck{ID: "host", Outcome: "PASS", Summary: "Host is included in the v1.0 production support matrix."})
 	} else {
-		data.Checks = append(data.Checks, doctorCheck{ID: "host", Outcome: "BLOCKED", Summary: "Host is outside the v1.0 Tier 1 matrix."})
-		failures = append(failures, prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 Tier 1 support matrix.", "Use macOS Apple Silicon, Windows x64, or Linux x64."))
+		data.Checks = append(data.Checks, doctorCheck{ID: "host", Outcome: "BLOCKED", Summary: "Host is outside the v1.0 production support matrix."})
+		failures = append(failures, prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 production support matrix.", "Use macOS Apple Silicon for v1.0; Windows and Linux binaries are artifact-only and unsupported."))
 	}
 	if projectFailure == nil {
 		data.Checks = append(data.Checks, doctorCheck{ID: "project_file", Outcome: "PASS", Summary: "project.godot is present."})

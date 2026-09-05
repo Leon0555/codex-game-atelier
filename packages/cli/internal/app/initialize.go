@@ -42,7 +42,7 @@ func runInitialize(started time.Time, args []string) contract.Result {
 		return result
 	}
 	if !currentHostData().Supported {
-		failure := prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 Tier 1 support matrix.", "Initialize on macOS Apple Silicon, Windows x64, or Linux x64.")
+		failure := prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 production support matrix.", "Initialize on macOS Apple Silicon for v1.0; Windows and Linux binaries are artifact-only and unsupported.")
 		result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Codex Game Atelier initialization is unavailable on this host.", data, failure)
 		return result
 	}

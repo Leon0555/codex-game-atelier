@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.1.0",
   "release": {
     "name": "codex-game-atelier",
     "version": "0.3.0-rc.2",
@@ -16,6 +16,8 @@
     "marketplace_revision": "4444444444444444444444444444444444444444",
     "installed_version": "0.3.0-rc.2",
     "candidate_archive_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+    "observed_at": "2026-09-01T15:00:00Z",
+    "codex_cli_version": "codex-cli 0.151.0-alpha.7.2",
     "host": "macos",
     "architecture": "arm64",
     "godot_version": "4.7.2-stable",
@@ -26,6 +28,12 @@
     "private_runner_refusal": "PASS",
     "starter_create": "PASS",
     "new_task_skill_discovery": "PASS",
+    "skill_discovery": {
+      "outcome": "PASS",
+      "thread_id": "11111111-2222-3333-4444-555555555555",
+      "skill_name": "codex-game-atelier:develop-godot-game",
+      "entry_relative_path": "skills/develop-godot-game/SKILL.md"
+    },
     "headless_validation": "PASS",
     "gdscript_tests": "PASS",
     "gdscript_test_count": 6,
@@ -38,7 +46,39 @@
       "failed_upgrade_active_version": "0.3.0-rc.2",
       "rollback_to_version": "0.3.0-rc.1",
       "rollback": "PASS",
-      "uninstall_and_state_restore": "PASS"
+      "uninstall_and_state_restore": "PASS",
+      "operations": [
+        {"id": "baseline-install", "outcome": "PASS", "exit_code": 0, "active_version": "0.3.0-rc.1"},
+        {"id": "upgrade-to-candidate", "outcome": "PASS", "exit_code": 0, "active_version": "0.3.0-rc.2"},
+        {"id": "invalid-upgrade-rejected", "outcome": "PASS", "exit_code": 1, "active_version": "0.3.0-rc.2"},
+        {"id": "rollback-to-previous", "outcome": "PASS", "exit_code": 0, "active_version": "0.3.0-rc.1"},
+        {"id": "candidate-reinstall", "outcome": "PASS", "exit_code": 0, "active_version": "0.3.0-rc.2"},
+        {"id": "plugin-uninstall", "outcome": "PASS", "exit_code": 0},
+        {"id": "marketplace-remove", "outcome": "PASS", "exit_code": 0},
+        {"id": "config-state-restore", "outcome": "PASS", "exit_code": 0}
+      ],
+      "state_before": {
+        "installed_plugin_count": 13,
+        "installed_plugin_ids_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "marketplace_count": 5,
+        "marketplace_names_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "atelier_plugin_count": 0,
+        "atelier_marketplace_count": 0,
+        "config_mode": "0600",
+        "config_byte_size": 4096,
+        "config_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      },
+      "state_after": {
+        "installed_plugin_count": 13,
+        "installed_plugin_ids_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+        "marketplace_count": 5,
+        "marketplace_names_sha256": "7777777777777777777777777777777777777777777777777777777777777777",
+        "atelier_plugin_count": 0,
+        "atelier_marketplace_count": 0,
+        "config_mode": "0600",
+        "config_byte_size": 4096,
+        "config_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+      }
     }
   },
   "required_ci": {
@@ -52,7 +92,18 @@
     "head_sha": "1111111111111111111111111111111111111111",
     "event": "push",
     "branch": "main",
-    "branch_protection_required": true
+    "branch_protection_required": true,
+    "branch_protection": {
+      "observed_at": "2026-09-01T15:30:00Z",
+      "repository": "Example/codex-game-atelier",
+      "branch": "main",
+      "required_check": "verify-macos-arm64",
+      "strict": true,
+      "enforce_admins": true,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_signatures": false
+    }
   },
   "recorded_at": "2026-09-01T16:00:00Z"
 }

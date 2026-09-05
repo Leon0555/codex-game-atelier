@@ -56,11 +56,14 @@ type requiredDistributionBool struct {
 }
 
 func (value *requiredDistributionBool) UnmarshalJSON(data []byte) error {
-	var decoded bool
+	var decoded *bool
 	if err := json.Unmarshal(data, &decoded); err != nil {
 		return err
 	}
-	value.Value = decoded
+	if decoded == nil {
+		return errors.New("required boolean cannot be null")
+	}
+	value.Value = *decoded
 	value.Set = true
 	return nil
 }
