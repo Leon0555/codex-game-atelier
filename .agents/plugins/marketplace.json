@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "Codex Game Atelier"
+  },
+  "name": "codex-game-atelier",
+  "plugins": [
+    {
+      "category": "Productivity",
+      "name": "codex-game-atelier",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex-game-atelier",
+        "source": "local"
+      }
+    }
+  ]
+}

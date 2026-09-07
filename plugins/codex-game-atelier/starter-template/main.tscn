@@ -1,0 +1,86 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource path="res://scripts/main.gd" type="Script" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.035, 0.055, 0.11, 1)
+
+[node name="Interface" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="PanelContainer" parent="Interface"]
+offset_left = 230.0
+offset_top = 70.0
+offset_right = 730.0
+offset_bottom = 470.0
+
+[node name="Margin" type="MarginContainer" parent="Interface/Panel"]
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 36
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 36
+
+[node name="Content" type="VBoxContainer" parent="Interface/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="Interface/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "Atelier Spark · 工坊火花"
+horizontal_alignment = 1
+
+[node name="Instructions" type="Label" parent="Interface/Panel/Margin/Content"]
+layout_mode = 2
+text = "Collect 5 sparks · 点击按钮或按 Space / Enter"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Score" type="Label" parent="Interface/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Sparks 0 / 5"
+horizontal_alignment = 1
+
+[node name="Progress" type="ProgressBar" parent="Interface/Panel/Margin/Content"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+max_value = 5.0
+show_percentage = false
+
+[node name="Status" type="Label" parent="Interface/Panel/Margin/Content"]
+layout_mode = 2
+text = "Ready · 中文与空格路径已加载"
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="Interface/Panel/Margin/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="PlayButton" type="Button" parent="Interface/Panel/Margin/Content/Actions"]
+custom_minimum_size = Vector2(180, 52)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Collect spark +1"
+
+[node name="ResetButton" type="Button" parent="Interface/Panel/Margin/Content/Actions"]
+custom_minimum_size = Vector2(120, 52)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+text = "Reset"
