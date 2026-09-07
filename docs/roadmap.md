@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0、M1、M2 已完成；M3 rc.3 已拒绝，rc.4 修复中
-更新日期：2026-09-07
+状态：Phase 0、M1、M2 已完成；M3 rc.4 已拒绝，rc.5 修复中
+更新日期：2026-09-08
 
 ## 1. 已完成基线
 
@@ -62,11 +62,11 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **rc.3 已拒绝，rc.4 修复中**：从 clean `89a80a8` 构建的 rc.3 A/B 可复现，但最终审计发现只有部分命令检查宿主；`release check` 和 hooks 等仍能在 Windows/Linux artifact 上执行。工作区已增加所有公开命令共用的 pre-dispatch gate 与逐命令无写入负向测试，须合并后重建 rc.4。
+1. **rc.3 与 rc.4 均已拒绝，rc.5 修复中**：rc.3 的统一宿主门禁 High 已由受保护 PR 合并到 clean `f43ec63`；基于该提交构建的 rc.4 A/B 可复现、远程安装和 Godot 全链 PASS，但全新临时 Codex 会话实测发现 manifest 有 4 条 `defaultPrompt`，客户端上限为 3 且会忽略第 4 条。rc.4 因安装后 warning 主动拒绝，当前已合并验证/测试提示并在打包器中新增一至三条非空 prompt 门禁，须经 PR/CI 后重建 rc.5。
 2. **已完成**：以 rc.2 为 previous version，完成 rc.3 远程安装、成功升级、失败升级保持 active、回滚、候选重装、新任务 Skill 发现、卸载和精确用户状态恢复。
-3. **当前机器已完成**：远程 rc.3 无 quarantine、无系统设置或 Gatekeeper 绕过，特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
+3. **当前机器已完成至 rc.4**：远程 rc.4 无 quarantine、无系统设置或 Gatekeeper 绕过，安装缓存与候选逐文件一致；特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新 macOS 用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
 4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.3 strict 12/12 PASS。详见 [`m3-rc3-bound-release-evidence-2026-09-07.md`](validation/m3-rc3-bound-release-evidence-2026-09-07.md)。
-5. **rc.3 已完成但失败**：独立终审为 Blocker 0 / High 1 / Medium 1 / Low 1；High 是统一宿主门禁缺失，Medium 是 Codex Skill 版本路径元数据陈旧，Low 是缺少私密安全报告入口。详见 [`m3-rc3-final-readonly-audit-2026-09-07.md`](validation/m3-rc3-final-readonly-audit-2026-09-07.md)。
+5. **rc.3 已完成但失败；rc.4 在终审前拒绝**：rc.3 独立终审的 High 已修复，Skill 路径元数据在 rc.4 新会话中也正确刷新；同一次新会话暴露了 prompt 数量 warning，因此无需浪费一次 formal final audit，直接重建 rc.5。详见 [`m3-rc4-plugin-manifest-remediation-2026-09-08.md`](validation/m3-rc4-plugin-manifest-remediation-2026-09-08.md)。
 6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。

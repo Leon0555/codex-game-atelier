@@ -1,7 +1,7 @@
 # Codex Game Atelier v1.0 验收基线
 
-状态：三里程碑发布门禁；rc.3 最终审计拒绝，统一宿主门禁修复中
-更新日期：2026-09-07
+状态：三里程碑发布门禁；rc.4 新会话实测拒绝，Plugin manifest 修复中
+更新日期：2026-09-08
 
 ## 1. 结果词汇
 
@@ -26,12 +26,12 @@
 | V1-03 构建与导出 | M1 | Debug/Release `build` 与指定 preset `export` 复用同一执行链，生成有 manifest/hash 的 runnable artifact，并完成目标 smoke | Godot 命令、evidence 关联、产物清单/hash、启动退出结果 | PASS（macOS Apple Silicon；Debug build 与 Release export 均自动完成 Universal 2、manifest/hash 和 headless 一帧 target smoke） |
 | V1-04 路径、日志与恢复 | M1 | 中文/空格/特殊路径可用；结构化日志与稳定退出码可诊断；超时、取消、异常退出和残留进程/锁有明确恢复结果 | 路径矩阵、故障注入、进程/锁检查、结构化日志 | PASS（macOS Apple Silicon；中文/空格/`#` 全链、既有故障注入、进程组与 run closure 证据） |
 | V1-05 模型、Agent 与状态 | M2 | 分发无具体模型 ID；逻辑 Profile 支持能力等级、继承和覆盖；原生子代理默认不超过三、单一 owner、只读审计不可自批；可由 task/handoff/evidence 恢复 | 分发扫描、Profile 解析矩阵、一次中断/恢复协作 trace | PASS（Profile 目录、九项解析矩阵、分发扫描、task/handoff 逻辑引用，以及无对话继承的实现 → 审计 FAIL → 修复 → 全新只读审计 PASS trace） |
-| V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | PARTIAL（策略、显式 hook、`main` required check、1.1.0 branch-protection 快照和 rc.3 strict 12/12 已实证；但 strict 未发现非支持宿主仍可进入 `release check`/hook 写入的 High，须由 rc.4 与回归测试重新关闭） |
-| V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | PASS（rc.3 远程安装、CLI/runner、特殊路径 embedded Starter、Headless、GDScript 6/6、Debug/Release 与新任务 Skill 发现已实证；无需源码构建、第二份下载或系统放行） |
-| V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PASS（rc.2 → rc.3、无效升级退出 1 且 rc.3 保持 active、回滚、重装、卸载与配置逐字节恢复均已写入 1.1.0 evidence；catalog EOF 复核限制已披露） |
+| V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | PARTIAL（策略、显式 hook、`main` required check 与 branch protection 已实证；rc.4 已把统一宿主门禁带入真实 bundle，13 个公开命令的模拟非支持宿主无写入回归及 Marketplace CI PASS；因 manifest warning 主动拒绝 rc.4，strict 须由 rc.5 重新聚合） |
+| V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | FAIL（rc.4 远程安装、CLI/runner、特殊路径 embedded Starter、Godot 全链与新会话 Skill 路径发现均已实证；但 Codex CLI 同时警告 manifest 的第 4 条 `defaultPrompt` 超过客户端上限并被忽略，因此 rc.4 拒绝，须由 rc.5 消除警告后重验） |
+| V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PARTIAL（rc.3 的完整远程生命周期 PASS；rc.4 远程 sparse 安装及真实用户级 rc.3→rc.4、损坏候选拒绝、回滚、重装、卸载和配置逐字节恢复 PASS，但一次重复 GitHub 下载发生 `curl 18`，且 manifest warning 使候选不能晋升） |
 | V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（当前用户/机器上的 fresh packaged Starter 特殊路径全流程、Debug/Release 技术产物、双架构静态验证与 Apple Silicon target smoke 已 PASS；全新用户或机器环境仍未完成） |
-| V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | FAIL（文档和 manifest 已限定 macOS Apple Silicon，但 rc.3 没有为所有公开命令统一阻断 Windows/Linux；源代码修复及逐命令无写入测试已完成，须由 rc.4 重新验证） |
-| V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | FAIL（rc.3 参考游戏 E2E 和 strict 12/12 已 PASS，但最终只读审计为 Blocker 0 / High 1 / Medium 1 / Low 1；rc.3 已拒绝） |
+| V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（rc.4 bundle 已包含所有公开命令共用的 `darwin/arm64` pre-dispatch gate；模拟 Linux/Windows 逐命令无写入回归、artifact-only 交叉构建、Universal 2 静态验证和 Apple Silicon 原生远程 E2E 均通过；没有把 Windows/Linux 或 Intel 宣称为原生支持） |
+| V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | FAIL（rc.3 最终只读审计已拒绝；rc.4 修复了其 High 且参考游戏远程安装 E2E PASS，但新会话发现 manifest prompt 上限警告，rc.4 在 strict 与终审前主动拒绝） |
 | V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN |
 
 ## 3. 原验收覆盖映射

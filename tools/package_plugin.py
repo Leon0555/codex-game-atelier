@@ -592,6 +592,16 @@ def read_plugin_manifest(bundle: Path) -> dict[str, object]:
     version = manifest.get("version")
     if not isinstance(version, str) or not version:
         raise BundleError("plugin manifest version is missing")
+    interface = manifest.get("interface")
+    if not isinstance(interface, dict):
+        raise BundleError("plugin manifest interface is invalid")
+    default_prompts = interface.get("defaultPrompt")
+    if (
+        not isinstance(default_prompts, list)
+        or not 1 <= len(default_prompts) <= 3
+        or any(not isinstance(prompt, str) or not prompt.strip() for prompt in default_prompts)
+    ):
+        raise BundleError("plugin manifest defaultPrompt must contain one to three non-empty strings")
     return manifest
 
 
