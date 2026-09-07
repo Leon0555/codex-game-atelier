@@ -181,6 +181,24 @@ class PluginBundleTests(unittest.TestCase):
             with self.assertRaises(package_plugin.BundleError):
                 package_plugin.build_bundle(invalid)
 
+    def test_plugin_manifest_default_prompts_match_the_codex_limit(self) -> None:
+        source = package_plugin.read_plugin_manifest(package_plugin.PLUGIN_SOURCE)
+        prompts = source["interface"]["defaultPrompt"]
+        self.assertEqual(len(prompts), 3)
+        self.assertTrue(all(isinstance(prompt, str) and prompt.strip() for prompt in prompts))
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            bundle = root / "bundle"
+            with mock.patch.object(package_plugin, "verify_native_entry"):
+                package_plugin.build_bundle(self.arguments(bundle, self.sources(root / "sources")))
+            path = bundle / ".codex-plugin" / "plugin.json"
+            manifest = json.loads(path.read_text(encoding="utf-8"))
+            manifest["interface"]["defaultPrompt"].append("A fourth prompt must be rejected.")
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(package_plugin.BundleError, "one to three"):
+                package_plugin.read_plugin_manifest(bundle)
+
     def test_tamper_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -20,8 +20,7 @@
     "defaultPrompt": [
       "Create a new Codex Game Atelier Starter project in a directory I choose, then initialize it.",
       "Inspect this Godot project and report its Atelier readiness.",
-      "Validate this initialized project and show the structured result.",
-      "Run the fixed GDScript tests after confirming required authorization."
+      "Validate this initialized project, run the fixed GDScript tests after confirming required authorization, and show the structured results."
     ]
   }
 }
