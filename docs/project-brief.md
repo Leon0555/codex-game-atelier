@@ -71,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0 已通过审阅，M1/M2 实现已完成，当前处于 M3 发布验证修复轮。`0.3.0-rc.2` 的远程安装、Godot E2E、新任务 Skill 发现、生命周期、required CI、branch protection 和 strict 12/12 均产生了证据，但最终独立审计发现运行时仍把 Windows/Linux 判为 v1 supported，并指出外部观察记录过薄，因此 rc.2 被拒绝。当前修复将运行时严格收敛到 ADR 0025 的 macOS Apple Silicon-only，并把 external evidence 升级为 1.1.0 结构化操作/状态快照；合并后必须重建 rc.3 并重跑绑定门禁。按用户决定，全新用户/第二台机器复验延后到最终 RC；受保护版本 ref 与用户正式发布批准仍未完成。
+Phase 0、M1/M2 已完成，当前处于 M3 发布验证修复轮。`0.3.0-rc.2` 因运行时 host 支持范围和外部记录缺陷被拒绝；`0.3.0-rc.3` 完成远程 Plugin、Godot E2E、生命周期、required CI、branch protection 与 strict 12/12 后，独立终审又发现公共命令没有统一宿主门禁，Windows/Linux artifact 仍可进入 `release check` 或 Git hook 写入路径，因此 rc.3 同样拒绝。下一源码变更以全局 pre-dispatch gate 和逐命令无写入回归修复该 High，合并后必须重建 rc.4。独立 macOS 用户或第二台 Apple Silicon 机器复验、受保护版本 ref 与用户正式发布批准尚未执行。

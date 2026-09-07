@@ -65,4 +65,4 @@
 - version、source revision、manifest/archive SHA、repository、Marketplace ref、CI URL/head/job、required 状态、macOS/Godot/测试结论的逐项篡改负例。
 - 缺失、未知字段、超大文件、symlink、非 strict/无 candidate 参数组合和取消负例。
 - 检查前后 project、candidate 和 evidence tree 完全一致；stdout 不含任一输入绝对路径。
-- `0.3.0-rc.2` 的 1.0.0 evidence 曾使 strict 12/12 PASS，但最终审计仍发现运行时支持范围 High 和外部观察记录 Medium，证明 strict 结果不能覆盖独立终审。1.1.0 因此新增上述结构化记录；rc.3 必须重新生成并验证，详见 [`../validation/m3-rc2-final-readonly-audit-2026-09-02.md`](../validation/m3-rc2-final-readonly-audit-2026-09-02.md)。
+- `0.3.0-rc.2` 的 1.0.0 evidence 曾使 strict 12/12 PASS，但最终审计仍发现运行时支持范围 High 和外部观察记录 Medium，证明 strict 结果不能覆盖独立终审。1.1.0 因此新增上述结构化记录；rc.3 已重新生成并通过该绑定验证，但随后独立终审发现公共命令仍缺统一宿主门禁，因此 rc.3 也被拒绝。详见 [`../validation/m3-rc3-bound-release-evidence-2026-09-07.md`](../validation/m3-rc3-bound-release-evidence-2026-09-07.md) 与 [`../validation/m3-rc3-final-readonly-audit-2026-09-07.md`](../validation/m3-rc3-final-readonly-audit-2026-09-07.md)。

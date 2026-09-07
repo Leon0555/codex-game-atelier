@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0 已审阅通过；M1/M2 本地实现已完成，当前进入 M3
-更新日期：2026-09-01
+状态：Phase 0、M1、M2 已完成；M3 rc.3 已拒绝，rc.4 修复中
+更新日期：2026-09-07
 
 ## 1. 已完成基线
 
@@ -48,9 +48,9 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
 2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
 3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
-4. **已完成实现、候选重验中**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，strict 在内存中验证本地 candidate 与绑定 external evidence，不执行包内代码、不回显绝对路径。rc.2 曾取得 12/12 PASS，但最终审计发现候选运行时支持范围冲突和外部记录过薄；external evidence 已升级为 1.1.0，须由 rc.3 重新取得完整 PASS。
+4. **已完成**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，strict 在内存中验证本地 candidate 与绑定 external evidence，不执行包内代码、不回显绝对路径。rc.3 已使用 1.1.0 external evidence 重新取得 12/12 PASS、`release_ready=true`。
 5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
-6. **已完成托管与强制门禁**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。候选源码 run `33521593327` 全部 PASS；GitHub `main` 已将 `verify-macos-arm64` 配为 strict required check，并对管理员生效，禁止 force push 和 branch deletion。
+6. **已完成托管与强制门禁**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。rc.3 候选源码 run `33965337817` 全部 PASS；GitHub `main` 已将 `verify-macos-arm64` 配为 strict required check，并对管理员生效，禁止 force push 和 branch deletion。
 
 M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 
@@ -62,11 +62,11 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **rc.2 已拒绝，rc.3 修复中**：rc.2 A/B、本地 Godot 与分发门禁本身通过，但最终审计发现 CLI host 判定违反 macOS-only ADR。代码已改为仅 `darwin/arm64` supported，并增加 macOS/Intel/Windows/Linux 矩阵测试；须在修复合并后从 clean revision 重建 rc.3。
-2. **rc.2 历史生命周期已完成，rc.3 须重跑**：rc.2 的远程安装、失败升级保持 active、回滚、新任务 Skill 发现和精确状态恢复都是真实证据，但不能绑定到修复后的二进制。rc.3 必须以 rc.2 为 previous version 重跑同一闭环。
-3. **当前机器无阻断安装结论仍有效但须绑定 rc.3**：rc.2 没有 quarantine 或系统设置绕过，Apple 公证继续不是 v1 门禁。全新用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
-4. **主分支强制已完成，external evidence 加固中**：`main` required CI 已启用；1.1.0 证据新增生命周期操作/退出码、前后状态、Codex CLI/Skill 观察和 branch-protection 快照。rc.3 strict PASS、最终终审、版本 ref、Plugin 发布与用户批准仍待完成。rc.2 失败详情见 [`m3-rc2-final-readonly-audit-2026-09-02.md`](validation/m3-rc2-final-readonly-audit-2026-09-02.md)。
-5. 冻结 Support Matrix，完成架构、安全、许可证、性能、文档和分发的独立只读终审。
+1. **rc.3 已拒绝，rc.4 修复中**：从 clean `89a80a8` 构建的 rc.3 A/B 可复现，但最终审计发现只有部分命令检查宿主；`release check` 和 hooks 等仍能在 Windows/Linux artifact 上执行。工作区已增加所有公开命令共用的 pre-dispatch gate 与逐命令无写入负向测试，须合并后重建 rc.4。
+2. **已完成**：以 rc.2 为 previous version，完成 rc.3 远程安装、成功升级、失败升级保持 active、回滚、候选重装、新任务 Skill 发现、卸载和精确用户状态恢复。
+3. **当前机器已完成**：远程 rc.3 无 quarantine、无系统设置或 Gatekeeper 绕过，特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
+4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.3 strict 12/12 PASS。详见 [`m3-rc3-bound-release-evidence-2026-09-07.md`](validation/m3-rc3-bound-release-evidence-2026-09-07.md)。
+5. **rc.3 已完成但失败**：独立终审为 Blocker 0 / High 1 / Medium 1 / Low 1；High 是统一宿主门禁缺失，Medium 是 Codex Skill 版本路径元数据陈旧，Low 是缺少私密安全报告入口。详见 [`m3-rc3-final-readonly-audit-2026-09-07.md`](validation/m3-rc3-final-readonly-audit-2026-09-07.md)。
 6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
