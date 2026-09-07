@@ -17,6 +17,7 @@
 4. v1 required CI 只需要 macOS Apple Silicon 原生 job；job 必须观察并断言 `arm64`，否则只能作为通用静态 CI，不能关闭生产宿主门禁。
 5. 新 Godot 4.7.x patch 的 7 天重验目标只覆盖冻结的 macOS Apple Silicon 宿主、核心工作流和 macOS 技术导出。
 6. Windows/Linux 后续进入支持范围必须新立 ADR，并分别完成原生 CLI、文件系统/锁/取消、Godot Headless/test/build/export、路径、恢复、安装与升级矩阵。
+7. 公共 CLI 的所有命名命令必须在参数解析、项目读取、引擎调用或任何写入之前执行同一宿主门禁；非 `darwin/arm64` 固定返回 `HOST_UNSUPPORTED`。仅标识版本且不读取项目/运行工作流/写状态的 `--version` 不属于命名命令，可供构建 provenance 识别。
 
 ## 备选方案
 
@@ -39,3 +40,4 @@
 - Support Matrix、路线图、验收门禁、公开 README 和相关 ADR 不再把 Windows/Linux 称为 v1 Tier 1。
 - `V1-10` 不再因缺少 Windows/Linux 原生证据而 BLOCKED；其 PASS 仍依赖文档、manifest 与实际 macOS 证据一致。
 - CI 明确区分 Apple Silicon 原生验证与 Windows/Linux artifact-only 交叉编译。
+- 单元测试模拟 macOS Intel、Windows/Linux 等非支持宿主，逐个证明所有公开命名命令在写入前统一拒绝；只测试 `isSupportedHost` 布尔值不足以关闭门禁。

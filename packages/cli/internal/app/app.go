@@ -27,6 +27,12 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		return emitUsage(stdout, started, "cli", "expected build, clean, detect, doctor, export, hooks, initialize, logs, release, starter, status, test, validate, or --version")
 	}
+	if isPublicCommand(args[0]) {
+		host := currentHostData()
+		if !host.Supported {
+			return emitUnsupportedHost(stdout, started, args[0], host)
+		}
+	}
 
 	var result contract.Result
 	switch args[0] {
@@ -62,6 +68,29 @@ func Run(ctx context.Context, args []string, stdout, stderr io.Writer) int {
 
 	if err := writeResult(stdout, result); err != nil {
 		_, _ = fmt.Fprintf(stderr, "failed to encode command result: %v\n", err)
+		return contract.ExitInternal
+	}
+	return result.ExitCode
+}
+
+func isPublicCommand(name string) bool {
+	switch name {
+	case "build", "clean", "detect", "doctor", "export", "hooks", "initialize", "logs", "release", "starter", "status", "test", "validate":
+		return true
+	default:
+		return false
+	}
+}
+
+type unsupportedHostData struct {
+	Host hostData `json:"host"`
+}
+
+func emitUnsupportedHost(stdout io.Writer, started time.Time, commandName string, host hostData) int {
+	result := contract.NewResult(started, contract.Command{Name: commandName, Arguments: map[string]any{}})
+	failure := prerequisiteError("HOST_UNSUPPORTED", "This host is outside the v1.0 production support matrix.", "Use macOS Apple Silicon for v1.0; Windows and Linux binaries are artifact-only and unsupported.")
+	result.Finish(started, time.Now().UTC(), "BLOCKED", contract.ExitPrerequisite, "Codex Game Atelier commands are disabled on this host.", unsupportedHostData{Host: host}, failure)
+	if err := writeResult(stdout, result); err != nil {
 		return contract.ExitInternal
 	}
 	return result.ExitCode
@@ -141,6 +170,11 @@ type hostData struct {
 	Supported bool   `json:"supported"`
 }
 
+var runtimeHost = func() (string, string) {
+	return runtime.GOOS, runtime.GOARCH
+}
+
 func currentHostData() hostData {
-	return hostData{OS: runtime.GOOS, Arch: runtime.GOARCH, Supported: isSupportedHost(runtime.GOOS, runtime.GOARCH)}
+	goos, goarch := runtimeHost()
+	return hostData{OS: goos, Arch: goarch, Supported: isSupportedHost(goos, goarch)}
 }

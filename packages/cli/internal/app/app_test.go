@@ -553,6 +553,81 @@ func TestVersion(t *testing.T) {
 	}
 }
 
+func TestUnsupportedHostBlocksEveryPublicCommandBeforeParsingOrWriting(t *testing.T) {
+	originalRuntimeHost := runtimeHost
+	runtimeHost = func() (string, string) { return "linux", "amd64" }
+	defer func() { runtimeHost = originalRuntimeHost }()
+
+	root := t.TempDir()
+	target := filepath.Join(root, "starter-output")
+	commands := map[string][]string{
+		"build":      {"build", "--project", root},
+		"clean":      {"clean", "--project", root},
+		"detect":     {"detect", "--project", root},
+		"doctor":     {"doctor", "--project", root},
+		"export":     {"export", "--project", root},
+		"hooks":      {"hooks", "install", "--project", root},
+		"initialize": {"initialize", "--project", root},
+		"logs":       {"logs", "--project", root},
+		"release":    {"release", "check", "--project", root},
+		"starter":    {"starter", "create", "--project", target},
+		"status":     {"status", "--project", root},
+		"test":       {"test", "--project", root},
+		"validate":   {"validate", "--project", root},
+	}
+	before := snapshotTree(t, root)
+	for name, args := range commands {
+		t.Run(name, func(t *testing.T) {
+			code, result, _, stderr := execute(t, context.Background(), args...)
+			if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "HOST_UNSUPPORTED" || stderr != "" {
+				t.Fatalf("unsupported host did not fail closed: code=%d result=%+v stderr=%q", code, result, stderr)
+			}
+			data := resultDataMap(t, result)
+			host, ok := data["host"].(map[string]any)
+			if !ok || host["os"] != "linux" || host["arch"] != "amd64" || host["supported"] != false {
+				t.Fatalf("unsupported host identity was not reported: %#v", data)
+			}
+		})
+	}
+	if after := snapshotTree(t, root); !equalSnapshots(before, after) {
+		t.Fatal("an unsupported-host command changed the filesystem before returning its global gate")
+	}
+}
+
+func TestUnsupportedHostRoutingCannotBypassOrBroadenTheGate(t *testing.T) {
+	originalRuntimeHost := runtimeHost
+	runtimeHost = func() (string, string) { return "windows", "amd64" }
+	defer func() { runtimeHost = originalRuntimeHost }()
+
+	root := t.TempDir()
+	before := snapshotTree(t, root)
+	for _, args := range [][]string{
+		{"hooks", "install", "--unknown", filepath.Join(root, "hook-target")},
+		{"release", "check", "--unknown", filepath.Join(root, "release-target")},
+		{"starter", "create", "--unknown", filepath.Join(root, "starter-target")},
+	} {
+		code, result, _, _ := execute(t, context.Background(), args...)
+		if code != contract.ExitPrerequisite || result.Outcome != "BLOCKED" || firstErrorCode(result) != "HOST_UNSUPPORTED" {
+			t.Fatalf("malformed named command bypassed the host gate: args=%q code=%d result=%+v", args, code, result)
+		}
+	}
+
+	for _, args := range [][]string{{"Build"}, {"release-check"}, {"rel"}, {"unknown"}, {"--version", "extra"}} {
+		code, result, _, _ := execute(t, context.Background(), args...)
+		if code != contract.ExitUsage || result.Outcome != "FAIL" || firstErrorCode(result) != "INVALID_ARGUMENT" {
+			t.Fatalf("unknown command was broadened into the host gate: args=%q code=%d result=%+v", args, code, result)
+		}
+	}
+
+	var stdout bytes.Buffer
+	if code := Run(context.Background(), []string{"--version"}, &stdout, ioDiscard{}); code != contract.ExitOK || stdout.String() != "codex-game-atelier "+Version+"\n" {
+		t.Fatalf("identifier-only version path changed on an unsupported host: code=%d output=%q", code, stdout.String())
+	}
+	if after := snapshotTree(t, root); !equalSnapshots(before, after) {
+		t.Fatal("unsupported-host routing checks changed the filesystem")
+	}
+}
+
 func TestV1SupportedHostMatrix(t *testing.T) {
 	tests := []struct {
 		name      string

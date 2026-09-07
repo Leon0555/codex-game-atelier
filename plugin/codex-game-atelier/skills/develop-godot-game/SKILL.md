@@ -27,7 +27,7 @@ Before `build`, `export`, or `release check`, load `references/gate-policy.json`
 - Linux x64 artifact inventory only: `../../bin/linux-amd64/codex-game-atelier`
 - Windows x64 artifact inventory only: `..\\..\\bin\\windows-amd64\\codex-game-atelier.exe`
 
-In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other runtime host as unsupported, including Linux x64 and Windows x64: their files are cross-build artifact evidence and must not be executed or presented as native support until separate validation is recorded. The public macOS CLI and its sibling `codex-game-atelier-runner` must both exist as regular files in the selected directory before `validate --headless` or `test`.
+In Phase 1, execute this Skill only on macOS Apple Silicon. Reject every other runtime host as unsupported, including Linux x64 and Windows x64: their files are cross-build artifact evidence and must not be selected or presented as native support until separate validation is recorded. The CLI independently applies this gate to every named command before parsing project arguments or performing reads/writes; only the identifier-only `--version` flag remains non-operational. The public macOS CLI and its sibling `codex-game-atelier-runner` must both exist as regular files in the selected directory before `validate --headless` or `test`.
 
 ## Operations
 
