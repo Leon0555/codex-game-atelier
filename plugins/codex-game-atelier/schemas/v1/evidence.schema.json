@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence.schema.json",
+  "title": "Codex Game Atelier evidence record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "run_id", "kind", "outcome", "created_at", "producer", "path", "media_type", "sha256", "byte_size"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "run_id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "kind": {
+      "type": "string",
+      "enum": ["command-log", "environment-snapshot", "validation-report", "test-report", "build-artifact", "export-artifact", "recovery-record", "provenance-record", "other"]
+    },
+    "outcome": { "$ref": "common.schema.json#/$defs/assessmentOutcome" },
+    "created_at": { "$ref": "common.schema.json#/$defs/timestamp" },
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "version"],
+      "properties": {
+        "component": { "$ref": "common.schema.json#/$defs/identifier" },
+        "version": { "type": "string", "minLength": 1, "maxLength": 128 }
+      }
+    },
+    "path": { "$ref": "common.schema.json#/$defs/relativePath" },
+    "media_type": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "byte_size": { "type": "integer", "minimum": 0, "maximum": 1099511627776 },
+    "metadata": {
+      "type": "object",
+      "maxProperties": 64,
+      "propertyNames": { "type": "string", "minLength": 1, "maxLength": 128 },
+      "additionalProperties": true
+    }
+  }
+}

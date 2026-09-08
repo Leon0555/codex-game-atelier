@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "task.schema.json",
+  "title": "Codex Game Atelier task state",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "revision", "title", "scope", "acceptance", "owner", "allowed_paths", "status", "dependencies", "evidence", "updated_at"],
+  "properties": {
+    "schema_version": { "$ref": "common.schema.json#/$defs/schemaVersion" },
+    "id": { "$ref": "common.schema.json#/$defs/identifier" },
+    "revision": { "type": "integer", "minimum": 0, "maximum": 9223372036854775807 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "scope": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "acceptance": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1, "maxLength": 1024 }
+    },
+    "owner": { "$ref": "common.schema.json#/$defs/owner" },
+    "allowed_paths": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/relativePath" }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["planned", "ready", "active", "review", "verified", "done", "blocked", "failed", "cancelled"]
+    },
+    "dependencies": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "common.schema.json#/$defs/identifier" }
+    },
+    "evidence": {
+      "type": "array",
+      "items": { "$ref": "common.schema.json#/$defs/evidenceRef" }
+    },
+    "handoff_ref": { "$ref": "common.schema.json#/$defs/relativePath" },
+    "blocker": { "$ref": "error.schema.json" },
+    "updated_at": { "$ref": "common.schema.json#/$defs/timestamp" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "const": "blocked" } }, "required": ["status"] },
+      "then": { "required": ["blocker"] }
+    }
+  ]
+}
