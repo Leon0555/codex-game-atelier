@@ -602,6 +602,8 @@ def read_plugin_manifest(bundle: Path) -> dict[str, object]:
         or any(not isinstance(prompt, str) or not prompt.strip() for prompt in default_prompts)
     ):
         raise BundleError("plugin manifest defaultPrompt must contain one to three non-empty strings")
+    if any(len(prompt) > 128 for prompt in default_prompts):
+        raise BundleError("plugin manifest defaultPrompt entries must be at most 128 characters")
     return manifest
 
 

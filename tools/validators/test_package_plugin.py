@@ -199,6 +199,11 @@ class PluginBundleTests(unittest.TestCase):
             with self.assertRaisesRegex(package_plugin.BundleError, "one to three"):
                 package_plugin.read_plugin_manifest(bundle)
 
+            manifest["interface"]["defaultPrompt"] = ["x" * 129]
+            path.write_text(json.dumps(manifest), encoding="utf-8")
+            with self.assertRaisesRegex(package_plugin.BundleError, "at most 128"):
+                package_plugin.read_plugin_manifest(bundle)
+
     def test_tamper_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
