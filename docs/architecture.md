@@ -1,7 +1,7 @@
 # Codex Game Atelier：v1.0 架构基线
 
 状态：Phase 0 已审阅通过；Phase 1 按 ADR 与 Godot 实证继续细化
-日期：2026-08-24；更新：2026-08-25
+日期：2026-08-24；更新：2026-09-08
 
 ## 1. 架构原则
 
@@ -161,13 +161,13 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - 当前可选 hook 只在显式 `hooks install` 时写默认 `.git/hooks/pre-commit` 与 ownership manifest；不合并/覆盖现有 hook，不支持自定义 `core.hooksPath` 或 linked-worktree `.git` 文件。它只运行当前 CLI 的 manual release check，不能替代 build/export 内建门禁或 CI。
 - CLI 只允许已定义的 Godot/文件操作，不提供通用 `eval` 或任意 shell 代理接口。
 
-## 10. 待 Phase 1 验证
+## 10. 当前约束与后续增强
 
 - `0.3.0-rc.2` 单 Plugin 候选已从 clean `280de4a...` 生成并逐字节重现；远程 Git-backed 安装、包内 CLI/runner、特殊路径 Starter、Headless validate、固定 GDScript 6/6、新任务 Skill 发现与用户级生命周期均产生了 PASS 证据。但最终只读审计发现 rc.2 的 host 判定仍把 Windows/Linux 当成 supported，因此该候选被拒绝，不得晋升。
-- Go CLI 的当前 Plugin archive 约 13 MiB；Apple Silicon 已通过本地与远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围；按用户决定，全新用户或第二台机器复验延后到最终 RC。
+- Go CLI 的当前 Plugin archive 约 13 MiB；Apple Silicon 已通过本地与隔离远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围。ADR 0027 接受固定源码、全新隔离 `CODEX_HOME`、远程固定 ref、候选逐文件绑定、全新项目和真实用户级恢复组成的单机干净环境证据；不声明多用户或多机器验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
-- strict `release check` 的本地 `1.2.0` contract 使用单 Plugin archive；外部 release evidence 已从 rc.2 历史 `1.0.0` 升级为 `1.1.0`，在 candidate/version/revision/hash 之外强制记录 Codex CLI 与观察时间、新任务 Skill 身份、固定生命周期操作/退出码、前后用户状态摘要和 branch-protection 快照。输入仍不联网或自证发布者身份；rc.3 已重新生成该闭包并取得 strict 12/12 PASS，但随后因公共命令统一宿主门禁缺失被独立终审拒绝。修复后的新候选仍需保护版本 ref、独立终审和用户批准。
+- strict `release check` 的本地 `1.2.0` contract 使用单 Plugin archive；外部 release evidence 已从 rc.2 历史 `1.0.0` 升级为 `1.1.0`，在 candidate/version/revision/hash 之外强制记录 Codex CLI 与观察时间、新任务 Skill 身份、固定生命周期操作/退出码、前后用户状态摘要和 branch-protection 快照。输入仍不联网或自证发布者身份；rc.6 已取得 strict 12/12 PASS 和独立最终只读审计 PASS。仍需受保护版本 ref 与用户正式发布批准。
 
 ## 11. 当前依据
 

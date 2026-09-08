@@ -44,3 +44,7 @@
 - 受保护版本 ref/tag、正式 Plugin 发布和 GitHub Release。
 
 Windows/Linux 原生验证、npm、standalone archive、DMG/PKG、Apple 签名与公证不属于 v1 门禁，不以 `NOT RUN` 阻断本次审计。
+
+## 5. 审计后的 V1-09 决策
+
+本报告完成时 V1-09 仍要求独立 macOS UID 或第二台 Apple Silicon 机器，因此第 4 节保留当时的 `NOT RUN` 结论。用户随后通过 ADR 0027 选择单机隔离式最终复验，并由新的独立只读政策审计确认现有 rc.6 证据满足该定义。当前 V1-09 状态以 [`m3-rc6-single-machine-policy-audit-2026-09-08.md`](m3-rc6-single-machine-policy-audit-2026-09-08.md) 和验收基线为准；本报告的原始事实与计数未被回写。

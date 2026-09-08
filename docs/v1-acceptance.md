@@ -1,6 +1,6 @@
 # Codex Game Atelier v1.0 验收基线
 
-状态：三里程碑发布门禁；rc.6 strict 与独立最终只读审计 PASS，等待最终候选外部复验和用户发布批准
+状态：三里程碑发布门禁；rc.6 strict、单机隔离式 V1-09 与独立最终只读审计 PASS，等待用户发布批准
 更新日期：2026-09-08
 
 ## 1. 结果词汇
@@ -29,7 +29,7 @@
 | V1-06 模式、Hooks 与 CI | M2 | `manual` 保留安全门禁，`standard` 自动执行生产子集，`strict` 聚合发布条件；hook 只能显式安装并可卸载；无 hook/`--no-verify` 不能绕过 CLI/CI | 三模式正反例、hook 路径 diff、CI workflow 审计 | PASS（策略、显式 hook、全局宿主门禁、`main` strict required check 与 admin enforcement 已实证；rc.6 required CI 和 Marketplace CI success，绑定 evidence 后 strict 12/12 PASS） |
 | V1-07 Plugin-only 零构建入口 | M3 | 普通用户无需 clone/npm build 或第二份下载；已有 Godot 时最多三个主要步骤；一个远程 Codex Plugin 可安装/发现，并内含可调用 CLI/runner 与可初始化 Starter Template | 干净用户路径及步骤计数、单 Plugin 包内容、实际调用 | PASS（rc.6 从 GitHub sparse Marketplace ref 安装，cache 与候选一致；三条 prompt 均满足客户端限制；登录态临时任务发现准确的 rc.6 Skill 路径；内含 CLI/runner 与 Starter，远程安装包 E2E PASS） |
 | V1-08 生命周期与供应链 | M3 | 安装、升级、卸载、回滚保留用户项目和凭据；无默认遥测/隐藏网络或外部写入；Plugin 包含 checksum、来源和许可；远程安装无需系统设置放行、`xattr` 或隐藏策略修改 | 生命周期前后 diff、网络/文件审计、Plugin manifest/provenance、干净 Apple Silicon 远程安装 trace | PASS（rc.6 远程取得无 Gatekeeper/系统设置/xattr 绕过；真实用户级 rc.5→rc.6、损坏候选拒绝且 rc.6 active、回滚、重装、卸载及配置逐字节恢复均 PASS；许可、来源、checksum 与 clean provenance 由 candidate/strict 复验） |
-| V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求签名/公证 | 干净环境完整 evidence 与 Apple Silicon target smoke | NOT RUN（当前用户/机器上的 fresh packaged Starter 特殊路径全流程、Debug/Release 技术产物、双架构静态验证与 Apple Silicon target smoke 已 PASS；全新用户或机器环境仍未完成） |
+| V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成隔离式干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求第二 UID/机器、签名或公证 | clean revision 与可复现构建、全新隔离 `CODEX_HOME` 远程安装及候选绑定、全新特殊路径项目、真实用户级恢复、Apple Silicon target smoke | PASS（ADR 0027 接受单机隔离式证据；rc.6 已完成远程固定 ref 安装、cache/bundle 一致性、Starter→Headless→GDScript 6/6→Debug/Release→arm64 smoke、真实生命周期与状态精确恢复；不声明多用户或多机器验证；政策审计最终 0/0/0/0） |
 | V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（rc.6 bundle 已包含所有公开命令共用的 `darwin/arm64` pre-dispatch gate；模拟 Linux/Windows 逐命令无写入回归、artifact-only 交叉构建、Universal 2 静态验证和 Apple Silicon 原生远程 E2E 均通过；没有把 Windows/Linux 或 Intel 宣称为原生支持） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | PASS（rc.6 远程安装包在特殊路径完成 Starter→initialize→Headless→GDScript 6/6→Debug build→Release export→arm64 smoke；strict 12/12 PASS；独立终审初始唯一 Low 修复后复核关闭，最终 0/0/0/0） |
 | V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN |

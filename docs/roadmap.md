@@ -1,6 +1,6 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0、M1、M2 已完成；M3 rc.6 当前机器候选门禁与独立终审已通过，等待最终候选外部复验和用户发布批准
+状态：Phase 0、M1、M2 已完成；M3 rc.6 候选门禁与独立终审已通过，等待受保护版本 ref 和用户发布批准
 更新日期：2026-09-08
 
 ## 1. 已完成基线
@@ -64,9 +64,9 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 1. **已完成**：rc.3、rc.4 与 rc.5 的宿主门禁、prompt 数量和 prompt 长度问题均已修复；rc.6 三条 `defaultPrompt` 长度为 92、60、111，并由打包门禁覆盖数量、非空和单条 128 字符上限。
 2. **已完成至 rc.6**：以 rc.5 为 previous version，完成成功升级、失败升级保持 rc.6 active、回滚、候选重装、新任务 Skill 发现、卸载和精确用户状态恢复。
-3. **当前机器已完成至 rc.6**：远程 rc.6 无 quarantine、无系统设置或 Gatekeeper 绕过，安装缓存与候选逐文件一致；特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新 macOS 用户或第二台 Apple Silicon 机器复验按用户决定延后到最终候选。
+3. **已完成至 rc.6**：隔离远程 rc.6 无 quarantine、无系统设置或 Gatekeeper 绕过，安装缓存与候选逐文件一致；特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。用户通过 ADR 0027 接受该单机隔离式干净环境，不再要求独立 macOS UID 或第二台实体机器。
 4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.6 strict 12/12 PASS。详见 [`m3-rc6-bound-release-evidence-2026-09-08.md`](validation/m3-rc6-bound-release-evidence-2026-09-08.md)。
-5. **已完成**：rc.6 独立架构、安全、许可与发布最终只读审计 PASS；初审唯一 Low 为项目简报状态滞后，主 owner 修复后由原审计者复核关闭，最终 0 Blocker、0 High、0 Medium、0 Low。rc.3 终审 High、rc.4/rc.5 manifest warning 均保留为历史失败，不被 rc.6 结果覆盖。详见 [`m3-rc6-final-readonly-audit-2026-09-08.md`](validation/m3-rc6-final-readonly-audit-2026-09-08.md)。
+5. **已完成**：rc.6 独立架构、安全、许可与发布最终只读审计 PASS；初审唯一 Low 为项目简报状态滞后，主 owner 修复后由原审计者复核关闭，最终 0 Blocker、0 High、0 Medium、0 Low。ADR 0027 的 V1-09 政策变更也经独立只读审计，两个同步 Low 修复后最终 0/0/0/0。rc.3 终审 High、rc.4/rc.5 manifest warning 均保留为历史失败，不被 rc.6 结果覆盖。详见 [`m3-rc6-final-readonly-audit-2026-09-08.md`](validation/m3-rc6-final-readonly-audit-2026-09-08.md) 与 [`m3-rc6-single-machine-policy-audit-2026-09-08.md`](validation/m3-rc6-single-machine-policy-audit-2026-09-08.md)。
 6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
