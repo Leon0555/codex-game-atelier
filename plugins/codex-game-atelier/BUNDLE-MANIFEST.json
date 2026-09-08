@@ -5,7 +5,7 @@
     "cgo_enabled": false,
     "go_version": "go1.27.0",
     "source_clean": true,
-    "source_revision": "d93dee457a43594d80ea1c7db24e8d0c13fae729",
+    "source_revision": "72f7e9201f9027b30479aacb63c20c280cd6438b",
     "trimpath": true
   },
   "expanded_byte_size": 32325547,
@@ -39,37 +39,37 @@
       "byte_size": 9777906,
       "mode": 493,
       "path": "bin/darwin-universal2/codex-game-atelier",
-      "sha256": "0c89701e23f90f7aef5cb550479c56cc8abbfa9f3c69379f0d1d28e679a3c308"
+      "sha256": "8c68ffcaf223c06eb3fa4a22c300f9062e2f11ce894a47bf883207f0d6a654d7"
     },
     {
       "byte_size": 6549106,
       "mode": 493,
       "path": "bin/darwin-universal2/codex-game-atelier-runner",
-      "sha256": "84113f00220c3b9fe0e170ce4272d1145736465e5610e5b0f04743962541fa9f"
+      "sha256": "f59cb21f493cfe51e3e30e3cbdbdc0e70aa470176909c2160a767405293771b5"
     },
     {
       "byte_size": 4972704,
       "mode": 493,
       "path": "bin/linux-amd64/codex-game-atelier",
-      "sha256": "36d33ebbbdf19ff64e8b353da8bba5e990833b6094a5d904a6ee2994a518b388"
+      "sha256": "2029300a1b6cf89cd82cb85ff74d64495acd11eae5dd4926e5dfe07575614869"
     },
     {
       "byte_size": 3322016,
       "mode": 493,
       "path": "bin/linux-amd64/codex-game-atelier-runner",
-      "sha256": "f4b4ebb77236f41c1a90c9a5dc0c0a6042a743165be8b9837eeafdc998166472"
+      "sha256": "82c23dae8d08835b0d0257c59917a4cc56d3aaee13de6941aef041eeefe24af9"
     },
     {
       "byte_size": 2543616,
       "mode": 493,
       "path": "bin/windows-amd64/codex-game-atelier-runner.exe",
-      "sha256": "2b9111859e9b9fe10fc55eb7ae5c27a6410fd70e8e0b96fb32379acd4023a846"
+      "sha256": "94f8d9c496580e545ef6d5801fbcfd56a10b9a76773a3ec8acc081a78c1697e6"
     },
     {
       "byte_size": 5113344,
       "mode": 493,
       "path": "bin/windows-amd64/codex-game-atelier.exe",
-      "sha256": "f182db877b9234075cf4da737d55040015ac910fb52c4c1eb6074c2d24bae863"
+      "sha256": "9fb8d1f66a4e938466729d70d78f89043e3d64b5c0875eb4f2039d4aaaa9225b"
     },
     {
       "byte_size": 2074,
