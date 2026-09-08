@@ -1,6 +1,6 @@
 {
   "name": "codex-game-atelier",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Codex-native workflows backed by a deterministic CLI for supported Godot projects.",
   "author": {
     "name": "Leon0555",

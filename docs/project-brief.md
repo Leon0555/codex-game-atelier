@@ -71,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0、M1/M2 已完成，当前处于 M3 最终候选收尾。rc.2 与 rc.3 的运行时支持范围/外部记录/全局宿主门禁问题，以及 rc.4 与 rc.5 的 Plugin prompt 数量/长度问题，均已在后续候选中修复并保留历史失败证据。`0.3.0-rc.6` 已完成可复现构建、隔离远程 Plugin 取得、真实用户级生命周期、Skill 发现、特殊路径 Godot E2E、required CI、branch protection 与 strict 12/12；独立最终只读审计为 PASS。用户通过 ADR 0027 接受当前 Apple Silicon Mac 的隔离式证据，不再要求独立 macOS UID 或第二台实体机器；受保护版本 ref 与用户正式发布批准仍未执行。
+Phase 0、M1/M2 已完成，当前处于 M3 `1.0.0` 最终候选周期。rc.2 与 rc.3 的运行时支持范围/外部记录/全局宿主门禁问题，以及 rc.4 与 rc.5 的 Plugin prompt 数量/长度问题，均已在后续候选中修复并保留历史失败证据。`0.3.0-rc.6` 已完成可复现构建、隔离远程 Plugin 取得、真实用户级生命周期、Skill 发现、特殊路径 Godot E2E、required CI、branch protection 与 strict 12/12；独立最终只读审计为 PASS。用户通过 ADR 0027 接受当前 Apple Silicon Mac 的隔离式证据，并通过 ADR 0028 将首个对外稳定版本冻结为 `1.0.0`。当前要从新的干净 revision 重建、重验 `1.0.0`；不将 rc.6 产物直接改名。受保护版本 ref/tag 与用户正式外部发布批准仍未执行。
