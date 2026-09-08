@@ -4,6 +4,7 @@
 - 日期：2026-09-01
 - 决策范围：v1 宿主、导出目标、CI 与发布门禁
 - 取代：此前三宿主 Tier 1 与 Windows/Linux v1 desktop export 建议
+- 后续细化：ADR 0027 接受同一 Apple Silicon Mac 上的隔离式最终复验，不改变宿主支持范围
 
 ## 背景
 

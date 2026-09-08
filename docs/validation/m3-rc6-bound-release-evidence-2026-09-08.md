@@ -105,6 +105,6 @@ GitHub Actions run [`34175920843`](https://github.com/Leon0555/codex-game-atelie
 ## 8. 尚未完成
 
 - 独立架构、安全、许可与发布最终只读审计已 PASS，最终计数为 0 Blocker、0 High、0 Medium、0 Low；详见 [`m3-rc6-final-readonly-audit-2026-09-08.md`](m3-rc6-final-readonly-audit-2026-09-08.md)。
-- 独立 macOS 用户或第二台 Apple Silicon 机器复验按用户决定延后到最终候选，当前仍为 `NOT RUN`。
+- 后续决策：用户通过 ADR 0027 接受本记录中的单机隔离式干净环境组合证据，不再要求独立 macOS UID 或第二台实体机器；V1-09 因此改为 PASS。该变更不声明多用户/多机器验证，独立只读政策审计最终 0 Blocker、0 High、0 Medium、0 Low；详见 [`m3-rc6-single-machine-policy-audit-2026-09-08.md`](m3-rc6-single-machine-policy-audit-2026-09-08.md)。
 - 受保护版本 ref/tag、正式 Plugin 发布、GitHub Release 和用户发布批准均未执行。
 - Windows/Linux 原生验证、npm、standalone archive、DMG/PKG、Apple 签名/公证不属于 v1 发布路径。
