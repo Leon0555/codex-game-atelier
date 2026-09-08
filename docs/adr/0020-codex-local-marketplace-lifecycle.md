@@ -59,3 +59,5 @@
 2026-09-01，用户另行批准了远程与真实用户级完整演练。Git-backed `0.3.0-rc.0` 安装、`0.3.0-rc.1` 升级、不可解析 manifest 失败候选不替换 active `rc.1`、回滚 `rc.0`、卸载和完整恢复全部 PASS。演练后非测试 Plugin/Marketplace ID 清单与起点一致，`config.toml` SHA-256 也字节级一致；不需用快照覆盖用户文件。详见 [`m3-remote-plugin-lifecycle-2026-09-01.md`](../validation/m3-remote-plugin-lifecycle-2026-09-01.md)。
 
 当前 Codex CLI 对“同一 Marketplace 改 Git ref”的实测契约是 `marketplace remove → marketplace add(new ref) → plugin add`，而不是就地修改 ref。另外，客户端会把缺少 `version` 的 manifest 宽松安装为 `local`；Atelier 不得因此删除自己的 bundle/version/provenance 完整性验证。
+
+2026-09-08 的 `1.0.0` 候选前置检查发现，原维护工具只能生成 `codex-game-atelier-local` 身份，rc.6 的远程测试 ref 依赖两处人工替换。这个手工窗口不进入最终路径：打包工具新增显式 `--remote` 模式，只生成固定 `codex-game-atelier` / `Codex Game Atelier` 远程身份；默认仍是本地演练身份。构建和验证必须使用同一模式，不允许将本地身份当作远程发布输入。
