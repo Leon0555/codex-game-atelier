@@ -183,6 +183,7 @@ class PluginBundleTests(unittest.TestCase):
 
     def test_plugin_manifest_default_prompts_match_the_codex_limit(self) -> None:
         source = package_plugin.read_plugin_manifest(package_plugin.PLUGIN_SOURCE)
+        self.assertEqual(source["version"], "1.0.0")
         prompts = source["interface"]["defaultPrompt"]
         self.assertEqual(len(prompts), 3)
         self.assertTrue(all(isinstance(prompt, str) and prompt.strip() for prompt in prompts))
@@ -368,7 +369,7 @@ class PluginBundleTests(unittest.TestCase):
             shutil_target.chmod(0o755)
             with mock.patch.object(package_plugin.platform, "system", return_value="Darwin"), mock.patch.object(package_plugin.platform, "machine", return_value="arm64"):
                 with self.assertRaises(package_plugin.BundleError):
-                    package_plugin.verify_native_entry(bundle, "0.2.0")
+                    package_plugin.verify_native_entry(bundle, "1.0.0")
 
     def test_archive_is_reproducible_and_tamper_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
@@ -436,7 +437,7 @@ class PluginBundleTests(unittest.TestCase):
                 native.assert_not_called()
             with mock.patch.object(package_plugin, "verify_native_entry") as native, mock.patch.object(package_plugin.sys, "argv", ["package_plugin.py", "smoke-trusted-bundle", str(bundle)]):
                 self.assertEqual(package_plugin.main(), 0)
-                native.assert_called_once_with(bundle.resolve(), "0.2.0")
+                native.assert_called_once_with(bundle.resolve(), "1.0.0")
 
     def test_unknown_content_and_role_mode_are_rejected(self) -> None:
         for mutation in ("unknown", "mode"):

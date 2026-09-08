@@ -159,7 +159,7 @@ class StarterTemplatePackageTests(unittest.TestCase):
             with self.assertRaises(packager.TemplatePackageError):
                 packager.create_archive(package, archive)
 
-    def test_persisted_manifest_matches_the_current_template_sources(self) -> None:
+    def test_persisted_manifest_matches_current_sources_except_promoted_version(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             package = self.build(Path(temporary))
             generated = json.loads((package / packager.PACKAGE_MANIFEST).read_text(encoding="utf-8"))
@@ -176,7 +176,15 @@ class StarterTemplatePackageTests(unittest.TestCase):
                 if entry["path"] in packager.SOURCE_FILES
             }
             self.assertEqual(generated_sources, persisted_sources)
-            self.assertEqual(generated["pairing"], persisted["pairing"])
+            self.assertEqual(persisted["template"]["version"], "0.2.0")
+            self.assertEqual(persisted["pairing"]["verified_plugin_version"], "0.2.0")
+            self.assertEqual(generated["template"]["version"], "1.0.0")
+            self.assertEqual(generated["pairing"]["verified_plugin_version"], "1.0.0")
+            self.assertEqual(
+                {key: value for key, value in generated["pairing"].items() if key != "verified_plugin_version"},
+                {key: value for key, value in persisted["pairing"].items() if key != "verified_plugin_version"},
+            )
+            self.assertEqual(generated["template"]["name"], persisted["template"]["name"])
             self.assertEqual(artifact["decision"], {
                 "adr": "0014-starter-template-boundary",
                 "option": "A",
@@ -184,7 +192,7 @@ class StarterTemplatePackageTests(unittest.TestCase):
             })
             self.assertEqual(artifact["pairing"], {
                 "plugin": "codex-game-atelier",
-                "verified_plugin_version": generated["pairing"]["verified_plugin_version"],
+                "verified_plugin_version": "0.2.0",
                 "embedded": False,
             })
             self.assertEqual(artifact["manifest"]["sha256"], hashlib.sha256(
