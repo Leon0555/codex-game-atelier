@@ -71,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0、M1/M2 已完成，当前处于 M3 发布验证修复轮。`0.3.0-rc.2` 因运行时 host 支持范围和外部记录缺陷被拒绝；`0.3.0-rc.3` 完成远程 Plugin、Godot E2E、生命周期、required CI、branch protection 与 strict 12/12 后，独立终审又发现公共命令没有统一宿主门禁，Windows/Linux artifact 仍可进入 `release check` 或 Git hook 写入路径，因此 rc.3 同样拒绝。下一源码变更以全局 pre-dispatch gate 和逐命令无写入回归修复该 High，合并后必须重建 rc.4。独立 macOS 用户或第二台 Apple Silicon 机器复验、受保护版本 ref 与用户正式发布批准尚未执行。
+Phase 0、M1/M2 已完成，当前处于 M3 最终候选收尾。rc.2 与 rc.3 的运行时支持范围/外部记录/全局宿主门禁问题，以及 rc.4 与 rc.5 的 Plugin prompt 数量/长度问题，均已在后续候选中修复并保留历史失败证据。`0.3.0-rc.6` 已完成可复现构建、远程 Plugin 取得、真实用户级生命周期、Skill 发现、特殊路径 Godot E2E、required CI、branch protection 与 strict 12/12；独立最终只读审计为 PASS，初始唯一 Low 是本段状态滞后。独立 macOS 用户或第二台 Apple Silicon 机器复验、受保护版本 ref 与用户正式发布批准仍未执行。

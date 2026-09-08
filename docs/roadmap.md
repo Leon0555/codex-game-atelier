@@ -1,6 +1,6 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0、M1、M2 已完成；M3 rc.5 已拒绝，rc.6 修复中
+状态：Phase 0、M1、M2 已完成；M3 rc.6 当前机器候选门禁与独立终审已通过，等待最终候选外部复验和用户发布批准
 更新日期：2026-09-08
 
 ## 1. 已完成基线
@@ -48,9 +48,9 @@ M1 不做：Windows/Linux 原生运行、签名/公证、商店发布、完整�
 1. **已完成**：用逻辑能力 Profile 表达能力等级、会话继承和用户覆盖；分发内容不含具体模型 ID。Plugin 内目录、公共 Schema、九项解析矩阵、打包门禁与 task/handoff 可选引用均已实证。
 2. **已完成**：用一次真实有界子代理工作流验证单一 owner、只读审计和 task/handoff/evidence 恢复；实现代理和两轮审计代理均从文件恢复、无对话继承，首轮 FAIL 后由实现 owner 修复、全新只读审计 PASS；未实现常驻服务。
 3. **已完成（M3 门禁按阶段阻断）**：随 Plugin 分发的前置条件表冻结 `manual < standard < strict`；build/export 默认读取项目 mode，也可单次覆盖。standard 自动执行 Headless/test 且失败即停，strict 完成 standard 子集后对尚未实现的 M3 run-store/source/distribution 项明确阻断；没有把 `NOT_RUN` 冒充通过。
-4. **已完成**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，strict 在内存中验证本地 candidate 与绑定 external evidence，不执行包内代码、不回显绝对路径。rc.3 已使用 1.1.0 external evidence 重新取得 12/12 PASS、`release_ready=true`。
+4. **已完成**：实现只读 `release check`；manual/standard 不冒充严格发布就绪，strict 在内存中验证本地 candidate 与绑定 external evidence，不执行包内代码、不回显绝对路径。rc.6 已使用 1.1.0 external evidence 取得 12/12 PASS、`release_ready=true`。
 5. **已完成（本地）**：提供一个显式安装、可列出、可卸载的轻量 `pre-commit` hook；不自动安装、不覆盖既有 hook，CLI 与 CI 门禁不依赖它。
-6. **已完成托管与强制门禁**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。rc.3 候选源码 run `33965337817` 全部 PASS；GitHub `main` 已将 `verify-macos-arm64` 配为 strict required check，并对管理员生效，禁止 force push 和 branch deletion。
+6. **已完成托管与强制门禁**：单一 `macos-15` Apple Silicon CI job 以固定只读权限与 action SHA 完成 Go 1.24 最低版本、Python/Schema、Plugin/Template 静态完整性、artifact-only 交叉构建和本机 CLI pair smoke。rc.6 候选源码 run `34175920843` 与 Marketplace run `34176162334` 全部 PASS；GitHub `main` 已将 `verify-macos-arm64` 配为 strict required check，并对管理员生效，禁止 force push 和 branch deletion。
 
 M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完整任务数据库、派生索引、任意代码执行、自动安装 hooks。
 
@@ -62,11 +62,11 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 
 实施顺序：
 
-1. **rc.3、rc.4 与 rc.5 均已拒绝，rc.6 修复中**：rc.3 的统一宿主门禁 High 已修复；rc.4 新会话实测发现 4 条 `defaultPrompt` 超过客户端最多 3 条的上限。rc.5 把总数减为 3 并增加打包门禁，但远程安装后的隔离会话继续发现合并提示长 137 字符，超过单条最多 128 字符的客户端限制。rc.5 因 warning 主动拒绝；当前把该提示缩至 111 字符，并把 128 字符上限加入打包门禁，须经 PR/CI 后重建 rc.6。
-2. **已完成**：以 rc.2 为 previous version，完成 rc.3 远程安装、成功升级、失败升级保持 active、回滚、候选重装、新任务 Skill 发现、卸载和精确用户状态恢复。
-3. **当前机器已完成至 rc.4**：远程 rc.4 无 quarantine、无系统设置或 Gatekeeper 绕过，安装缓存与候选逐文件一致；特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新 macOS 用户或第二台 Apple Silicon 机器复验按用户决定延后到最终 RC。
-4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.3 strict 12/12 PASS。详见 [`m3-rc3-bound-release-evidence-2026-09-07.md`](validation/m3-rc3-bound-release-evidence-2026-09-07.md)。
-5. **rc.3 已完成但失败；rc.4/rc.5 在终审前拒绝**：rc.3 独立终审的 High 已修复，Skill 路径元数据也已正确刷新；rc.4 与 rc.5 分别暴露 prompt 数量和长度 warning，因此没有浪费 formal final audit。详见 [`m3-rc4-plugin-manifest-remediation-2026-09-08.md`](validation/m3-rc4-plugin-manifest-remediation-2026-09-08.md) 与 [`m3-rc5-plugin-manifest-remediation-2026-09-08.md`](validation/m3-rc5-plugin-manifest-remediation-2026-09-08.md)。
+1. **已完成**：rc.3、rc.4 与 rc.5 的宿主门禁、prompt 数量和 prompt 长度问题均已修复；rc.6 三条 `defaultPrompt` 长度为 92、60、111，并由打包门禁覆盖数量、非空和单条 128 字符上限。
+2. **已完成至 rc.6**：以 rc.5 为 previous version，完成成功升级、失败升级保持 rc.6 active、回滚、候选重装、新任务 Skill 发现、卸载和精确用户状态恢复。
+3. **当前机器已完成至 rc.6**：远程 rc.6 无 quarantine、无系统设置或 Gatekeeper 绕过，安装缓存与候选逐文件一致；特殊路径 Starter、Headless、GDScript、Debug build 和 Release export 均 PASS。全新 macOS 用户或第二台 Apple Silicon 机器复验按用户决定延后到最终候选。
+4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.6 strict 12/12 PASS。详见 [`m3-rc6-bound-release-evidence-2026-09-08.md`](validation/m3-rc6-bound-release-evidence-2026-09-08.md)。
+5. **已完成**：rc.6 独立架构、安全、许可与发布最终只读审计 PASS；初审唯一 Low 为项目简报状态滞后，主 owner 修复后由原审计者复核关闭，最终 0 Blocker、0 High、0 Medium、0 Low。rc.3 终审 High、rc.4/rc.5 manifest warning 均保留为历史失败，不被 rc.6 结果覆盖。详见 [`m3-rc6-final-readonly-audit-2026-09-08.md`](validation/m3-rc6-final-readonly-audit-2026-09-08.md)。
 6. 其余门禁通过后再请求用户批准正式 Plugin 发布；v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
