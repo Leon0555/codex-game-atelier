@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build and verify a local Codex marketplace around a trusted Plugin bundle."""
+"""Build and verify a Codex marketplace around a trusted Plugin bundle."""
 
 from __future__ import annotations
 
@@ -17,7 +17,8 @@ sys.path.insert(0, str(ROOT))
 from tools import package_plugin  # noqa: E402
 
 
-MARKETPLACE_NAME = "codex-game-atelier-local"
+LOCAL_MARKETPLACE_NAME = "codex-game-atelier-local"
+REMOTE_MARKETPLACE_NAME = "codex-game-atelier"
 PLUGIN_NAME = "codex-game-atelier"
 MARKETPLACE_FILE = Path(".agents/plugins/marketplace.json")
 PLUGIN_PATH = Path("plugins/codex-game-atelier")
@@ -27,10 +28,12 @@ class MarketplaceError(RuntimeError):
     pass
 
 
-def marketplace_document() -> dict[str, object]:
+def marketplace_document(*, remote: bool = False) -> dict[str, object]:
+    name = REMOTE_MARKETPLACE_NAME if remote else LOCAL_MARKETPLACE_NAME
+    display_name = "Codex Game Atelier" if remote else "Codex Game Atelier Local"
     return {
-        "name": MARKETPLACE_NAME,
-        "interface": {"displayName": "Codex Game Atelier Local"},
+        "name": name,
+        "interface": {"displayName": display_name},
         "plugins": [
             {
                 "name": PLUGIN_NAME,
@@ -61,7 +64,7 @@ def copy_verified_bundle(source: Path, destination: Path) -> None:
         target.chmod(stat.S_IMODE(details.st_mode))
 
 
-def verify_marketplace(marketplace: Path) -> None:
+def verify_marketplace(marketplace: Path, *, remote: bool = False) -> None:
     try:
         root_details = marketplace.lstat()
     except OSError as error:
@@ -91,7 +94,7 @@ def verify_marketplace(marketplace: Path) -> None:
         document = json.loads(index.read_text(encoding="utf-8"))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
         raise MarketplaceError("marketplace index is not valid UTF-8 JSON") from error
-    if document != marketplace_document():
+    if document != marketplace_document(remote=remote):
         raise MarketplaceError("marketplace index differs from the fixed contract")
     try:
         package_plugin.verify_bundle(marketplace / PLUGIN_PATH)
@@ -99,7 +102,7 @@ def verify_marketplace(marketplace: Path) -> None:
         raise MarketplaceError("marketplace Plugin bundle verification failed") from error
 
 
-def build_marketplace(output: Path, plugin_bundle: Path) -> None:
+def build_marketplace(output: Path, plugin_bundle: Path, *, remote: bool = False) -> None:
     output = output.resolve(strict=False)
     if output.exists() or output.is_symlink():
         raise MarketplaceError("output path already exists; choose a new directory")
@@ -114,11 +117,11 @@ def build_marketplace(output: Path, plugin_bundle: Path) -> None:
         index = output / MARKETPLACE_FILE
         index.parent.mkdir(parents=True, mode=0o755)
         (output / "plugins").mkdir(mode=0o755)
-        encoded = (json.dumps(marketplace_document(), ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
+        encoded = (json.dumps(marketplace_document(remote=remote), ensure_ascii=False, indent=2, sort_keys=True) + "\n").encode("utf-8")
         index.write_bytes(encoded)
         index.chmod(0o644)
         copy_verified_bundle(plugin_bundle, output / PLUGIN_PATH)
-        verify_marketplace(output)
+        verify_marketplace(output, remote=remote)
     except Exception:
         shutil.rmtree(output)
         raise
@@ -127,11 +130,13 @@ def build_marketplace(output: Path, plugin_bundle: Path) -> None:
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
-    build = commands.add_parser("build", help="build a local marketplace around a verified bundle")
+    build = commands.add_parser("build", help="build a marketplace around a verified bundle")
     build.add_argument("--output", type=Path, required=True)
     build.add_argument("--plugin-bundle", type=Path, required=True)
-    verify = commands.add_parser("verify", help="verify a generated local marketplace")
+    build.add_argument("--remote", action="store_true", help="use the fixed remote release identity")
+    verify = commands.add_parser("verify", help="verify a generated marketplace")
     verify.add_argument("marketplace", type=Path)
+    verify.add_argument("--remote", action="store_true", help="require the fixed remote release identity")
     return root
 
 
@@ -139,13 +144,13 @@ def main() -> int:
     args = parser().parse_args()
     try:
         if args.command == "build":
-            build_marketplace(args.output, args.plugin_bundle)
-            print(f"Local marketplace built and verified: {args.output}")
+            build_marketplace(args.output, args.plugin_bundle, remote=args.remote)
+            print(f"Marketplace built and verified: {args.output}")
         else:
-            verify_marketplace(args.marketplace)
-            print(f"Local marketplace verification passed: {args.marketplace}")
+            verify_marketplace(args.marketplace, remote=args.remote)
+            print(f"Marketplace verification passed: {args.marketplace}")
     except MarketplaceError as error:
-        print(f"local marketplace error: {error}", file=sys.stderr)
+        print(f"marketplace error: {error}", file=sys.stderr)
         return 1
     return 0
 

@@ -38,9 +38,45 @@ class LocalMarketplacePackageTests(unittest.TestCase):
             with mock.patch.object(package_local_marketplace.package_plugin, "verify_bundle"):
                 package_local_marketplace.build_marketplace(output, bundle)
             document = json.loads((output / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
-            self.assertEqual(document, package_local_marketplace.marketplace_document())
+            self.assertEqual(document, package_local_marketplace.marketplace_document(remote=False))
             copied = output / "plugins/codex-game-atelier/.codex-plugin/plugin.json"
             self.assertEqual(copied.read_bytes(), (bundle / ".codex-plugin/plugin.json").read_bytes())
+
+    def test_remote_mode_uses_release_identity_and_is_not_local_compatible(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="atelier-marketplace-") as temporary:
+            root = Path(temporary)
+            bundle = self.bundle(root)
+            output = root / "marketplace"
+            with mock.patch.object(package_local_marketplace.package_plugin, "verify_bundle"):
+                package_local_marketplace.build_marketplace(output, bundle, remote=True)
+                document = json.loads((output / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
+                self.assertEqual(document, package_local_marketplace.marketplace_document(remote=True))
+                self.assertEqual(document["name"], "codex-game-atelier")
+                self.assertEqual(document["interface"]["displayName"], "Codex Game Atelier")
+                with self.assertRaises(package_local_marketplace.MarketplaceError):
+                    package_local_marketplace.verify_marketplace(output, remote=False)
+
+                local_output = root / "local-marketplace"
+                package_local_marketplace.build_marketplace(local_output, bundle, remote=False)
+                with self.assertRaises(package_local_marketplace.MarketplaceError):
+                    package_local_marketplace.verify_marketplace(local_output, remote=True)
+
+    def test_cli_routes_remote_mode_to_build_and_verify(self) -> None:
+        with mock.patch.object(
+            package_local_marketplace.sys,
+            "argv",
+            ["package_local_marketplace.py", "build", "--output", "out", "--plugin-bundle", "bundle", "--remote"],
+        ), mock.patch.object(package_local_marketplace, "build_marketplace") as build:
+            self.assertEqual(package_local_marketplace.main(), 0)
+            build.assert_called_once_with(Path("out"), Path("bundle"), remote=True)
+
+        with mock.patch.object(
+            package_local_marketplace.sys,
+            "argv",
+            ["package_local_marketplace.py", "verify", "marketplace", "--remote"],
+        ), mock.patch.object(package_local_marketplace, "verify_marketplace") as verify:
+            self.assertEqual(package_local_marketplace.main(), 0)
+            verify.assert_called_once_with(Path("marketplace"), remote=True)
 
     def test_existing_output_is_never_overwritten(self) -> None:
         with tempfile.TemporaryDirectory(prefix="atelier-marketplace-") as temporary:
