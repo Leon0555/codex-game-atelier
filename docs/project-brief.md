@@ -1,7 +1,7 @@
 # Codex Game Atelier：项目简报
 
-状态：Phase 0、M1/M2 已完成；Phase 1 M3 `1.0.0` 候选与独立终审通过，正式发布待授权
-日期：2026-08-24；更新：2026-09-08
+状态：Phase 0 与 Phase 1 M1-M3 已完成；`1.0.0` 已正式发布
+日期：2026-08-24；更新：2026-09-09
 
 ## 1. 一句话目标
 
@@ -71,4 +71,4 @@ v1.0 包含：
 
 ## 7. 当前阶段
 
-Phase 0、M1/M2 已完成，当前处于 M3 `1.0.0` 最终候选周期。rc.2 与 rc.3 的运行时支持范围/外部记录/全局宿主门禁问题，以及 rc.4 与 rc.5 的 Plugin prompt 数量/长度问题，均已在后续候选中修复并保留历史失败证据。`0.3.0-rc.6` 已完成独立最终只读审计，并作为稳定版真实升级与回滚基线。用户通过 ADR 0027 接受当前 Apple Silicon Mac 的隔离式证据，并通过 ADR 0028 将首个对外稳定版本冻结为 `1.0.0`。`1.0.0` 已从新的干净 revision 完成可复现构建、隔离远程 Plugin 取得、真实用户级生命周期与精确恢复、Skill 发现、特殊路径 Godot E2E、required CI、branch protection、strict 12/12 与独立只读终审 0/0/0/0；没有把 rc.6 产物直接改名。GitHub Private Vulnerability Reporting 已启用并复核；受保护版本 ref/tag 与用户正式外部发布批准仍未执行。
+Phase 0 与 Phase 1 M1-M3 已完成。rc.2 至 rc.5 的失败均在后续候选中修复并保留历史证据；`0.3.0-rc.6` 作为稳定版真实升级与回滚基线。`1.0.0` 从干净 revision 重新构建，完成可复现构建、隔离远程 Plugin、真实用户级生命周期与精确恢复、Skill 发现、特殊路径 Godot E2E、required CI、strict 12/12 与独立只读终审 0/0/0/0。用户已明确批准正式外部发布；GitHub Private Vulnerability Reporting 已启用并复核，正式 Plugin 通过受保护的 `v1.0.0` tag 发布。
