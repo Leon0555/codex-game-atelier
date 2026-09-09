@@ -1,6 +1,6 @@
 # Codex Game Atelier v1.0 验收基线
 
-状态：V1-01 至 V1-11 PASS；PVR 已启用并复核，V1-12 正式发布批准待完成
+状态：V1-01 至 V1-12 全部 PASS；`1.0.0` 已正式发布
 更新日期：2026-09-09
 
 ## 1. 结果词汇
@@ -32,7 +32,7 @@
 | V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成隔离式干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求第二 UID/机器、签名或公证 | clean revision 与可复现构建、全新隔离 `CODEX_HOME` 远程安装及候选绑定、全新特殊路径项目、真实用户级恢复、Apple Silicon target smoke | PASS（ADR 0027 接受单机隔离式证据；`1.0.0` 已完成远程固定 ref 安装、cache/bundle 一致性、Starter→Headless→GDScript 6/6→Debug/Release→arm64 smoke、真实生命周期与状态精确恢复；不声明多用户或多机器验证） |
 | V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（`1.0.0` bundle 包含所有公开命令共用的 `darwin/arm64` pre-dispatch gate；模拟 Linux/Windows 逐命令无写入回归、artifact-only 交叉构建、Universal 2 静态验证和 Apple Silicon 原生远程 E2E 均通过；没有把 Windows/Linux 或 Intel 宣称为原生支持） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | PASS（`1.0.0` 远程安装包 E2E 与 strict 12/12 PASS；独立终审重验 A/B、verifier、strict、范围、安全、许可和供应链，最终 0 Blocker、0 High、0 Medium、0 Low） |
-| V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN（PVR 已启用并复核；仍需用户明确正式发布批准） |
+| V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | PASS（PVR 已启用并复核；用户于 2026-09-09 明确授权正式发布） |
 
 ## 3. 原验收覆盖映射
 
@@ -58,7 +58,7 @@
 ## 4. 当前延期项的验收语义
 
 - Windows x64 与 Linux x64 原生 runner 不属于 v1 门禁；交叉构建只保留 artifact/provenance 证据，不能被描述为 preview 或原生支持。未来升级支持必须新立 ADR 并完成原生矩阵。
-- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。当前公开源码仓库和远程 Marketplace 测试分支已经用户授权建立；正式 Plugin 发布、Release、受保护 tag 或其他账号写入仍需要单独用户批准。
+- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。公开源码仓库、远程 Marketplace 测试分支、正式 Plugin 发布和受保护 `v1.0.0` tag 均已获得用户明确授权并完成；GitHub Release 与其他尚未批准的账号写入仍不执行。
 - `1.0.0` 远程 Plugin 取得、真实用户级 rc.6→1.0.0 升级/失败保护/回滚/卸载、Skill 发现、Godot E2E、strict 聚合与独立稳定候选终审均已 PASS；详见 [`m3-v1.0.0-final-candidate-2026-09-09.md`](validation/m3-v1.0.0-final-candidate-2026-09-09.md) 与 [`m3-v1.0.0-final-readonly-audit-2026-09-09.md`](validation/m3-v1.0.0-final-readonly-audit-2026-09-09.md)。rc.6 历史基线见 [`m3-rc6-bound-release-evidence-2026-09-08.md`](validation/m3-rc6-bound-release-evidence-2026-09-08.md)。
 - Apple 公证不属于默认发布门禁。真实远程 Plugin 在干净 Apple Silicon 环境无阻断安装才是门禁；若失败，必须另立决策后才能把公证作为备选解决方案。
 - `clean` 实际删除、通用 schema migration、派生索引、raw 日志平台和第三方测试框架不是当前发布门禁，除非实现过程中出现没有它们就无法满足上述门禁的真实用例。

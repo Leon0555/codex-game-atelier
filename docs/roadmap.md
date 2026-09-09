@@ -1,7 +1,7 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0、M1、M2 已完成；M3 `1.0.0` 候选与独立终审通过，正式发布待授权
-更新日期：2026-09-08
+状态：Phase 0、M1、M2、M3 已完成；`1.0.0` 已正式发布
+更新日期：2026-09-09
 
 ## 1. 已完成基线
 
@@ -70,7 +70,7 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 6. **已完成（技术门禁）**：根据 ADR 0028 从新的干净 revision 重建 `1.0.0`，完成双份可复现候选、rc.6 升级/失败保护/回滚/卸载、远程 Plugin、Godot E2E、required CI 与 strict 12/12 PASS。版本字符串进入二进制、Plugin、Starter、manifest 和 hash，没有把 rc.6 产物直接改名。用户级 Codex 配置与 Atelier cache 已精确恢复到演练前状态。
 7. **已完成**：文档一致的 `1.0.0` 最终候选通过独立架构、安全、许可与发布只读终审，最终为 0 Blocker、0 High、0 Medium、0 Low。
 8. **已完成**：经用户明确授权启用 GitHub Private Vulnerability Reporting，并通过 GitHub API 复核 `enabled=true`。
-9. **待用户授权**：创建受保护 `v1.0.0` tag 并执行正式 Plugin 外部发布。v1 不执行 npm publish 或独立二进制 GitHub Release。
+9. **已完成**：用户明确批准 V1-12；正式 Plugin 通过受保护 `v1.0.0` tag 发布。v1 未执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
 

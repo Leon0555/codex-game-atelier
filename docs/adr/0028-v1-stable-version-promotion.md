@@ -51,3 +51,7 @@
 - 新 release evidence 绑定 `1.0.0`、新 revision、新 archive/manifest hash、Marketplace ref、required CI 和完整生命周期。
 - strict 12/12 PASS，独立最终只读审计为 0 Blocker/High，且所有 Low/Medium 已关闭或明确阻断。
 - V1-12 在正式外部发布获得用户单独批准前保持 `NOT RUN`。
+
+## 实施状态
+
+2026-09-09，最终候选全部门禁与 PVR 前置项通过后，用户明确批准 V1-12。正式 Plugin 通过不可变的 `v1.0.0` tag 发布；没有创建 GitHub Release、发布 npm、签名或公证。
