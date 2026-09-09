@@ -1,9 +1,9 @@
 # Godot v1.0 Support Matrix 实施基线
 
-状态：**v1 实施范围已冻结；生产级声明仍需完整发布门禁实证**
+状态：**v1.0 生产矩阵已冻结并完成发布门禁实证**
 调研基准：2026-08-24
 当前官方稳定版：Godot `4.7.2-stable`（2026-08-18）
-范围更新：2026-09-08（ADR 0025、ADR 0027）
+范围更新：2026-09-10（ADR 0025、ADR 0027、`v1.0.0` 发布验证）
 
 已确认：
 
@@ -75,7 +75,7 @@ Godot 官方模板的 macOS 应用是 Universal 2（x86_64 + arm64），但本�
 - 使用与 Godot 版本匹配的 export templates。
 - 检查输出扩展名、文件布局、权限、hash 和非空产物。
 - 在目标平台执行最小启动/退出 smoke。
-- 不执行 Godot 游戏产物的 Developer ID 签名、公证或商店上传；技术导出 evidence 必须明确标记 `unsigned`、`not_notarized` 和 `public_distribution_ready: false`（最终字段名待 schema 冻结）。
+- 不执行 Godot 游戏产物的 Developer ID 签名、公证或商店上传；技术导出 evidence 按已发布 schema 明确标记 `unsigned`、`not_notarized` 和 `public_distribution_ready: false`。
 - CJK/emoji 内容按 Godot ICU Data 要求另做 fixture 验证。
 - `export_presets.cfg` 可进入项目；可能含密码/密钥的 `.godot/export_credentials.cfg` 必须保持机密并排除出普通证据与版本控制。
 

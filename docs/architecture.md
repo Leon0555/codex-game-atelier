@@ -1,7 +1,7 @@
 # Codex Game Atelier：v1.0 架构基线
 
-状态：Phase 0 已审阅通过；Phase 1 按 ADR 与 Godot 实证继续细化
-日期：2026-08-24；更新：2026-09-08
+状态：v1.0 架构已随 `1.0.0` 发布；当前进入冻结范围内的维护阶段
+日期：2026-08-24；更新：2026-09-10
 
 ## 1. 架构原则
 
@@ -36,9 +36,9 @@ Plugin 是 v1.0 唯一用户安装入口。Starter Template 是 Plugin 内含的
 
 ## 3. Codex 原生编排
 
-### 3.1 候选核心 Agents
+### 3.1 v1.0 核心责任角色
 
-保持小而稳定，初步只定义四个责任角色：
+保持小而稳定，只定义四个责任角色：
 
 - **Lead**：范围、任务拆分、所有权、交接与用户决策。
 - **Godot Engineer**：Godot 项目、场景、资源、脚本、构建和导出。
@@ -49,16 +49,13 @@ Plugin 是 v1.0 唯一用户安装入口。Starter Template 是 Plugin 内含的
 
 Plugin 同时分发有界原生协作参考及 `common`、`error`、`task`、`handoff`、`evidence` 五份最小 Schema 闭包。新代理必须先验证文件化状态再恢复工作；写 ownership 对目录重叠、符号链接、同对象、大小写和 Unicode 别名采取保守阻断。该机制是 Codex 原生协作约定，不是后台调度器或 CLI 模型路由。
 
-### 3.2 候选顶层 Skills
+### 3.2 v1.0 顶层 Skill
 
-Phase 1 应通过实际任务验证最小集合，当前候选为：
+v1.0 只发布一个聚焦的顶层 Skill：
 
-- `gameatelier-init`：检查前置条件并初始化项目状态。
-- `gameatelier-develop`：路由实现、测试和恢复协作。
-- `gameatelier-verify`：验证、构建、导出与证据审阅。
-- `gameatelier-release`：严格门禁与发布准备；不自行执行外部发布。
+- `develop-godot-game`：从一个入口路由 embedded Starter 创建与初始化、项目检查、授权后的验证/测试、构建/导出、证据读取和只读发布检查；需要时才使用有界原生协作。
 
-Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不用大段提示复制实现规则。根据 OpenAI 官方文档，Skill 是聚焦工作流的作者格式，Plugin 是安装和分发一个或多个 Skills 的主要包装方式；Phase 1 仍需验证最终 Plugin 结构。
+Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不用多个 Skill 重复命令语义。Plugin 的最终结构、Skill 发现和干净远程安装均已在 `1.0.0` 发布门禁中验证。
 
 ### 3.3 子代理生命周期
 
@@ -75,7 +72,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 公共命令中，`detect`、`doctor`、`status` 已按 ADR 0006 建立首个生产实现，`initialize` 已按 ADR 0007 建立第二个生产实现，`validate` 与 run/evidence 事务已按 ADR 0008、0009 覆盖静态 baseline 和明示授权的 Godot Headless 薄切片，`clean --list` 已按 ADR 0010 建立只读 scanner，`test` 已按 ADR 0011 建立固定 GDScript 协议，`logs` 已按 ADR 0012 建立 committed run 的零自由文本结构投影，`starter create` 已按 ADR 0024 建立 embedded Starter 的安全创建路径：
 
 - `detect`：发现 Godot 与项目，纯读。
-- `doctor`：当前生产切片纯读验证宿主、项目文件、GDScript、Godot 可执行文件和自报的精确标准版标识；版本文本不替代安装来源、散列或签名验证。导出模板与更完整的平台/配置诊断属于后续实现。
+- `doctor`：纯读验证宿主、项目文件、GDScript、Godot 可执行文件和自报的精确标准版标识；显式 `--export` 还验证匹配版本的有界宿主导出模板。版本文本不替代安装来源、散列或签名验证。
 - `initialize`：用户显式请求时，为已有 Godot/GDScript 项目原子创建最小状态；合法重跑零修改，不写 evidence、不修复或覆盖异常状态。
 - `starter create`：从当前 Plugin 根内严格验证 embedded Starter 的固定 inventory、hash、mode 与版本配对，向一个不存在的新目录私有 staging 后 no-replace 原子发布；不复制 package-only 文件，不初始化状态/Git，不运行 Godot，不联网，不写用户级 Codex 状态。
 - `validate`：默认验证 pinned 项目状态、regular `project.godot`、GDScript 边界和持久化能力；显式 `--headless` 在用户授权标准 `user://` 后，固定配套 runner 与 Godot 的已打开源文件身份，并为 version/scene 分别创建阶段独立的 runner/engine 快照，通过继承的 pinned 项目目录 fd 执行固定验证，再把外部写入符号化记录在 intent。项目公开路径身份在引擎前后核对，路径被并发替换时 observation 作废；Godot/runner 公共路径被替换不会重定向已固定执行。任何瞬时文件清理失败都会阻止 `result.json` 发布。完整场景/资源图和日志保留仍属后续切片。
@@ -91,7 +88,7 @@ Skill 负责可复用工作流与触发边界；确定性逻辑下沉 CLI，不�
 
 ## 5. 文件化状态和证据
 
-候选项目内结构（根目录 `.gameatelier/` 已确定，其余写入与恢复语义尚未冻结）：
+v1.0 项目内结构（已实现写入路径遵循下列边界；任务/交接仍是 Codex 原生协作约定，不是 CLI 任务数据库）：
 
 ```text
 .gameatelier/
@@ -149,8 +146,8 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 - Plugin 闭包：Go 公开 CLI、sibling 私有 runner、Starter Template、Skills、Schemas、LICENSE、NOTICE 与第三方声明绑定到同一精确版本。`darwin-universal2`、`linux-amd64`、`windows-amd64` 仍是包内固定目录；当前只有 Apple Silicon 完成原生执行验证。
 - macOS 发布门禁：不预先实施 Developer ID 签名或 Apple 公证。门禁改为从真实远程 Plugin 来源在干净 Apple Silicon 环境安装，且无需系统设置放行、`xattr` 清除或其他隐藏策略修改即可调用包内 CLI/runner 并完成真实 Godot 工作流。若该实测失败，公证仅作为需新 ADR 和用户批准的备选方案。
 - v1.0 不发布独立 CLI archive、GitHub Release 二进制 ZIP、npm CLI 包、Homebrew、DMG 或 PKG。历史 `0.2.0` 双 archive 本地候选只保留为证据，不代表未来分发形状。
-- Rust/Go 语言对照已完成并由用户于 2026-08-25 冻结 Go。Phase 1 只把 macOS Apple Silicon 作为当前原生验证宿主；Windows/Linux 仅保留交叉构建 artifact 形状，原生 runner 已按用户决定延期，不能因此扩大支持声明。
-- 首个受验证远程来源是 `https://github.com/Leon0555/codex-game-atelier` 的固定 Marketplace ref；当前 hosted CI 已 PASS。正式 Plugin 发布仍必须使用受保护 tag、最小权限和可审计 provenance，不用长期发布 Token。
+- Rust/Go 语言对照已完成并由用户于 2026-08-25 冻结 Go。v1.0 只把 macOS Apple Silicon 作为原生验证宿主；Windows/Linux 仅保留交叉构建 artifact 形状，原生 runner 已按用户决定延期，不能因此扩大支持声明。
+- 正式 Plugin 已从 `https://github.com/Leon0555/codex-game-atelier` 的受保护 `v1.0.0` tag 发布；hosted CI、远程安装和可审计 provenance 均已 PASS，发布过程未使用长期发布 Token。
 
 ## 9. 安全与隐私
 
@@ -163,7 +160,8 @@ Godot 适配器是 v1.0 唯一生产适配器，负责：
 
 ## 10. 当前约束与后续增强
 
-- `0.3.0-rc.2` 单 Plugin 候选已从 clean `280de4a...` 生成并逐字节重现；远程 Git-backed 安装、包内 CLI/runner、特殊路径 Starter、Headless validate、固定 GDScript 6/6、新任务 Skill 发现与用户级生命周期均产生了 PASS 证据。但最终只读审计发现 rc.2 的 host 判定仍把 Windows/Linux 当成 supported，因此该候选被拒绝，不得晋升。
+- `1.0.0` 已完成可复现构建、远程 Plugin 安装、完整生命周期、特殊路径 Godot E2E、strict 12/12、required CI 与独立最终只读审计，并通过受保护 tag 发布。
+- 历史拒绝候选 `0.3.0-rc.2` 曾通过部分远程和 Godot 验证，但最终只读审计发现 host 判定把 Windows/Linux 当成 supported，因此未获晋升；该失败证据继续保留。
 - Go CLI 的当前 Plugin archive 约 13 MiB；Apple Silicon 已通过本地与隔离远程 Plugin 入口。Linux/Windows 原生运行仍属 v1 不支持范围。ADR 0027 接受固定源码、全新隔离 `CODEX_HOME`、远程固定 ref、候选逐文件绑定、全新项目和真实用户级恢复组成的单机干净环境证据；不声明多用户或多机器验证。
 - `.gameatelier` 中应提交与不应提交的精确边界。
 - 第三方 Godot 测试框架适配、测试过滤、异步 fixture 和固定零依赖协议的升级路径。
