@@ -2,9 +2,12 @@
 
 ## Supported versions
 
-Codex Game Atelier has not published v1.0. No preview build, release candidate, branch, archive, or local distribution candidate currently receives a production security-support promise.
+| Version | Supported |
+| --- | --- |
+| Latest `1.0.x` release | Yes |
+| Preview builds, release candidates, branches, and local candidates | No |
 
-After v1.0 is published, this file will identify the supported release line and security-update policy. Historical release candidates will not be supported unless explicitly listed here.
+Only the latest published patch in the `1.0.x` line receives security fixes. A superseded patch stops receiving fixes when its replacement is published.
 
 ## Reporting a vulnerability
 

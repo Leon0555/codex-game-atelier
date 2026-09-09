@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "binding_resolution": {
+    "order": [
+      "task-explicit-override",
+      "user-or-team-mapping",
+      "session-inheritance",
+      "host-default"
+    ],
+    "no_binding_outcome": "BLOCKED",
+    "unknown_profile_outcome": "BLOCKED",
+    "user_mapping_distribution": "excluded",
+    "cli_selects_models": false
+  },
+  "profiles": [
+    {
+      "id": "lead",
+      "capability_tier": "high",
+      "work_class": "coordination",
+      "access_policy": "task-authorized",
+      "independence": "primary",
+      "unmet_capability_policy": "inherit-and-disclose",
+      "purpose": "Own scope, sequencing, synthesis, evidence quality, and user communication."
+    },
+    {
+      "id": "implementation",
+      "capability_tier": "high",
+      "work_class": "implementation",
+      "access_policy": "task-authorized",
+      "independence": "supporting",
+      "unmet_capability_policy": "inherit-and-disclose",
+      "purpose": "Implement bounded product or Godot changes under one explicit owner."
+    },
+    {
+      "id": "fast-read",
+      "capability_tier": "standard",
+      "work_class": "read-only",
+      "access_policy": "read-only",
+      "independence": "supporting",
+      "unmet_capability_policy": "inherit-and-disclose",
+      "purpose": "Inspect code, documentation, logs, and test output without modifying the reviewed scope."
+    },
+    {
+      "id": "independent-audit",
+      "capability_tier": "critical",
+      "work_class": "read-only",
+      "access_policy": "read-only",
+      "independence": "independent",
+      "unmet_capability_policy": "block",
+      "purpose": "Perform a separate high-risk review without editing or self-approving the reviewed change."
+    }
+  ]
+}
