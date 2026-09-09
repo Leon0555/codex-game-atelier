@@ -1,7 +1,7 @@
 # Codex Game Atelier v1.0 验收基线
 
-状态：V1-01 至 V1-11 PASS；PVR 与 V1-12 正式发布批准待完成
-更新日期：2026-09-08
+状态：V1-01 至 V1-11 PASS；PVR 已启用并复核，V1-12 正式发布批准待完成
+更新日期：2026-09-09
 
 ## 1. 结果词汇
 
@@ -32,7 +32,7 @@
 | V1-09 macOS 生产证据 | M1/M3 | Godot 4.7.2 standard/GDScript 在 macOS Apple Silicon 完成隔离式干净环境全流程；生成 Universal 2 但只声明 Apple Silicon 技术验证；不要求第二 UID/机器、签名或公证 | clean revision 与可复现构建、全新隔离 `CODEX_HOME` 远程安装及候选绑定、全新特殊路径项目、真实用户级恢复、Apple Silicon target smoke | PASS（ADR 0027 接受单机隔离式证据；`1.0.0` 已完成远程固定 ref 安装、cache/bundle 一致性、Starter→Headless→GDScript 6/6→Debug/Release→arm64 smoke、真实生命周期与状态精确恢复；不声明多用户或多机器验证） |
 | V1-10 Support Matrix 诚实性 | M3 | 版本、宿主和导出目标已冻结公开；每个生产级元组都有原生证据；交叉构建不冒充原生支持 | 版本化矩阵、宿主/目标 evidence 索引 | PASS（`1.0.0` bundle 包含所有公开命令共用的 `darwin/arm64` pre-dispatch gate；模拟 Linux/Windows 逐命令无写入回归、artifact-only 交叉构建、Universal 2 静态验证和 Apple Silicon 原生远程 E2E 均通过；没有把 Windows/Linux 或 Intel 宣称为原生支持） |
 | V1-11 参考游戏与独立审计 | M3 | 参考游戏从初始化到导出完成 E2E；文档与行为一致；无 Blocker/High 安全问题或未解释严重性能回退；架构/安全/许可/发布只读终审通过 | 完整 trace、审计报告、问题清单与基线 | PASS（`1.0.0` 远程安装包 E2E 与 strict 12/12 PASS；独立终审重验 A/B、verifier、strict、范围、安全、许可和供应链，最终 0 Blocker、0 High、0 Medium、0 Low） |
-| V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN（发布授权前还需启用并复核 GitHub Private Vulnerability Reporting） |
+| V1-12 用户发布批准 | M3 | 用户在其余门禁全部通过后明确批准正式外部发布 | 可审计批准记录 | NOT RUN（PVR 已启用并复核；仍需用户明确正式发布批准） |
 
 ## 3. 原验收覆盖映射
 

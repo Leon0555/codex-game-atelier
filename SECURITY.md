@@ -10,7 +10,7 @@ After v1.0 is published, this file will identify the supported release line and 
 
 Do not include exploit details, credentials, personal data, or other sensitive material in a public GitHub issue or discussion.
 
-GitHub Private Vulnerability Reporting is the planned private reporting channel for this repository, but it is not enabled yet. Enabling and verifying that remote repository setting is a pre-release action that requires maintainer approval. Until that channel is active, use public issues only for non-sensitive security hardening or documentation problems; do not publish a sensitive vulnerability report publicly.
+GitHub Private Vulnerability Reporting is enabled and verified for this repository. Use it for sensitive vulnerability reports. Use public issues only for non-sensitive security hardening or documentation problems; do not publish a sensitive vulnerability report publicly.
 
 The project does not request passwords, tokens, Apple signing credentials, Godot account access, or unpublished game assets as part of a vulnerability report.
 
