@@ -58,7 +58,7 @@
 ## 4. 当前延期项的验收语义
 
 - Windows x64 与 Linux x64 原生 runner 不属于 v1 门禁；交叉构建只保留 artifact/provenance 证据，不能被描述为 preview 或原生支持。未来升级支持必须新立 ADR 并完成原生矩阵。
-- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。当前公开源码仓库和远程 Marketplace 测试分支已经用户授权建立；正式 Plugin 发布、Release、受保护 tag 或其他账号写入仍需要单独用户批准。
+- v1 不发布 npm CLI 包、独立 CLI archive、DMG 或 PKG。公开源码仓库、远程 Marketplace 测试分支、正式 Plugin 发布和受保护 `v1.0.0` tag 均已获得用户明确授权并完成；GitHub Release 与其他尚未批准的账号写入仍不执行。
 - `1.0.0` 远程 Plugin 取得、真实用户级 rc.6→1.0.0 升级/失败保护/回滚/卸载、Skill 发现、Godot E2E、strict 聚合与独立稳定候选终审均已 PASS；详见 [`m3-v1.0.0-final-candidate-2026-09-09.md`](validation/m3-v1.0.0-final-candidate-2026-09-09.md) 与 [`m3-v1.0.0-final-readonly-audit-2026-09-09.md`](validation/m3-v1.0.0-final-readonly-audit-2026-09-09.md)。rc.6 历史基线见 [`m3-rc6-bound-release-evidence-2026-09-08.md`](validation/m3-rc6-bound-release-evidence-2026-09-08.md)。
 - Apple 公证不属于默认发布门禁。真实远程 Plugin 在干净 Apple Silicon 环境无阻断安装才是门禁；若失败，必须另立决策后才能把公证作为备选解决方案。
 - `clean` 实际删除、通用 schema migration、派生索引、raw 日志平台和第三方测试框架不是当前发布门禁，除非实现过程中出现没有它们就无法满足上述门禁的真实用例。
