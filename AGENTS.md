@@ -66,17 +66,18 @@ v1.0 只承诺 Support Matrix 中明确列出的 Godot 版本、宿主平台和�
 
 ## 5. 当前阶段门禁
 
-Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导出与 M2 可协作/可管控已完成本地实现，当前进入 M3：可安装、可发布验证。允许：
+Phase 0 与 Phase 1 的 M1–M3 均已完成；`v1.0.0` 已于 2026-09-09 通过受保护 tag 正式发布。当前处于冻结 v1.0 支持范围内的发布后维护阶段。允许：
 
 - 冻结已批准的 Support Matrix、ADR 与公共 JSON 契约。
 - 维护已完成的逻辑能力 Profile、有界 Codex 原生协作、`manual`/`standard`/`strict` 门禁、只读 `release check`、显式可选 Git hook 与最小 CI。
-- 冻结单 Plugin 内含 Starter/CLI/runner 的分发闭包，并在明确权限边界内验证取得、安装、发现、初始化、升级、卸载、回滚、许可、来源与无隐藏外部写入。
-- 维护已完成的 Go CLI、Plugin、Skill、Starter Template、Godot 垂直切片和 M1 evidence；实验产物不得直接视为生产实现。
+- 维护单 Plugin 内含 Starter/CLI/runner 的已发布分发闭包，并在明确权限边界内验证取得、安装、发现、初始化、升级、卸载、回滚、许可、来源与无隐藏外部写入。
+- 修复冻结范围内的已确认缺陷、安全问题和文档偏差，维护 Go CLI、Plugin、Skill、Starter Template、Godot 垂直切片与发布证据；实验产物不得直接视为生产实现。
+- 只有在缺陷、上游 patch 或安全证据需要时制作 patch 候选；不得把日常维护自动解释为 Phase 2、平台扩张或新增分发渠道。
 - 只读环境检查、官方资料研究和非破坏性验证。
 
 用户已于 2026-08-25 冻结 v1 CLI 的生产实现语言为 Go。Rust 只保留为 Phase 1 对照证据，不得进入生产 CLI、Plugin、Starter Template 或发布包；任何改用其他语言的提议都必须形成新 ADR 并重新获得用户批准。
 
-仍不得未经确认安装 Godot、Rust、Go、SDK 或大型依赖。不得把 M2 扩张为通用编排/策略平台或常驻服务。创建远程仓库、push、发布、登录账号、修改系统配置和破坏性清理仍需单独明确授权。
+仍不得未经确认安装 Godot、Rust、Go、SDK 或大型依赖。不得把 M2 扩张为通用编排/策略平台或常驻服务。新的远程写入、tag/Release/Marketplace 发布、登录账号、修改系统配置和破坏性清理仍需当前任务明确授权。
 
 ## 6. 工作模式
 
@@ -131,7 +132,7 @@ Phase 0 已于 2026-08-24 通过用户审阅。Phase 1 的 M1 可运行/可导�
 
 ## 11. 公共适配器契约
 
-v1.0 以 Godot 实证以下候选公共适配器能力：`detect`、`doctor`、`initialize`、`validate`、`test`、`build`、`export`、`logs`、`clean`、`status`。其中 `build` 是面向用户的 Debug/Release 默认目标工作流，可复用 `export` 并引用同一底层 evidence；`export` 是指定 Godot preset/目标的直接操作，不得伪造两条独立引擎流水线。框架级 `release check/prepare` 编排完整矩阵，但不属于引擎适配器契约，也不自行执行外部发布。
+v1.0 已通过 Godot 实证并发布以下公共适配器能力：`detect`、`doctor`、`initialize`、`validate`、`test`、`build`、`export`、`logs`、`clean`、`status`。其中 `build` 是面向用户的 Debug/Release 默认目标工作流，可复用 `export` 并引用同一底层 evidence；`export` 是指定 Godot preset/目标的直接操作，不得伪造两条独立引擎流水线。框架级 `release check/prepare` 编排完整矩阵，但不属于引擎适配器契约，也不自行执行外部发布。
 
 每项能力必须定义输入、结构化输出、稳定错误/退出码、超时、取消、可重试性、幂等性、副作用和证据。引擎专属能力可以扩展，但不得改变公共能力的一致语义；未被 Godot 使用的抽象不得仅为未来引擎加入。
 
@@ -200,7 +201,7 @@ Unity 不属于 v1.0 门禁。任何未完成项必须明确记录，不得通�
 - 修改前确认真实文件和责任范围，不格式化或重写无关文件。
 - 生成文件与手写文件可区分，临时实验和构建产物不得误提交。
 - 依赖和锁文件变化必须说明原因并完成相应验证。
-- Phase 0 已通过审阅；是否创建首个 commit 由当前任务另行决定，不把进入 Phase 1 自动视为提交授权。任何远程、push 或发布均另行授权。
+- 首个 commit 与 `v1.0.0` 发布均已完成；后续修改仍须保持提交范围清晰。新的远程写入、push 或发布必须由当前任务授权。
 
 ## 17. 沟通与交付
 
