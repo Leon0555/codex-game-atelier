@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.1.0",
+  "release": {
+    "name": "codex-game-atelier",
+    "version": "1.0.0",
+    "repository": "Leon0555/codex-game-atelier",
+    "source_revision": "72f7e9201f9027b30479aacb63c20c280cd6438b",
+    "distribution_manifest_sha256": "f34a482d029b2e1063bf4a4ac44dcbfe5194d17a5363f8e0a651fb3aaa4bfa63",
+    "plugin_archive_sha256": "ddc4f295e24758261420199699f8f4fd550a22ae7387a31b053e278009d7cc1d"
+  },
+  "remote_plugin_install": {
+    "outcome": "PASS",
+    "source": "github",
+    "repository": "Leon0555/codex-game-atelier",
+    "marketplace_ref": "marketplace/v1.0.0",
+    "marketplace_revision": "22602857f76a9fdf91c26a6ac6e57fa5a129992c",
+    "installed_version": "1.0.0",
+    "candidate_archive_sha256": "ddc4f295e24758261420199699f8f4fd550a22ae7387a31b053e278009d7cc1d",
+    "observed_at": "2026-09-08T10:43:30Z",
+    "codex_cli_version": "codex-cli 0.153.4",
+    "host": "macos",
+    "architecture": "arm64",
+    "godot_version": "4.7.2-stable",
+    "gatekeeper_intervention": false,
+    "system_settings_override": false,
+    "quarantine_removed": false,
+    "cli_smoke": "PASS",
+    "private_runner_refusal": "PASS",
+    "starter_create": "PASS",
+    "new_task_skill_discovery": "PASS",
+    "skill_discovery": {
+      "outcome": "PASS",
+      "thread_id": "01a0809c-4a8c-7223-804a-e3e643ac2af6",
+      "skill_name": "codex-game-atelier:develop-godot-game",
+      "entry_relative_path": "skills/develop-godot-game/SKILL.md"
+    },
+    "headless_validation": "PASS",
+    "gdscript_tests": "PASS",
+    "gdscript_test_count": 6,
+    "lifecycle": {
+      "outcome": "PASS",
+      "upgrade_from_version": "0.3.0-rc.6",
+      "upgrade_to_version": "1.0.0",
+      "successful_upgrade": "PASS",
+      "failed_upgrade_rejected": "PASS",
+      "failed_upgrade_active_version": "1.0.0",
+      "rollback_to_version": "0.3.0-rc.6",
+      "rollback": "PASS",
+      "uninstall_and_state_restore": "PASS",
+      "operations": [
+        {
+          "id": "baseline-install",
+          "outcome": "PASS",
+          "exit_code": 0,
+          "active_version": "0.3.0-rc.6"
+        },
+        {
+          "id": "upgrade-to-candidate",
+          "outcome": "PASS",
+          "exit_code": 0,
+          "active_version": "1.0.0"
+        },
+        {
+          "id": "invalid-upgrade-rejected",
+          "outcome": "PASS",
+          "exit_code": 1,
+          "active_version": "1.0.0"
+        },
+        {
+          "id": "rollback-to-previous",
+          "outcome": "PASS",
+          "exit_code": 0,
+          "active_version": "0.3.0-rc.6"
+        },
+        {
+          "id": "candidate-reinstall",
+          "outcome": "PASS",
+          "exit_code": 0,
+          "active_version": "1.0.0"
+        },
+        {
+          "id": "plugin-uninstall",
+          "outcome": "PASS",
+          "exit_code": 0
+        },
+        {
+          "id": "marketplace-remove",
+          "outcome": "PASS",
+          "exit_code": 0
+        },
+        {
+          "id": "config-state-restore",
+          "outcome": "PASS",
+          "exit_code": 0
+        }
+      ],
+      "state_before": {
+        "installed_plugin_count": 14,
+        "installed_plugin_ids_sha256": "88cc8c979f040b7b9774f4ab6198d0530610fecf6a389048ca5a413f87404341",
+        "marketplace_count": 6,
+        "marketplace_names_sha256": "fa7db3991654ad43637e2b48b948bcce8b340d10adf1dd84faf97bd04653ae2d",
+        "atelier_plugin_count": 0,
+        "atelier_marketplace_count": 0,
+        "config_mode": "0600",
+        "config_byte_size": 5955,
+        "config_sha256": "129d9bca33d8686a90b46c5e6c6f60e39ec77948ad1b0210bb19cb8e4ecd7327"
+      },
+      "state_after": {
+        "installed_plugin_count": 14,
+        "installed_plugin_ids_sha256": "88cc8c979f040b7b9774f4ab6198d0530610fecf6a389048ca5a413f87404341",
+        "marketplace_count": 6,
+        "marketplace_names_sha256": "fa7db3991654ad43637e2b48b948bcce8b340d10adf1dd84faf97bd04653ae2d",
+        "atelier_plugin_count": 0,
+        "atelier_marketplace_count": 0,
+        "config_mode": "0600",
+        "config_byte_size": 5955,
+        "config_sha256": "129d9bca33d8686a90b46c5e6c6f60e39ec77948ad1b0210bb19cb8e4ecd7327"
+      }
+    }
+  },
+  "required_ci": {
+    "outcome": "PASS",
+    "provider": "github-actions",
+    "repository": "Leon0555/codex-game-atelier",
+    "workflow_path": ".github/workflows/ci.yml",
+    "job_name": "verify-macos-arm64",
+    "run_id": 34215199240,
+    "run_url": "https://github.com/Leon0555/codex-game-atelier/actions/runs/34215199240",
+    "head_sha": "72f7e9201f9027b30479aacb63c20c280cd6438b",
+    "event": "push",
+    "branch": "main",
+    "branch_protection_required": true,
+    "branch_protection": {
+      "observed_at": "2026-09-08T10:43:30Z",
+      "repository": "Leon0555/codex-game-atelier",
+      "branch": "main",
+      "required_check": "verify-macos-arm64",
+      "strict": true,
+      "enforce_admins": true,
+      "allow_force_pushes": false,
+      "allow_deletions": false,
+      "required_signatures": false
+    }
+  },
+  "recorded_at": "2026-09-08T10:43:30Z"
+}

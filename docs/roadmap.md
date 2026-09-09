@@ -1,6 +1,6 @@
 # Codex Game Atelier 路线图
 
-状态：Phase 0、M1、M2 已完成；M3 `1.0.0` 技术门禁通过，独立终审待执行
+状态：Phase 0、M1、M2 已完成；M3 `1.0.0` 候选与独立终审通过，正式发布待授权
 更新日期：2026-09-08
 
 ## 1. 已完成基线
@@ -68,7 +68,8 @@ M2 不做：隐藏规划器、常驻多代理服务、通用策略引擎、完�
 4. **已完成**：`main` required CI 与现场 branch-protection 快照已绑定进 1.1.0 evidence；rc.6 strict 12/12 PASS。详见 [`m3-rc6-bound-release-evidence-2026-09-08.md`](validation/m3-rc6-bound-release-evidence-2026-09-08.md)。
 5. **已完成**：rc.6 独立架构、安全、许可与发布最终只读审计 PASS；初审唯一 Low 为项目简报状态滞后，主 owner 修复后由原审计者复核关闭，最终 0 Blocker、0 High、0 Medium、0 Low。ADR 0027 的 V1-09 政策变更也经独立只读审计，两个同步 Low 修复后最终 0/0/0/0。rc.3 终审 High、rc.4/rc.5 manifest warning 均保留为历史失败，不被 rc.6 结果覆盖。详见 [`m3-rc6-final-readonly-audit-2026-09-08.md`](validation/m3-rc6-final-readonly-audit-2026-09-08.md) 与 [`m3-rc6-single-machine-policy-audit-2026-09-08.md`](validation/m3-rc6-single-machine-policy-audit-2026-09-08.md)。
 6. **已完成（技术门禁）**：根据 ADR 0028 从新的干净 revision 重建 `1.0.0`，完成双份可复现候选、rc.6 升级/失败保护/回滚/卸载、远程 Plugin、Godot E2E、required CI 与 strict 12/12 PASS。版本字符串进入二进制、Plugin、Starter、manifest 和 hash，没有把 rc.6 产物直接改名。用户级 Codex 配置与 Atelier cache 已精确恢复到演练前状态。
-7. **待执行**：对文档一致的 `1.0.0` 最终候选进行独立架构、安全、许可与发布只读终审；通过后再请求用户批准受保护 `v1.0.0` tag 与正式 Plugin 外部发布。v1 不执行 npm publish 或独立二进制 GitHub Release。
+7. **已完成**：文档一致的 `1.0.0` 最终候选通过独立架构、安全、许可与发布只读终审，最终为 0 Blocker、0 High、0 Medium、0 Low。
+8. **待用户授权**：启用并复核 GitHub Private Vulnerability Reporting，然后创建受保护 `v1.0.0` tag 并执行正式 Plugin 外部发布。v1 不执行 npm publish 或独立二进制 GitHub Release。
 
 M3 不做：Godot 游戏产物签名/公证、框架预防性 Apple 公证、自动账号登录、长期发布 Token、未经授权的远程写入。
 
